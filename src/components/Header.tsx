@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ShoppingCartIcon, SearchIcon, MenuIcon, XIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   return <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -8,29 +9,29 @@ export const Header = () => {
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
             <h1 className="text-xl font-bold text-green-700">
-              Starseedz Nurseries
+              <Link to="/">Starseedz Nurseries</Link>
             </h1>
           </div>
           {/* Desktop Navigation */}
           <nav className="hidden md:ml-6 md:flex md:space-x-8">
-            <a href="#" className="text-gray-700 hover:text-green-700 px-3 py-2 text-sm font-medium">
+            <Link to="/" className="text-gray-700 hover:text-green-700 px-3 py-2 text-sm font-medium">
               Home
-            </a>
-            <a href="#" className="text-gray-700 hover:text-green-700 px-3 py-2 text-sm font-medium">
+            </Link>
+            <Link to="/shop" className="text-gray-700 hover:text-green-700 px-3 py-2 text-sm font-medium">
               Shop
-            </a>
-            <a href="#" className="text-gray-700 hover:text-green-700 px-3 py-2 text-sm font-medium">
+            </Link>
+            <Link to="/shop" className="text-gray-700 hover:text-green-700 px-3 py-2 text-sm font-medium">
               Plants
-            </a>
-            <a href="#" className="text-gray-700 hover:text-green-700 px-3 py-2 text-sm font-medium">
+            </Link>
+            <Link to="/shop" className="text-gray-700 hover:text-green-700 px-3 py-2 text-sm font-medium">
               Garden Supplies
-            </a>
-            <a href="#" className="text-gray-700 hover:text-green-700 px-3 py-2 text-sm font-medium">
+            </Link>
+            <Link to="/about" className="text-gray-700 hover:text-green-700 px-3 py-2 text-sm font-medium">
               About
-            </a>
-            <a href="#" className="text-gray-700 hover:text-green-700 px-3 py-2 text-sm font-medium">
+            </Link>
+            <Link to="/contact" className="text-gray-700 hover:text-green-700 px-3 py-2 text-sm font-medium">
               Contact
-            </a>
+            </Link>
           </nav>
           {/* Desktop Icons */}
           <div className="hidden md:flex items-center space-x-4">
@@ -55,24 +56,24 @@ export const Header = () => {
       {/* Mobile menu */}
       {isMenuOpen && <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            <a href="#" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-green-700">
+            <Link to="/" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-green-700">
               Home
-            </a>
-            <a href="#" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-green-700">
+            </Link>
+            <Link to="/shop" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-green-700">
               Shop
-            </a>
-            <a href="#" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-green-700">
+            </Link>
+            <Link to="/shop" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-green-700">
               Plants
-            </a>
-            <a href="#" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-green-700">
+            </Link>
+            <Link to="/shop" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-green-700">
               Garden Supplies
-            </a>
-            <a href="#" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-green-700">
+            </Link>
+            <Link to="/about" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-green-700">
               About
-            </a>
-            <a href="#" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-green-700">
+            </Link>
+            <Link to="/contact" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-green-700">
               Contact
-            </a>
+            </Link>
           </div>
           <div className="pt-4 pb-3 border-t border-gray-200">
             <div className="flex items-center px-5 space-x-4">

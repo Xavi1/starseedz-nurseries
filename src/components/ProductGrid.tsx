@@ -29,7 +29,7 @@ export const ProductGrid = () => {
     id: 4,
     name: 'Pimento',
     price: 60.00,
-    image: '/img/pimentopepper.webp',
+    image: '/img/pimento.webp',
     category: 'Vegetables',
     rating: 5
   }, {
