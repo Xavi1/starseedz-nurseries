@@ -7,7 +7,7 @@ export const ProductGrid = () => {
     id: 1,
     name: 'Super Delhi Tomato Plants',
     price: 80.00,
-    image: 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+    image: '/img/tomato.webp',
     category: 'Vegetables',
     rating: 5,
     isBestSeller: true
@@ -15,36 +15,35 @@ export const ProductGrid = () => {
     id: 2,
     name: 'Chive',
     price: 60.00,
-    image: 'https://images.unsplash.com/photo-1593482892290-f54927ae2b7b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+    image: '/img/chives.webp',
     category: 'Herbs',
     rating: 4
   }, {
     id: 3,
     name: 'Fine Thyme',
     price: 60.00,
-    image: 'https://images.unsplash.com/photo-1616500163246-0ffbb872f4de?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+    image: '/img/thyme.webp',
     category: 'Herbs',
     rating: 4
   }, {
     id: 4,
     name: 'Pimento',
     price: 60.00,
-    image: 'https://images.unsplash.com/photo-1616784754051-4769c7a8cf5f?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+    image: '/img/pimentopepper.webp',
     category: 'Vegetables',
     rating: 5
   }, {
     id: 5,
     name: 'Chilli pepper',
     price: 60.00,
-    image: 'https://images.unsplash.com/photo-1590585735278-6edaff1c0c28?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+    image: '/img/chilli.webp',
     category: 'Vegetables',
     rating: 4
-  }, 
-  {
+  }, {
     id: 6,
     name: 'Kale',
     price: 50.00,
-    image: 'https://images.unsplash.com/photo-1590585735278-6edaff1c0c28?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+    image: '/img/kale.webp',
     category: 'Vegetables',
     rating: 4
   }
