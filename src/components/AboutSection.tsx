@@ -1,6 +1,9 @@
-import React from 'react';
+import { useEffect } from 'react';
 import { LeafIcon, SunIcon, DropletIcon } from 'lucide-react';
 export const AboutSection = () => {
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+  }, []);
   return <section className="py-16 bg-green-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-center">

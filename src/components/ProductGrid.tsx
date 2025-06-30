@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ProductCard, Product } from './ProductCard';
 import { FilterIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
 export const ProductGrid = () => {
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const products: Product[] = [{
@@ -48,8 +49,26 @@ export const ProductGrid = () => {
     rating: 4
   }
 ];
-  const filteredProducts = activeFilter === 'all' ? products : products.filter(product => product.category === activeFilter);
-  const categories = ['all', ...new Set(products.map(product => product.category))];
+  // Support multiple categories per product
+  const filteredProducts = activeFilter === 'all'
+    ? products
+    : products.filter(product =>
+        Array.isArray(product.category)
+          ? product.category.includes(activeFilter)
+          : product.category === activeFilter
+      );
+  // Flatten all categories for filter buttons
+  const allCategories = Array.from(
+    products.reduce((set, product) => {
+      if (Array.isArray(product.category)) {
+        product.category.forEach(cat => set.add(cat));
+      } else {
+        set.add(product.category);
+      }
+      return set;
+    }, new Set<string>())
+  );
+  const categories = ['all', ...allCategories];
   return <section className="py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
@@ -75,9 +94,9 @@ export const ProductGrid = () => {
           {filteredProducts.map(product => <ProductCard key={product.id} product={product} />)}
         </div>
         <div className="mt-8 text-center">
-          <a href="#" className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-700 hover:bg-green-800 shadow-sm">
+          <Link to="/shop" className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-700 hover:bg-green-800 shadow-sm">
             View All Products
-          </a>
+          </Link>
         </div>
       </div>
     </section>;
