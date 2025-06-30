@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Footer } from '../components/Footer';
 import { ShopSidebar } from '../components/ShopSidebar';
 import { ProductCard, Product } from '../components/ProductCard';
@@ -78,42 +78,6 @@ export const Shop = () => {
       isBestSeller: true,
     },
     {
-      id: 2,
-      name: 'Snake Plant',
-      price: 24.99,
-      image:
-        'https://images.unsplash.com/photo-1593482892290-f54927ae2b7b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-      category: ['Herbs'],
-      rating: 4,
-    },
-    {
-      id: 3,
-      name: 'Fiddle Leaf Fig',
-      price: 49.99,
-      image:
-        'https://images.unsplash.com/photo-1616500163246-0ffbb872f4de?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-      category: ['Curcubits'],
-      rating: 4,
-    },
-    {
-      id: 4,
-      name: 'Peace Lily',
-      price: 29.99,
-      image:
-        'https://images.unsplash.com/photo-1616784754051-4769c7a8cf5f?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-      category: ['Beans'],
-      rating: 5,
-    },
-    {
-      id: 5,
-      name: 'Lavender Plant',
-      price: 15.99,
-      image:
-        'https://images.unsplash.com/photo-1590585735278-6edaff1c0c28?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-      category: ['Herbs'],
-      rating: 4,
-    },
-    {
       id: 6,
       name: 'Rosemary Herb',
       price: 12.99,
@@ -133,49 +97,11 @@ export const Shop = () => {
       isNew: true,
     },
     {
-      id: 11,
-      name: 'Tomato Plant',
-      price: 8.99,
-      image:
-        'https://images.unsplash.com/photo-1592818868295-05bb51211373?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-      category: ['Vegetables'],
-      rating: 4,
-      isNew: true,
-    },
-    {
-      id: 12,
-      name: 'Pruning Shears',
-      price: 22.99,
-      image:
-        'https://images.unsplash.com/photo-1623210554954-9c8ae9a6a4e7?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-      category: ['Vegetables'],
-      rating: 4,
-    },
-    {
-      id: 13,
-      name: 'Potting Soil Mix',
-      price: 18.99,
-      image:
-        'https://images.unsplash.com/photo-1562688009-b5b4646a3b2a?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-      category: ['Beans'],
-      rating: 5,
-    },
-    {
-      id: 14,
-      name: 'Decorative Plant Pot',
-      price: 29.99,
-      image:
-        'https://images.unsplash.com/photo-1618220252344-8ec99ec624b1?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-      category: ['Curcubits'],
-      rating: 4,
-      isNew: true,
-    },
-    {
       id: 15,
       name: 'Basil Herb Plant',
-      price: 7.99,
+      price: 30.00,
       image:
-        'https://images.unsplash.com/photo-1600326145552-327f74b9c189?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+        '/img/basil.webp',
       category: ['Herbs'],
       rating: 4,
     },
