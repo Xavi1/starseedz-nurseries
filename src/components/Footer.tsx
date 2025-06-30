@@ -1,4 +1,3 @@
-import React from 'react';
 import { PhoneIcon, MailIcon, MapPinIcon, ClockIcon, FacebookIcon, InstagramIcon, TwitterIcon } from 'lucide-react';
 export const Footer = () => {
   return <footer className="bg-gray-900 text-white">

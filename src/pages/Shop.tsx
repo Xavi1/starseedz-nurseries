@@ -133,33 +133,6 @@ export const Shop = () => {
       isNew: true,
     },
     {
-      id: 8,
-      name: 'Gardening Tool Set',
-      price: 34.99,
-      image:
-        'https://images.unsplash.com/photo-1585513553738-84971d9c2f8d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-      category: ['Vegetables'],
-      rating: 5,
-    },
-    {
-      id: 9,
-      name: 'Boston Fern',
-      price: 19.99,
-      image:
-        'https://images.unsplash.com/photo-1600411192008-aea8c0d982eb?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-      category: ['Beans'],
-      rating: 4,
-    },
-    {
-      id: 10,
-      name: 'Aloe Vera',
-      price: 14.99,
-      image:
-        'https://images.unsplash.com/photo-1509423350716-97f9360b4e09?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-      category: ['Curcubits'],
-      rating: 5,
-    },
-    {
       id: 11,
       name: 'Tomato Plant',
       price: 8.99,
