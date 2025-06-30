@@ -30,14 +30,14 @@ export const ProductGrid = () => {
     name: 'Pimento',
     price: 60.00,
     image: '/img/pimento.webp',
-    category: 'Vegetables',
+    category: 'Peppers',
     rating: 5
   }, {
     id: 5,
     name: 'Chilli pepper',
     price: 60.00,
     image: '/img/chilli.webp',
-    category: 'Vegetables',
+    category: 'Peppers',
     rating: 4
   }, {
     id: 6,

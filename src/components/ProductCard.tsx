@@ -5,7 +5,7 @@ export type Product = {
   name: string;
   price: number;
   image: string;
-  category: string;
+  category: string | string[];
   rating: number;
   isNew?: boolean;
   isBestSeller?: boolean;
@@ -16,6 +16,10 @@ type ProductCardProps = {
 export const ProductCard: React.FC<ProductCardProps> = ({
   product
 }) => {
+  // Render category as comma-separated if array
+  const categoryDisplay = Array.isArray(product.category)
+    ? product.category.join(', ')
+    : product.category;
   return <div className="group relative bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
       <div className="relative">
         <div className="w-full h-64 bg-gray-200 overflow-hidden">
@@ -34,7 +38,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </div>
       </div>
       <div className="p-4">
-        <h3 className="text-sm text-gray-500">{product.category}</h3>
+        <h3 className="text-sm text-gray-500">{categoryDisplay}</h3>
         <h2 className="mt-1 text-base font-medium text-gray-900">
           {product.name}
         </h2>
