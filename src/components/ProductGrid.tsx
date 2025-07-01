@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ProductCard, Product } from './ProductCard';
 import { FilterIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
