@@ -5,6 +5,7 @@ import { ProductCard, Product } from '../components/ProductCard';
 import { Pagination } from '../components/Pagination';
 import { SortDropdown } from '../components/SortDropdown';
 import { ChevronRightIcon, HomeIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
 export const Shop = () => {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [activePriceRange, setActivePriceRange] = useState<string>('all');
@@ -187,13 +188,13 @@ export const Shop = () => {
         <nav className="bg-gray-50 border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="py-3 flex items-center space-x-2">
-              <a
-                href="#"
+              <Link
+                to="/"
                 className="text-gray-500 hover:text-gray-700 flex items-center"
               >
                 <HomeIcon className="h-4 w-4 mr-1" />
                 Home
-              </a>
+              </Link>
               <ChevronRightIcon className="h-4 w-4 text-gray-400" />
               <span className="text-green-700 font-medium">Shop</span>
             </div>
