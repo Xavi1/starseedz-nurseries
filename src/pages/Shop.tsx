@@ -58,6 +58,7 @@ export const Shop = () => {
       image: '/img/chilli.webp',
       category: ['Peppers'],
       rating: 4,
+      isNew: true,
     },
     {
       id: 106,
@@ -80,21 +81,11 @@ export const Shop = () => {
     {
       id: 6,
       name: 'Rosemary Herb',
-      price: 12.99,
+      price: 29.99,
       image:
         'https://images.unsplash.com/photo-1515586000433-45406d8e6662?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
       category: ['Herbs'],
       rating: 3,
-    },
-    {
-      id: 7,
-      name: 'Echeveria Succulent',
-      price: 9.99,
-      image:
-        'https://images.unsplash.com/photo-1509423350716-97f9360b4e09?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-      category: ['Peppers'],
-      rating: 4,
-      isNew: true,
     },
     {
       id: 15,
@@ -108,7 +99,7 @@ export const Shop = () => {
     {
       id: 16,
       name: 'Mint Herb Plant',
-      price: 7.99,
+      price: 29.99,
       image:
         'https://images.unsplash.com/photo-1628556270448-4d4e4148e1b1?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
       category: ['Herbs'],
