@@ -122,8 +122,6 @@ export const Shop = () => {
   // Filter by price
   const priceRanges = {
     all: [0, 1000],
-    'under-10': [0, 9.99],
-    '10-20': [10, 19.99],
     '20-30': [20, 29.99],
     '30-50': [30, 49.99],
     'over-50': [50, 1000],
