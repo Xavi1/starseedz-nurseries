@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 export const Hero = () => {
   return <section className="relative bg-green-700">
       <div className="absolute inset-0 bg-black opacity-30"></div>
@@ -16,9 +17,9 @@ export const Hero = () => {
               supplies for your indoor and outdoor spaces.
             </p>
             <div className="mt-8 flex space-x-4">
-              <a href="#" className="px-6 py-3 border border-transparent text-base font-medium rounded-md text-green-700 bg-white hover:bg-gray-100 shadow-md">
+              <Link to="/shop" className="px-6 py-3 border border-transparent text-base font-medium rounded-md text-green-700 bg-white hover:bg-gray-100 shadow-md">
                 Shop Plants
-              </a>
+              </Link>
               <a href="#" className="px-6 py-3 border border-white text-base font-medium rounded-md text-white hover:bg-green-800 hover:bg-opacity-30">
                 Learn More
               </a>

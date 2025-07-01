@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Footer } from '../components/Footer';
 import { ShopSidebar } from '../components/ShopSidebar';
 import { ProductCard, Product } from '../components/ProductCard';
@@ -11,6 +11,7 @@ export const Shop = () => {
   const [activePriceRange, setActivePriceRange] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [sortOption, setSortOption] = useState('featured');
+  const productGridRef = useRef<HTMLDivElement>(null);
   // Sample product data - expanded from the existing ProductGrid component
   // Change Product type for this file only (override or locally define)
   type ShopProduct = Omit<Product, 'category'> & {
@@ -182,6 +183,14 @@ export const Shop = () => {
               Discover our curated collection of beautiful plants and garden
               supplies for your indoor and outdoor spaces.
             </p>
+            <button
+              onClick={() => {
+                productGridRef.current?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="inline-block mt-8 px-6 py-3 bg-white text-green-700 font-semibold rounded-lg shadow hover:bg-green-100 transition"
+            >
+              Shop Plants
+            </button>
           </div>
         </div>
         {/* Breadcrumbs */}
@@ -218,7 +227,7 @@ export const Shop = () => {
               />
             </div>
             {/* Main content */}
-            <div className="lg:col-span-9">
+            <div className="lg:col-span-9" ref={productGridRef}>
               {/* Sort and filter row */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pb-4 border-b border-gray-200">
                 <div className="mb-4 sm:mb-0">
