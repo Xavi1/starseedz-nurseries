@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { ShoppingCartIcon, SearchIcon, MenuIcon, XIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 export const Header = () => {
