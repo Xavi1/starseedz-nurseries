@@ -5,7 +5,7 @@ export const FeaturedCategories = () => {
     {
       id: 1,
       name: 'Peppers',
-      image: '/img/pimentopepper.webp',
+      image: '/img/peppers.webp',
       description: 'Spice up your garden with our pepper varieties.'
     },
     {
@@ -29,13 +29,13 @@ export const FeaturedCategories = () => {
     {
       id: 5,
       name: 'Beans',
-      image: 'https://images.unsplash.com/photo-1502741338009-cac2772e18bc?auto=format&fit=crop&w=500&q=60',
+      image: '/img/beans.webp',
       description: 'Protein-rich and easy to grow.'
     },
     {
       id: 6,
       name: 'Fruits',
-      image: '/img/basil.webp',
+      image: '/img/fruits.webp',
       description: 'Sweet and healthy additions to your diet.'
     },
   ];
