@@ -1,5 +1,6 @@
 import { ShoppingCartIcon, SearchIcon, MenuIcon, XIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   return <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -78,3 +79,4 @@ export const Header = () => {
         </div>}
     </header>;
 };
+
