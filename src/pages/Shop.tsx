@@ -1,4 +1,5 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Footer } from '../components/Footer';
 import { ShopSidebar } from '../components/ShopSidebar';
 import { ProductCard, Product } from '../components/ProductCard';
@@ -7,7 +8,11 @@ import { SortDropdown } from '../components/SortDropdown';
 import { ChevronRightIcon, HomeIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 export const Shop = () => {
-  const [activeCategory, setActiveCategory] = useState<string>('all');
+  const location = useLocation();
+  // Get category from query string
+  const params = new URLSearchParams(location.search);
+  const initialCategory = params.get('category') || 'all';
+  const [activeCategory, setActiveCategory] = useState<string>(initialCategory);
   const [activePriceRange, setActivePriceRange] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [sortOption, setSortOption] = useState('featured');
@@ -170,6 +175,10 @@ export const Shop = () => {
       behavior: 'smooth',
     });
   };
+  useEffect(() => {
+    // Update filter if URL changes (e.g., user clicks a category from homepage)
+    setActiveCategory(params.get('category') || 'all');
+  }, [location.search]);
   return (
     <div className="min-h-screen bg-white">
       <main>

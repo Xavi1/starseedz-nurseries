@@ -61,7 +61,7 @@ export const FeaturedCategories = () => {
                 <p className="mt-1 text-sm text-gray-500">
                   {category.description}
                 </p>
-                <Link to="/shop" className="mt-2 inline-block text-green-700 hover:text-green-800 text-sm font-medium">
+                <Link to={`/shop?category=${encodeURIComponent(category.name)}`} className="mt-2 inline-block text-green-700 hover:text-green-800 text-sm font-medium">
                   Shop Now →
                 </Link>
               </div>
