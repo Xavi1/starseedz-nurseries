@@ -1,4 +1,3 @@
-import React from 'react';
 // Remove Header and Footer imports
 import { LeafIcon, HeartIcon, UsersIcon, AwardIcon, ThumbsUpIcon, CalendarIcon, GlobeIcon, CheckCircleIcon } from 'lucide-react';
 export const About = () => {
