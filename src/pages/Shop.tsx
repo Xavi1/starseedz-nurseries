@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Footer } from '../components/Footer';
 import { ShopSidebar } from '../components/ShopSidebar';
 import { ProductCard, Product } from '../components/ProductCard';
 import { Pagination } from '../components/Pagination';
@@ -324,7 +323,6 @@ export const Shop = () => {
           </div>
         </div>
       </main>
-      <Footer />
     </div>
   );
 };
