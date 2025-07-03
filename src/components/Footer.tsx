@@ -1,4 +1,5 @@
 import { PhoneIcon, MailIcon, MapPinIcon, ClockIcon, FacebookIcon, InstagramIcon, TwitterIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
 export const Footer = () => {
   return <footer className="bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8">
@@ -25,14 +26,14 @@ export const Footer = () => {
             <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-gray-300 hover:text-white">
+                <Link to="/" className="text-gray-300 hover:text-white">
                   Home
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white">
+                <Link to="/shop" className="text-gray-300 hover:text-white">
                   Shop All Plants
-                </a>
+                </Link>
               </li>
               <li>
                 <a href="#" className="text-gray-300 hover:text-white">
@@ -40,9 +41,9 @@ export const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white">
+                <Link to="/about" className="text-gray-300 hover:text-white">
                   About Us
-                </a>
+                </Link>
               </li>
               <li>
                 <a href="#" className="text-gray-300 hover:text-white">
@@ -50,9 +51,9 @@ export const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white">
+                <Link to="/contact" className="text-gray-300 hover:text-white">
                   Contact
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

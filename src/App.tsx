@@ -7,6 +7,7 @@ import { AboutSection } from './components/AboutSection';
 import { Newsletter } from './components/Newsletter';
 import { Footer } from './components/Footer';
 import { Shop } from './pages/Shop';
+import { About } from './pages/About';
 
 export function App() {
   return (
@@ -25,7 +26,9 @@ export function App() {
               </>
             } />
             <Route path="/shop" element={<Shop />} />
-            {/* Add more routes for other new components/pages as needed */}
+            <Route path="/about" element={<About />} />
+            {/* Uncomment and add your Contact page if available */}
+            {/* <Route path="/contact" element={<Contact />} /> */}
           </Routes>
         </main>
         <Footer />

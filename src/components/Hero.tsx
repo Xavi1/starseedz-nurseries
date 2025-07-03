@@ -19,9 +19,9 @@ export const Hero = () => {
               <Link to="/shop" className="px-6 py-3 border border-transparent text-base font-medium rounded-md text-green-700 bg-white hover:bg-gray-100 shadow-md">
                 Shop Plants
               </Link>
-              <a href="#" className="px-6 py-3 border border-white text-base font-medium rounded-md text-white hover:bg-green-800 hover:bg-opacity-30">
+              <Link to="/about" className="px-6 py-3 border border-white text-base font-medium rounded-md text-white hover:bg-green-800 hover:bg-opacity-30">
                 Learn More
-              </a>
+              </Link>
             </div>
           </div>
         </div>
