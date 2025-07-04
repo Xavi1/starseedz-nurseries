@@ -1,8 +1,18 @@
 import { ShoppingCartIcon, SearchIcon, MenuIcon, XIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (showSearch && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [showSearch]);
+
   return <header className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
@@ -29,9 +39,22 @@ export const Header = () => {
           </nav>
           {/* Desktop Icons */}
           <div className="hidden md:flex items-center space-x-4">
-            <button className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none">
-              <SearchIcon className="h-6 w-6" />
-            </button>
+            {showSearch ? (
+              <input
+                ref={searchInputRef}
+                type="text"
+                className="w-64 px-3 py-2 border border-green-500 rounded-md shadow focus:outline-none focus:ring-2 focus:ring-green-500 transition"
+                placeholder="Search..."
+                value={searchValue}
+                onChange={e => setSearchValue(e.target.value)}
+                onBlur={() => setShowSearch(false)}
+                autoFocus
+              />
+            ) : (
+              <button className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none" onClick={() => setShowSearch(true)}>
+                <SearchIcon className="h-6 w-6" />
+              </button>
+            )}
             <button className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none relative">
               <ShoppingCartIcon className="h-6 w-6" />
               <span className="absolute top-0 right-0 bg-green-600 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
