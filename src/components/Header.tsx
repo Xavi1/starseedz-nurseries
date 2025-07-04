@@ -1,11 +1,12 @@
 import { ShoppingCartIcon, SearchIcon, MenuIcon, XIcon } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (showSearch && searchInputRef.current) {
@@ -49,6 +50,12 @@ export const Header = () => {
                 onChange={e => setSearchValue(e.target.value)}
                 onBlur={() => setShowSearch(false)}
                 autoFocus
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && searchValue.trim()) {
+                    navigate(`/shop?search=${encodeURIComponent(searchValue.trim())}`);
+                    setShowSearch(false);
+                  }
+                }}
               />
             ) : (
               <button className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none" onClick={() => setShowSearch(true)}>

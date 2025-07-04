@@ -11,6 +11,7 @@ export const Shop = () => {
   // Get category from query string
   const params = new URLSearchParams(location.search);
   const initialCategory = params.get('category') || 'all';
+  const searchQuery = params.get('search')?.toLowerCase() || '';
   const [activeCategory, setActiveCategory] = useState<string>(initialCategory);
   const [activePriceRange, setActivePriceRange] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -125,6 +126,12 @@ export const Shop = () => {
     activeCategory === 'all'
       ? allProducts
       : allProducts.filter(product => product.category.includes(activeCategory));
+  // Apply search filter
+  const searchFilteredProducts = searchQuery
+    ? categoryFilteredProducts.filter(product =>
+        product.name.toLowerCase().includes(searchQuery)
+      )
+    : categoryFilteredProducts;
   // Filter by price
   const priceRanges = {
     all: [0, 1000],
@@ -134,8 +141,8 @@ export const Shop = () => {
   };
   const priceFilteredProducts =
     activePriceRange === 'all'
-      ? categoryFilteredProducts
-      : categoryFilteredProducts.filter(
+      ? searchFilteredProducts
+      : searchFilteredProducts.filter(
           product =>
             product.price >=
               priceRanges[activePriceRange as keyof typeof priceRanges][0] &&
