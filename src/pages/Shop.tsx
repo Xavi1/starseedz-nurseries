@@ -128,9 +128,16 @@ export const Shop = () => {
       : allProducts.filter(product => product.category.includes(activeCategory));
   // Apply search filter
   const searchFilteredProducts = searchQuery
-    ? categoryFilteredProducts.filter(product =>
-        product.name.toLowerCase().includes(searchQuery)
-      )
+    ? categoryFilteredProducts.filter(product => {
+        const name = product.name.toLowerCase();
+        // Check if search term is in name or name is in search term
+        const nameMatch = name.includes(searchQuery) || searchQuery.includes(name);
+        // Check if search term matches any category
+        const categoryMatch = product.category.some(cat =>
+          cat.toLowerCase().includes(searchQuery) || searchQuery.includes(cat.toLowerCase())
+        );
+        return nameMatch || categoryMatch;
+      })
     : categoryFilteredProducts;
   // Filter by price
   const priceRanges = {
