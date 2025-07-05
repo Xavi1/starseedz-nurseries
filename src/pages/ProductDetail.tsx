@@ -41,11 +41,155 @@ export const ProductDetail = () => {
   const [activeTab, setActiveTab] = useState('description');
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   // Detailed product data for extra info (could be merged into allProducts in the future)
+  // Detailed product data for all products (generated for demo purposes)
   const detailedProductsData: {
-    [key: number]: Omit<DetailedProduct, keyof Product> & {
-      id: number;
-    };
+    [key: number]: Omit<DetailedProduct, keyof Product> & { id: number };
   } = {
+    101: {
+      id: 101,
+      description: 'High-yielding tomato plants ideal for home gardens.',
+      longDescription: 'Super Delhi Tomato Plants produce large, flavorful tomatoes perfect for salads and cooking. These plants are disease-resistant and thrive in sunny locations. Great for both beginners and experienced gardeners.',
+      careInstructions: {
+        light: 'Full sun. At least 6-8 hours of direct sunlight daily.',
+        water: 'Keep soil consistently moist but not soggy. Water at the base to avoid wetting leaves.',
+        temperature: 'Prefers 65-85°F (18-29°C). Protect from frost.',
+        warnings: 'Support with stakes or cages as plants grow. Watch for pests.'
+      },
+      specifications: {
+        'Mature Height': '4-6 feet',
+        'Growth Rate': 'Fast',
+        'Pot Size': '12 inches+',
+        Difficulty: 'Easy',
+        'Light Requirements': 'Full sun',
+        'Pet Friendly': 'Yes'
+      },
+      reviews: [
+        { id: 1, user: 'Anna G.', date: '2024-06-10', rating: 5, comment: 'Best tomatoes I have ever grown!' },
+        { id: 2, user: 'Ben S.', date: '2024-05-22', rating: 4, comment: 'Vigorous plants, lots of fruit.' }
+      ],
+      inStock: true,
+      relatedProducts: [102, 106, 1]
+    },
+    102: {
+      id: 102,
+      description: 'Mild onion-flavored herb for culinary use.',
+      longDescription: 'Chives are easy to grow and add a delicate onion flavor to dishes. They are perennial and can be harvested multiple times a season. Great for borders and container gardens.',
+      careInstructions: {
+        light: 'Full sun to partial shade.',
+        water: 'Water regularly, keep soil moist but not soggy.',
+        temperature: 'Prefers 60-75°F (16-24°C).',
+        warnings: 'Divide clumps every few years for best growth.'
+      },
+      specifications: {
+        'Mature Height': '12-18 inches',
+        'Growth Rate': 'Moderate',
+        'Pot Size': '6 inches+',
+        Difficulty: 'Easy',
+        'Light Requirements': 'Full sun to partial shade',
+        'Pet Friendly': 'Yes'
+      },
+      reviews: [
+        { id: 1, user: 'Sam T.', date: '2024-05-01', rating: 5, comment: 'Perfect for my kitchen window.' }
+      ],
+      inStock: true,
+      relatedProducts: [103, 15, 16]
+    },
+    103: {
+      id: 103,
+      description: 'Aromatic thyme variety for cooking and garnish.',
+      longDescription: 'Fine Thyme is a compact, fragrant herb that thrives in containers and garden beds. Its leaves are perfect for seasoning meats, soups, and vegetables.',
+      careInstructions: {
+        light: 'Full sun.',
+        water: 'Allow soil to dry between waterings. Drought tolerant once established.',
+        temperature: 'Prefers 65-80°F (18-27°C).',
+        warnings: 'Avoid overwatering. Prune regularly.'
+      },
+      specifications: {
+        'Mature Height': '6-12 inches',
+        'Growth Rate': 'Slow',
+        'Pot Size': '6 inches+',
+        Difficulty: 'Easy',
+        'Light Requirements': 'Full sun',
+        'Pet Friendly': 'Yes'
+      },
+      reviews: [
+        { id: 1, user: 'Lily M.', date: '2024-04-18', rating: 4, comment: 'Very fragrant and easy to grow.' }
+      ],
+      inStock: true,
+      relatedProducts: [102, 15, 16]
+    },
+    104: {
+      id: 104,
+      description: 'Sweet, mild pepper variety for fresh eating.',
+      longDescription: 'Pimento peppers are known for their sweet flavor and thick flesh. Great for stuffing, roasting, or eating raw. Plants are productive and easy to grow.',
+      careInstructions: {
+        light: 'Full sun.',
+        water: 'Keep soil evenly moist. Do not let dry out completely.',
+        temperature: 'Prefers 70-85°F (21-29°C).',
+        warnings: 'Stake plants if heavy with fruit.'
+      },
+      specifications: {
+        'Mature Height': '18-24 inches',
+        'Growth Rate': 'Moderate',
+        'Pot Size': '10 inches+',
+        Difficulty: 'Easy',
+        'Light Requirements': 'Full sun',
+        'Pet Friendly': 'Yes'
+      },
+      reviews: [
+        { id: 1, user: 'Carlos R.', date: '2024-06-01', rating: 5, comment: 'Delicious and productive.' }
+      ],
+      inStock: true,
+      relatedProducts: [105, 106, 101]
+    },
+    105: {
+      id: 105,
+      description: 'Spicy pepper for culinary heat and color.',
+      longDescription: 'Chilli pepper plants produce abundant, spicy fruit. Use fresh, dried, or pickled. Great for salsas and hot sauces.',
+      careInstructions: {
+        light: 'Full sun.',
+        water: 'Water regularly, allow top inch of soil to dry between waterings.',
+        temperature: 'Prefers 70-90°F (21-32°C).',
+        warnings: 'Wear gloves when handling hot peppers.'
+      },
+      specifications: {
+        'Mature Height': '18-30 inches',
+        'Growth Rate': 'Fast',
+        'Pot Size': '10 inches+',
+        Difficulty: 'Moderate',
+        'Light Requirements': 'Full sun',
+        'Pet Friendly': 'No (spicy!)'
+      },
+      reviews: [
+        { id: 1, user: 'Derek F.', date: '2024-05-15', rating: 5, comment: 'Very spicy and productive.' }
+      ],
+      inStock: true,
+      relatedProducts: [104, 106, 101]
+    },
+    106: {
+      id: 106,
+      description: 'Nutritious leafy green for salads and cooking.',
+      longDescription: 'Kale is a hardy, cool-season crop packed with vitamins. Great for salads, smoothies, and sautés. Easy to grow in most climates.',
+      careInstructions: {
+        light: 'Full sun to partial shade.',
+        water: 'Keep soil moist. Mulch to retain moisture.',
+        temperature: 'Prefers 55-75°F (13-24°C).',
+        warnings: 'Watch for cabbage worms and aphids.'
+      },
+      specifications: {
+        'Mature Height': '12-18 inches',
+        'Growth Rate': 'Fast',
+        'Pot Size': '12 inches+',
+        Difficulty: 'Easy',
+        'Light Requirements': 'Full sun to partial shade',
+        'Pet Friendly': 'Yes'
+      },
+      reviews: [
+        { id: 1, user: 'Nina P.', date: '2024-04-30', rating: 5, comment: 'Grows fast and tastes great.' }
+      ],
+      inStock: true,
+      relatedProducts: [101, 104, 105]
+    },
     1: {
       id: 1,
       description: 'A popular tropical houseplant with iconic split leaves.',
@@ -64,129 +208,85 @@ export const ProductDetail = () => {
         'Light Requirements': 'Medium to bright indirect light',
         'Pet Friendly': 'No - toxic to cats and dogs'
       },
-      reviews: [{
-        id: 1,
-        user: 'Emily R.',
-        date: '2023-08-15',
-        rating: 5,
-        comment: 'Beautiful, healthy plant! Arrived well-packaged with no damage. Already seeing new growth after just a few weeks.'
-      }, {
-        id: 2,
-        user: 'Michael T.',
-        date: '2023-07-28',
-        rating: 4,
-        comment: 'Great plant, slightly smaller than I expected but very healthy. The care instructions were helpful.'
-      }, {
-        id: 3,
-        user: 'Sarah K.',
-        date: '2023-06-10',
-        rating: 5,
-        comment: 'This Monstera is thriving in my living room! The leaves are gorgeous and it arrived in perfect condition.'
-      }],
+      reviews: [
+        { id: 1, user: 'Emily R.', date: '2023-08-15', rating: 5, comment: 'Beautiful, healthy plant! Arrived well-packaged with no damage. Already seeing new growth after just a few weeks.' },
+        { id: 2, user: 'Michael T.', date: '2023-07-28', rating: 4, comment: 'Great plant, slightly smaller than I expected but very healthy. The care instructions were helpful.' },
+        { id: 3, user: 'Sarah K.', date: '2023-06-10', rating: 5, comment: 'This Monstera is thriving in my living room! The leaves are gorgeous and it arrived in perfect condition.' }
+      ],
       inStock: true,
-      relatedProducts: [2, 3, 4]
+      relatedProducts: [102, 106, 6]
     },
-    2: {
-      id: 2,
-      description: 'A hardy, low-maintenance plant perfect for beginners.',
-      longDescription: "The Snake Plant (Sansevieria) is one of the most tolerant houseplants you can find. With its stiff, upright leaves and striking appearance, it's both decorative and nearly indestructible. NASA has even listed it as an air-purifying plant that can remove toxins from the environment. Its minimal care requirements make it perfect for busy people or those new to plant parenthood.",
+    6: {
+      id: 6,
+      description: 'Aromatic Mediterranean herb for cooking.',
+      longDescription: 'Rosemary is a fragrant, evergreen herb used in a variety of dishes. It thrives in well-drained soil and full sun. Drought tolerant once established.',
       careInstructions: {
-        light: 'Tolerates low light to bright indirect light. Can handle some direct sun.',
-        water: 'Allow to dry completely between waterings. Water sparingly, especially in winter.',
-        temperature: 'Adaptable to most indoor temperatures. Prefers 65-85°F (18-29°C).',
-        warnings: 'Mildly toxic if ingested. Keep away from pets and children.'
+        light: 'Full sun.',
+        water: 'Allow soil to dry between waterings. Do not overwater.',
+        temperature: 'Prefers 60-80°F (16-27°C).',
+        warnings: 'Prune regularly to encourage bushy growth.'
       },
       specifications: {
-        'Mature Height': '1-4 feet',
-        'Growth Rate': 'Slow',
-        'Pot Size': '6 inches',
-        Difficulty: 'Very easy',
-        'Light Requirements': 'Low to bright indirect light',
-        'Pet Friendly': 'No - mildly toxic to pets'
-      },
-      reviews: [{
-        id: 1,
-        user: 'James W.',
-        date: '2023-09-02',
-        rating: 5,
-        comment: "Perfect plant for my office. Looks great and I can't seem to kill it!"
-      }, {
-        id: 2,
-        user: 'Olivia P.',
-        date: '2023-08-17',
-        rating: 4,
-        comment: "Healthy plant, good size. I've had it for a month and it's doing well with minimal care."
-      }],
-      inStock: true,
-      relatedProducts: [1, 4, 7]
-    },
-    3: {
-      id: 3,
-      description: 'An elegant indoor tree with large, violin-shaped leaves.',
-      longDescription: 'The Fiddle Leaf Fig (Ficus lyrata) is known for its large, glossy violin-shaped leaves and has become an interior design staple. Native to the tropical forests of Western Africa, this statement plant can grow quite tall indoors, creating a dramatic focal point in any room. While it has a reputation for being somewhat finicky, with consistent care it can thrive and grow for many years.',
-      careInstructions: {
-        light: 'Bright indirect light. Some direct morning sun is beneficial.',
-        water: 'Allow top inch of soil to dry between waterings. Consistent moisture without overwatering.',
-        temperature: 'Prefers temperatures between 65-75°F (18-24°C). Keep away from drafts.',
-        warnings: 'Can cause irritation if ingested. Keep sap away from skin and eyes.'
-      },
-      specifications: {
-        'Mature Height': '6-10 feet indoors',
+        'Mature Height': '2-3 feet',
         'Growth Rate': 'Moderate',
-        'Pot Size': '10 inches',
-        Difficulty: 'Moderate to difficult',
-        'Light Requirements': 'Bright indirect light',
-        'Pet Friendly': 'No - toxic to cats and dogs'
-      },
-      reviews: [{
-        id: 1,
-        user: 'Thomas B.',
-        date: '2023-07-25',
-        rating: 5,
-        comment: 'Gorgeous plant! Mine has adjusted well and is already putting out new leaves.'
-      }, {
-        id: 2,
-        user: 'Ava M.',
-        date: '2023-06-30',
-        rating: 3,
-        comment: 'Beautiful plant but requires more care than I expected. Still figuring out the right watering schedule.'
-      }],
-      inStock: true,
-      relatedProducts: [1, 4, 2]
-    },
-    4: {
-      id: 4,
-      description: 'An elegant flowering plant known for its air-purifying qualities.',
-      longDescription: "The Peace Lily (Spathiphyllum) is a popular choice for homes and offices due to its beautiful white flowers and glossy green leaves. It's one of the best air-purifying plants according to NASA studies. Peace lilies are relatively easy to care for and will even let you know when they need water by drooping slightly, then perking back up after watering.",
-      careInstructions: {
-        light: 'Medium to low indirect light. Too much direct sun will scorch leaves.',
-        water: 'Keep soil consistently moist but not soggy. Water when top of soil feels dry.',
-        temperature: 'Prefers temperatures between 65-80°F (18-27°C). Keep away from cold drafts.',
-        warnings: 'Toxic to pets and humans if ingested. Can cause irritation to mouth and digestive system.'
-      },
-      specifications: {
-        'Mature Height': '1-3 feet',
-        'Growth Rate': 'Moderate',
-        'Pot Size': '6 inches',
+        'Pot Size': '8 inches+',
         Difficulty: 'Easy',
-        'Light Requirements': 'Low to medium indirect light',
-        'Pet Friendly': 'No - toxic to cats and dogs'
+        'Light Requirements': 'Full sun',
+        'Pet Friendly': 'Yes'
       },
-      reviews: [{
-        id: 1,
-        user: 'Lisa T.',
-        date: '2023-08-28',
-        rating: 5,
-        comment: "My peace lily is flowering beautifully! It's perfect for my low-light bedroom."
-      }, {
-        id: 2,
-        user: 'Daniel R.',
-        date: '2023-08-02',
-        rating: 4,
-        comment: 'Healthy plant with several flower spathes. Very happy with my purchase.'
-      }],
+      reviews: [
+        { id: 1, user: 'Olga V.', date: '2024-05-12', rating: 4, comment: 'Great for my kitchen garden.' }
+      ],
       inStock: true,
-      relatedProducts: [1, 2, 3]
+      relatedProducts: [15, 16, 102]
+    },
+    15: {
+      id: 15,
+      description: 'Classic basil variety for Italian cuisine.',
+      longDescription: 'Basil Herb Plant is a must-have for any kitchen garden. Its aromatic leaves are perfect for pesto, salads, and sauces. Easy to grow in pots or garden beds.',
+      careInstructions: {
+        light: 'Full sun.',
+        water: 'Keep soil moist but not soggy. Pinch flowers to encourage leaf growth.',
+        temperature: 'Prefers 70-90°F (21-32°C).',
+        warnings: 'Sensitive to cold. Harvest leaves regularly.'
+      },
+      specifications: {
+        'Mature Height': '12-24 inches',
+        'Growth Rate': 'Fast',
+        'Pot Size': '8 inches+',
+        Difficulty: 'Easy',
+        'Light Requirements': 'Full sun',
+        'Pet Friendly': 'Yes'
+      },
+      reviews: [
+        { id: 1, user: 'Mario L.', date: '2024-06-02', rating: 5, comment: 'Best basil for my pasta!' }
+      ],
+      inStock: true,
+      relatedProducts: [16, 102, 6]
+    },
+    16: {
+      id: 16,
+      description: 'Refreshing mint plant for teas and desserts.',
+      longDescription: 'Mint Herb Plant is easy to grow and spreads quickly. Use fresh leaves in teas, desserts, and salads. Best grown in containers to control spreading.',
+      careInstructions: {
+        light: 'Full sun to partial shade.',
+        water: 'Keep soil moist. Do not let dry out.',
+        temperature: 'Prefers 60-80°F (16-27°C).',
+        warnings: 'Can become invasive if not contained.'
+      },
+      specifications: {
+        'Mature Height': '12-18 inches',
+        'Growth Rate': 'Fast',
+        'Pot Size': '8 inches+',
+        Difficulty: 'Easy',
+        'Light Requirements': 'Full sun to partial shade',
+        'Pet Friendly': 'Yes'
+      },
+      reviews: [
+        { id: 1, user: 'Sophie W.', date: '2024-05-20', rating: 5, comment: 'Perfect for mojitos!' }
+      ],
+      inStock: true,
+      relatedProducts: [15, 102, 6]
     }
   };
   useEffect(() => {
