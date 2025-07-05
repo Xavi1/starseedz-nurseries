@@ -335,39 +335,31 @@ export const ProductDetail = () => {
     alert(`Added ${quantity} ${product?.name} to cart`);
   };
   if (loading) {
-    return <div className="min-h-screen bg-white">
-        <Header />
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="flex justify-center items-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading product details...</p>
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </div>;
+    return <main className="min-h-screen bg-white max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading product details...</p>
+        </div>
+      </div>
+    </main>;
   }
   if (!product) {
-    return <div className="min-h-screen bg-white">
-        <Header />
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900">
-              Product Not Found
-            </h2>
-            <p className="mt-2 text-gray-600">
-              Sorry, we couldn't find the product you're looking for.
-            </p>
-            <div className="mt-6">
-              <Link to="/shop" className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-700 hover:bg-green-800">
-                Return to Shop
-              </Link>
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </div>;
+    return <main className="min-h-screen bg-white max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold text-gray-900">
+          Product Not Found
+        </h2>
+        <p className="mt-2 text-gray-600">
+          Sorry, we couldn't find the product you're looking for.
+        </p>
+        <div className="mt-6">
+          <Link to="/shop" className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-700 hover:bg-green-800">
+            Return to Shop
+          </Link>
+        </div>
+      </div>
+    </main>;
   }
   return <div className="min-h-screen bg-white">
       <Header />
