@@ -4,6 +4,7 @@ import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { ProductCard, Product } from '../components/ProductCard';
 import { ChevronRightIcon, HomeIcon, StarIcon, ShoppingCartIcon, HeartIcon, LeafIcon, SunIcon, ThermometerIcon, AlertCircleIcon, TruckIcon, RefreshCwIcon, CheckCircleIcon, PlusIcon, MinusIcon } from 'lucide-react';
+import { allProducts, ShopProduct } from '../data/products';
 // Extended product type with additional details for the product page
 interface DetailedProduct extends Product {
   description: string;
@@ -39,67 +40,7 @@ export const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
-  // Mock data for all products - in a real app this would come from an API or context
-  const allProducts: Product[] = [{
-    id: 1,
-    name: 'Monstera Deliciosa',
-    price: 39.99,
-    image: 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-    category: 'Indoor Plants',
-    rating: 5,
-    isBestSeller: true
-  }, {
-    id: 2,
-    name: 'Snake Plant',
-    price: 24.99,
-    image: 'https://images.unsplash.com/photo-1593482892290-f54927ae2b7b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-    category: 'Indoor Plants',
-    rating: 4
-  }, {
-    id: 3,
-    name: 'Fiddle Leaf Fig',
-    price: 49.99,
-    image: 'https://images.unsplash.com/photo-1616500163246-0ffbb872f4de?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-    category: 'Indoor Plants',
-    rating: 4
-  }, {
-    id: 4,
-    name: 'Peace Lily',
-    price: 29.99,
-    image: 'https://images.unsplash.com/photo-1616784754051-4769c7a8cf5f?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-    category: 'Indoor Plants',
-    rating: 5
-  }, {
-    id: 5,
-    name: 'Lavender Plant',
-    price: 15.99,
-    image: 'https://images.unsplash.com/photo-1590585735278-6edaff1c0c28?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-    category: 'Outdoor Plants',
-    rating: 4
-  }, {
-    id: 6,
-    name: 'Rosemary Herb',
-    price: 12.99,
-    image: 'https://images.unsplash.com/photo-1515586000433-45406d8e6662?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-    category: 'Outdoor Plants',
-    rating: 3
-  }, {
-    id: 7,
-    name: 'Echeveria Succulent',
-    price: 9.99,
-    image: 'https://images.unsplash.com/photo-1509423350716-97f9360b4e09?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-    category: 'Succulents',
-    rating: 4,
-    isNew: true
-  }, {
-    id: 8,
-    name: 'Gardening Tool Set',
-    price: 34.99,
-    image: 'https://images.unsplash.com/photo-1585513553738-84971d9c2f8d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-    category: 'Garden Tools',
-    rating: 5
-  }];
-  // Mock detailed product data - in a real app this would come from an API
+  // Detailed product data for extra info (could be merged into allProducts in the future)
   const detailedProductsData: {
     [key: number]: Omit<DetailedProduct, keyof Product> & {
       id: number;
@@ -257,23 +198,29 @@ export const ProductDetail = () => {
           setLoading(false);
           return;
         }
-        const productId = parseInt(id);
-        const basicProduct = allProducts.find(p => p.id === productId);
-        const detailedProductData = detailedProductsData[productId];
-        if (basicProduct && detailedProductData) {
-          const fullProduct: DetailedProduct = {
-            ...basicProduct,
-            ...detailedProductData,
-            quantity: 1
-          };
-          setProduct(fullProduct);
-          // Get related products
-          if (detailedProductData.relatedProducts) {
-            const related = allProducts.filter(p => detailedProductData.relatedProducts.includes(p.id));
-            setRelatedProducts(related);
-          }
-        }
-        setLoading(false);
+    const productId = parseInt(id);
+    // Find product from shared data (category is string[])
+    const basicProduct = allProducts.find(p => p.id === productId);
+    const detailedProductData = detailedProductsData[productId];
+    if (basicProduct && detailedProductData) {
+      // Merge category as string for legacy compatibility in UI
+      const mergedProduct: DetailedProduct = {
+        ...basicProduct,
+        ...detailedProductData,
+        category: Array.isArray(basicProduct.category) ? basicProduct.category.join(', ') : basicProduct.category,
+        quantity: 1
+      };
+      setProduct(mergedProduct);
+      // Related products (from shared data)
+      if (detailedProductData.relatedProducts) {
+        const related = allProducts.filter(p => detailedProductData.relatedProducts.includes(p.id));
+        setRelatedProducts(related.map(rp => ({
+          ...rp,
+          category: Array.isArray(rp.category) ? rp.category.join(', ') : rp.category
+        })));
+      }
+    }
+    setLoading(false);
       }, 500); // Simulate network delay
     };
     getProductDetails();
