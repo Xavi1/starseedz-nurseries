@@ -1,5 +1,6 @@
 import React from 'react';
 import { ShoppingCartIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
 export type Product = {
   id: number;
   name: string;
@@ -20,7 +21,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const categoryDisplay = Array.isArray(product.category)
     ? product.category.join(', ')
     : product.category;
-  return <div className="group relative bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+  return (
+    <Link to={`/product/${product.id}`} className="group relative bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow block">
       <div className="relative">
         <div className="w-full h-64 bg-gray-200 overflow-hidden">
           <img src={product.image} alt={product.name} className="w-full h-full object-center object-cover group-hover:scale-105 transition-transform duration-300" />
@@ -32,7 +34,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             Best Seller
           </div>}
         <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button className="bg-white p-2 rounded-full shadow hover:bg-green-50">
+          <button className="bg-white p-2 rounded-full shadow hover:bg-green-50" onClick={e => e.preventDefault()}>
             <ShoppingCartIcon className="h-5 w-5 text-green-700" />
           </button>
         </div>
@@ -51,5 +53,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           ${product.price.toFixed(2)}
         </p>
       </div>
-    </div>;
+    </Link>
+  );
 };

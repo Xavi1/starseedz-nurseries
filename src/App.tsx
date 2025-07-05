@@ -8,6 +8,7 @@ import { Newsletter } from './components/Newsletter';
 import { Footer } from './components/Footer';
 import { Shop } from './pages/Shop';
 import { About } from './pages/About';
+import { ProductDetail } from './pages/ProductDetail';
 
 export function App() {
   return (
@@ -27,6 +28,7 @@ export function App() {
             } />
             <Route path="/shop" element={<Shop />} />
             <Route path="/about" element={<About />} />
+            <Route path="/product/:id" element={<ProductDetail />} />
             {/* Uncomment and add your Contact page if available */}
             {/* <Route path="/contact" element={<Contact />} /> */}
           </Routes>
