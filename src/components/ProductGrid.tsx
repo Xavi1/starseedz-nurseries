@@ -46,7 +46,7 @@ export const ProductGrid = () => {
     price: 50.00,
     image: '/img/kale.webp',
     category: 'Vegetables',
-    rating: 4
+    rating: 5
   }
 ];
   // Support multiple categories per product
