@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 export const ProductGrid = () => {
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const products: Product[] = [{
-    id: 1,
+    id: 101,
     name: 'Super Delhi Tomato Plants',
     price: 80.00,
     image: '/img/tomato.webp',
