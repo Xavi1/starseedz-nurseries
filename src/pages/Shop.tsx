@@ -74,6 +74,7 @@ export const Shop = () => {
       image: '/img/kale.webp',
       category: ['Vegetables', 'Leafy Crops'],
       rating: 4,
+      isBestSeller: true,
     },
     {
       id: 1,
@@ -83,7 +84,6 @@ export const Shop = () => {
         'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
       category: ['Vegetables'],
       rating: 5,
-      isBestSeller: true,
     },
     {
       id: 6,
