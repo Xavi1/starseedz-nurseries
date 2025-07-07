@@ -12,9 +12,8 @@ export const AboutSection = () => {
               About Starseedz Nurseries
             </h2>
             <p className="mt-3 max-w-3xl text-lg text-gray-600">
-              For over 25 years, we've been providing high-quality plants and
-              expert gardening advice to our community. Our experienced team
-              carefully selects and nurtures each plant in our collection.
+              I started growing seedlings about 27 years ago doing pimentos, hot peppers,
+              pak choi, lettuce, and sweet peppers. 
             </p>
             <div className="mt-8 space-y-6">
               <div className="flex">
