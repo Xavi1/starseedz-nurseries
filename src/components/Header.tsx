@@ -1,12 +1,13 @@
 import { ShoppingCartIcon, SearchIcon, MenuIcon, XIcon } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
-export const Header = () => {
+import { useCart } from '../context/CartContext';
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const { cartCount } = useCart();
 
   useEffect(() => {
     if (showSearch && searchInputRef.current) {
@@ -64,9 +65,11 @@ export const Header = () => {
             )}
             <button className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none relative">
               <ShoppingCartIcon className="h-6 w-6" />
-              <span className="absolute top-0 right-0 bg-green-600 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                3
-              </span>
+              {cartCount > 0 && (
+                <span className="absolute top-0 right-0 bg-green-600 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
             </button>
           </div>
           {/* Mobile menu button */}
@@ -100,9 +103,11 @@ export const Header = () => {
               </button>
               <button className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none relative">
                 <ShoppingCartIcon className="h-6 w-6" />
-                <span className="absolute top-0 right-0 bg-green-600 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                  3
-                </span>
+                {cartCount > 0 && (
+                  <span className="absolute top-0 right-0 bg-green-600 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
               </button>
             </div>
           </div>

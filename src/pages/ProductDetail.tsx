@@ -330,9 +330,12 @@ export const ProductDetail = () => {
     if (newQuantity > 10) return;
     setQuantity(newQuantity);
   };
+  // Use cart context
+  const { addToCart: addToCartContext } = require('../context/CartContext').useCart();
   const addToCart = () => {
-    // In a real app, this would add the product to a cart state/context
-    alert(`Added ${quantity} ${product?.name} to cart`);
+    if (product) {
+      addToCartContext(product, quantity);
+    }
   };
   return (
     <div className="min-h-screen bg-white">
