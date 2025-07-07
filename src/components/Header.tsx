@@ -2,6 +2,8 @@ import { ShoppingCartIcon, SearchIcon, MenuIcon, XIcon } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
+
+const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchValue, setSearchValue] = useState("");
@@ -15,7 +17,8 @@ import { useCart } from '../context/CartContext';
     }
   }, [showSearch]);
 
-  return <header className="bg-white shadow-sm sticky top-0 z-50">
+  return (
+    <header className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -63,7 +66,11 @@ import { useCart } from '../context/CartContext';
                 <SearchIcon className="h-6 w-6" />
               </button>
             )}
-            <button className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none relative">
+            <button
+              className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none relative"
+              onClick={() => navigate('/cart')}
+              aria-label="View cart"
+            >
               <ShoppingCartIcon className="h-6 w-6" />
               {cartCount > 0 && (
                 <span className="absolute top-0 right-0 bg-green-600 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
@@ -101,7 +108,11 @@ import { useCart } from '../context/CartContext';
               <button className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none">
                 <SearchIcon className="h-6 w-6" />
               </button>
-              <button className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none relative">
+              <button
+                className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none relative"
+                onClick={() => { setIsMenuOpen(false); navigate('/cart'); }}
+                aria-label="View cart"
+              >
                 <ShoppingCartIcon className="h-6 w-6" />
                 {cartCount > 0 && (
                   <span className="absolute top-0 right-0 bg-green-600 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
@@ -112,6 +123,9 @@ import { useCart } from '../context/CartContext';
             </div>
           </div>
         </div>}
-    </header>;
+    </header>
+  );
 };
+
+export default Header;
 

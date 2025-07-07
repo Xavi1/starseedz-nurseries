@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Header } from '../components/Header';
-import { Footer } from '../components/Footer';
 import { ProductCard, Product } from '../components/ProductCard';
 import { ChevronRightIcon, HomeIcon, StarIcon, ShoppingCartIcon, HeartIcon, LeafIcon, SunIcon, ThermometerIcon, AlertCircleIcon, TruckIcon, RefreshCwIcon, CheckCircleIcon, PlusIcon, MinusIcon } from 'lucide-react';
 import { allProducts, ShopProduct } from '../data/products';
+import { useCart } from '../context/CartContext';
 // Extended product type with additional details for the product page
 interface DetailedProduct extends Product {
   description: string;
@@ -331,7 +330,7 @@ export const ProductDetail = () => {
     setQuantity(newQuantity);
   };
   // Use cart context
-  const { addToCart: addToCartContext } = require('../context/CartContext').useCart();
+  const { addToCart: addToCartContext } = useCart();
   const addToCart = () => {
     if (product) {
       addToCartContext(product, quantity);

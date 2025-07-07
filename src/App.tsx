@@ -1,6 +1,6 @@
 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Header } from './components/Header';
+import Header from './components/Header';
 import { Hero } from './components/Hero';
 import { FeaturedCategories } from './components/FeaturedCategories';
 import { ProductGrid } from './components/ProductGrid';
@@ -11,6 +11,7 @@ import { Shop } from './pages/Shop';
 import { About } from './pages/About';
 import { ProductDetail } from './pages/ProductDetail';
 import { CartProvider } from './context/CartContext';
+import { Cart } from './pages/Cart';
 
 export function App() {
   return (
@@ -32,6 +33,7 @@ export function App() {
               <Route path="/shop" element={<Shop />} />
               <Route path="/about" element={<About />} />
               <Route path="/product/:id" element={<ProductDetail />} />
+              <Route path="/cart" element={<Cart />} />
               {/* Uncomment and add your Contact page if available */}
               {/* <Route path="/contact" element={<Contact />} /> */}
             </Routes>
