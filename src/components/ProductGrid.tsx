@@ -36,7 +36,7 @@ export function ProductGrid() {
               Featured Products
             </h2>
             <p className="mt-4 text-gray-600">
-              Our most popular plants and gardening supplies
+              Our most popular plants
             </p>
           </div>
           <div className="mt-6 md:mt-0 flex items-center">
