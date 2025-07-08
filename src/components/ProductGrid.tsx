@@ -1,54 +1,13 @@
 import { useState } from 'react';
-import { ProductCard, Product } from './ProductCard';
+import { ProductCard } from './ProductCard';
 import { FilterIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
-export const ProductGrid = () => {
+import { allProducts } from '../data/products';
+
+export function ProductGrid() {
   const [activeFilter, setActiveFilter] = useState<string>('all');
-  const products: Product[] = [{
-    id: 101,
-    name: 'Super Delhi Tomato Plants',
-    price: 80.00,
-    image: '/img/tomato.webp',
-    category: 'Vegetables',
-    rating: 5,
-    isBestSeller: true
-  }, {
-    id: 2,
-    name: 'Chive',
-    price: 60.00,
-    image: '/img/chives.webp',
-    category: 'Herbs',
-    rating: 4
-  }, {
-    id: 3,
-    name: 'Fine Thyme',
-    price: 60.00,
-    image: '/img/thyme.webp',
-    category: 'Herbs',
-    rating: 4
-  }, {
-    id: 4,
-    name: 'Pimento',
-    price: 60.00,
-    image: '/img/pimento.webp',
-    category: 'Peppers',
-    rating: 5
-  }, {
-    id: 5,
-    name: 'Chilli pepper',
-    price: 60.00,
-    image: '/img/chilli.webp',
-    category: 'Peppers',
-    rating: 4
-  }, {
-    id: 6,
-    name: 'Kale',
-    price: 50.00,
-    image: '/img/kale.webp',
-    category: 'Vegetables',
-    rating: 5
-  }
-];
+  // Use centralized product data
+  const products = allProducts;
   // Support multiple categories per product
   const filteredProducts = activeFilter === 'all'
     ? products
@@ -100,4 +59,4 @@ export const ProductGrid = () => {
         </div>
       </div>
     </section>;
-};
+}

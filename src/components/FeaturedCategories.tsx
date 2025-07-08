@@ -1,44 +1,24 @@
 import { Link } from 'react-router-dom';
+import { allProducts } from '../data/products';
 
-export const FeaturedCategories = () => {
-  const categories = [
-    {
-      id: 1,
-      name: 'Peppers',
-      image: '/img/peppers.webp',
-      description: 'Spice up your garden with our pepper varieties.'
-    },
-    {
-      id: 2,
-      name: 'Leafy Crops',
-      image: '/img/kale.webp',
-      description: 'Nutritious greens for salads and more.'
-    },
-    {
-      id: 3,
-      name: 'Herbs',
-      image: '/img/chives.webp',
-      description: 'Aromatic herbs for cooking and health.'
-    },
-    {
-      id: 4,
-      name: 'Curcubits',
-      image: '/img/tomato.webp',
-      description: 'Vigorous growers for your summer garden.'
-    },
-    {
-      id: 5,
-      name: 'Beans',
-      image: '/img/beans.webp',
-      description: 'Protein-rich and easy to grow.'
-    },
-    {
-      id: 6,
-      name: 'Fruits',
-      image: '/img/fruits.webp',
-      description: 'Sweet and healthy additions to your diet.'
-    },
-  ];
+const FeaturedCategories: React.FC = () => {
+  // Dynamically generate unique categories from allProducts
+  const categoryMap: Record<string, { image: string; description?: string }> = {};
+  allProducts.forEach(product => {
+    product.category.forEach(cat => {
+      if (!categoryMap[cat]) {
+        categoryMap[cat] = {
+          image: product.image,
+          description: undefined // Optionally, you can add a description field to products and use it here
+        };
+      }
+    });
+  });
+  const categories = Object.entries(categoryMap).map(([name, { image, description }]) => ({
+    name,
+    image,
+    description: description || `Shop our selection of ${name.toLowerCase()}.`
+  }));
   return <section className="py-12 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center">
@@ -50,7 +30,8 @@ export const FeaturedCategories = () => {
           </p>
         </div>
         <div className="mt-10 grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {categories.map(category => <div key={category.id} className="group relative">
+          {categories.map(category => (
+            <div key={category.name} className="group relative">
               <div className="relative w-full h-80 bg-white rounded-lg overflow-hidden shadow-md">
                 <img src={category.image} alt={category.name} className="w-full h-full object-center object-cover group-hover:opacity-90 transition-opacity duration-300" />
               </div>
@@ -65,8 +46,11 @@ export const FeaturedCategories = () => {
                   Shop Now →
                 </Link>
               </div>
-            </div>)}
+            </div>
+          ))}
         </div>
       </div>
     </section>;
 };
+
+export default FeaturedCategories;
