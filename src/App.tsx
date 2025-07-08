@@ -12,6 +12,7 @@ import { About } from './pages/About';
 import { ProductDetail } from './pages/ProductDetail';
 import { CartProvider } from './context/CartContext';
 import { Cart } from './pages/Cart';
+import ContactPage from './pages/Contact';
 
 export function App() {
   return (
@@ -34,8 +35,7 @@ export function App() {
               <Route path="/about" element={<About />} />
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/cart" element={<Cart />} />
-              {/* Uncomment and add your Contact page if available */}
-              {/* <Route path="/contact" element={<Contact />} /> */}
+              <Route path="/contact" element={<ContactPage />} />
             </Routes>
           </main>
           <Footer />
