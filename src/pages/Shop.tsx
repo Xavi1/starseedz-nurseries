@@ -191,7 +191,13 @@ export const Shop = () => {
   useEffect(() => {
     // Update filter if URL changes (e.g., user clicks a category from homepage)
     setActiveCategory(params.get('category') || 'all');
+    setCurrentPage(1); // Reset to first page when category changes from URL
   }, [location.search]);
+
+  // Reset to first page when category or price filter changes from sidebar/buttons
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeCategory, activePriceRange, searchQuery]);
   return (
     <div className="min-h-screen bg-white">
       <main>
