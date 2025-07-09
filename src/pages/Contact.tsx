@@ -22,7 +22,7 @@ export default function ContactPage() {
     setSubmissionStatus('submitting');
     try {
       // Replace the URL below with your Formspree endpoint after signup
-      const response = await fetch('https://formspree.io/f/yourformid', {
+      const response = await fetch('https://formspree.io/f/xnnvkrqw', {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
