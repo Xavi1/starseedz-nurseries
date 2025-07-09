@@ -45,18 +45,18 @@ export default function ContactPage() {
       <main className="container mx-auto px-4 py-12">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-green-800 mb-4">Contact GreenThumb Nursery</h1>
-            <p className="text-lg text-green-600 max-w-2xl mx-auto">
+            <h1 className="text-4xl font-bold text-black-800 mb-4">Contact Starseedz Nurseries</h1>
+            <p className="text-lg text-black-600 max-w-2xl mx-auto">
               Have questions about our plants, services, or upcoming workshops? We'd love to hear from you!
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             <div className="bg-white rounded-lg shadow-lg p-8">
-              <h2 className="text-2xl font-semibold text-green-700 mb-6">Send Us a Message</h2>
+              <h2 className="text-2xl font-semibold text-black-700 mb-6">Send Us a Message</h2>
               
               {submissionStatus === 'success' ? (
-                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
+                <div className="bg-green-100 border border-black-400 text-black-700 px-4 py-3 rounded mb-6">
                   Thank you for your message! We'll get back to you within 24-48 hours.
                 </div>
               ) : submissionStatus === 'error' ? (
@@ -67,7 +67,7 @@ export default function ContactPage() {
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-green-700 mb-1">
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                     Full Name
                   </label>
                   <input
@@ -77,13 +77,13 @@ export default function ContactPage() {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 border border-green-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    className="w-full px-4 py-2 border border-green-300 rounded-md focus:ring-2 focus:ring-black-500 focus:border-green-500"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-green-700 mb-1">
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                       Email Address
                     </label>
                     <input
@@ -98,7 +98,7 @@ export default function ContactPage() {
                   </div>
 
                   <div>
-                    <label htmlFor="phone" className="block text-sm font-medium text-green-700 mb-1">
+                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
                       Phone Number
                     </label>
                     <input
@@ -113,7 +113,7 @@ export default function ContactPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="subject" className="block text-sm font-medium text-green-700 mb-1">
+                  <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
                     Subject
                   </label>
                   <select
@@ -133,7 +133,7 @@ export default function ContactPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="message" className="block text-sm font-medium text-green-700 mb-1">
+                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
                     Message
                   </label>
                   <textarea
@@ -169,7 +169,7 @@ export default function ContactPage() {
 
             <div className="space-y-8">
               <div className="bg-white rounded-lg shadow-lg p-8">
-                <h2 className="text-2xl font-semibold text-green-700 mb-6">Visit Our Nursery</h2>
+                <h2 className="text-2xl font-semibold text-black-700 mb-6">Visit Our Nursery</h2>
                 <div className="space-y-4">
                   <div className="flex items-start">
                     <div className="flex-shrink-0 text-green-600">
@@ -179,8 +179,8 @@ export default function ContactPage() {
                       </svg>
                     </div>
                     <div className="ml-3">
-                      <h3 className="text-lg font-medium text-green-800">Address</h3>
-                      <p className="text-green-600">123 Garden Lane<br />Bloomsville, CA 90210</p>
+                      <h3 className="text-lg font-medium text-black-800">Address</h3>
+                      <p className="text-gray-600">123 Garden Lane<br />Bloomsville, CA 90210</p>
                     </div>
                   </div>
 
@@ -191,8 +191,8 @@ export default function ContactPage() {
                       </svg>
                     </div>
                     <div className="ml-3">
-                      <h3 className="text-lg font-medium text-green-800">Phone</h3>
-                      <p className="text-green-600">(555) 123-4567</p>
+                      <h3 className="text-lg font-medium text-black-800">Phone</h3>
+                      <p className="text-gray-600">(555) 123-4567</p>
                     </div>
                   </div>
 
@@ -203,27 +203,27 @@ export default function ContactPage() {
                       </svg>
                     </div>
                     <div className="ml-3">
-                      <h3 className="text-lg font-medium text-green-800">Email</h3>
-                      <p className="text-green-600">info@greenthumbnursery.com</p>
+                      <h3 className="text-lg font-medium text-black-800">Email</h3>
+                      <p className="text-gray-600">info@greenthumbnursery.com</p>
                     </div>
                   </div>
                 </div>
               </div>
 
               <div className="bg-white rounded-lg shadow-lg p-8">
-                <h2 className="text-2xl font-semibold text-green-700 mb-6">Business Hours</h2>
+                <h2 className="text-2xl font-semibold text-black-700 mb-6">Business Hours</h2>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-green-700">Monday - Friday</span>
-                    <span className="text-green-600 font-medium">9:00 AM - 6:00 PM</span>
+                    <span className="text-gray-700">Monday - Friday</span>
+                    <span className="text-gray-600 font-medium">9:00 AM - 6:00 PM</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-green-700">Saturday</span>
-                    <span className="text-green-600 font-medium">8:00 AM - 7:00 PM</span>
+                    <span className="text-gray-700">Saturday</span>
+                    <span className="text-gray-600 font-medium">8:00 AM - 7:00 PM</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-green-700">Sunday</span>
-                    <span className="text-green-600 font-medium">10:00 AM - 5:00 PM</span>
+                    <span className="text-gray-700">Sunday</span>
+                    <span className="text-gray-600 font-medium">10:00 AM - 5:00 PM</span>
                   </div>
                 </div>
               </div>
