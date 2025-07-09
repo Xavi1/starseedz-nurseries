@@ -20,18 +20,34 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmissionStatus('submitting');
-    
     try {
-      // Replace with your actual form submission logic
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setSubmissionStatus('success');
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        subject: 'General Inquiry',
-        message: ''
+      // Replace the URL below with your Formspree endpoint after signup
+      const response = await fetch('https://formspree.io/f/yourformid', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          subject: formData.subject,
+          message: formData.message,
+        }),
       });
+      if (response.ok) {
+        setSubmissionStatus('success');
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          subject: 'General Inquiry',
+          message: ''
+        });
+      } else {
+        setSubmissionStatus('error');
+      }
     } catch (error) {
       setSubmissionStatus('error');
     }
