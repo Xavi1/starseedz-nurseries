@@ -1,6 +1,6 @@
 import { PhoneIcon, MailIcon, MapPinIcon, ClockIcon, FacebookIcon, InstagramIcon, TwitterIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
-export const Footer = () => {
+const Footer = () => {
   return <footer className="bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -44,6 +44,11 @@ export const Footer = () => {
                 <Link to="/about" className="text-gray-300 hover:text-white">
                   About Us
                 </Link>
+              </li>
+              <li>
+                <a href="#" className="text-gray-300 hover:text-white">
+                  Blog
+                </a>
               </li>
               <li>
                 <Link to="/contact" className="text-gray-300 hover:text-white">
@@ -132,3 +137,5 @@ export const Footer = () => {
       </div>
     </footer>;
 };
+
+export default Footer;

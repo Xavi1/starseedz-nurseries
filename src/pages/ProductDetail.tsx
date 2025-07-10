@@ -4,6 +4,7 @@ import { ProductCard, Product } from '../components/ProductCard';
 import { ChevronRightIcon, HomeIcon, StarIcon, ShoppingCartIcon, HeartIcon, LeafIcon, SunIcon, ThermometerIcon, AlertCircleIcon, TruckIcon, RefreshCwIcon, CheckCircleIcon, PlusIcon, MinusIcon } from 'lucide-react';
 import { allProducts, ShopProduct } from '../data/products';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 // Extended product type with additional details for the product page
 interface DetailedProduct extends Product {
   description: string;
@@ -331,9 +332,20 @@ export const ProductDetail = () => {
   };
   // Use cart context
   const { addToCart: addToCartContext } = useCart();
+  // Use wishlist context
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const addToCart = () => {
     if (product) {
       addToCartContext(product, quantity);
+    }
+  };
+  const handleWishlist = () => {
+    if (product) {
+      if (isInWishlist(product.id)) {
+        removeFromWishlist(product.id);
+      } else {
+        addToWishlist(product);
+      }
     }
   };
   return (
@@ -516,9 +528,13 @@ export const ProductDetail = () => {
                       </div>
                       {/* Wishlist */}
                       <div className="mt-4">
-                        <button type="button" className="w-full flex items-center justify-center px-8 py-3 border border-gray-300 rounded-md shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50">
-                          <HeartIcon className="h-5 w-5 mr-2" />
-                          Add to Wishlist
+                        <button
+                          type="button"
+                          onClick={handleWishlist}
+                          className={`w-full flex items-center justify-center px-8 py-3 border border-gray-300 rounded-md shadow-sm text-base font-medium ${isInWishlist(product.id) ? 'text-red-600 bg-red-50 hover:bg-red-100' : 'text-gray-700 bg-white hover:bg-gray-50'}`}
+                        >
+                          <HeartIcon className={`h-5 w-5 mr-2 ${isInWishlist(product.id) ? 'fill-red-600 text-red-600' : ''}`} />
+                          {isInWishlist(product.id) ? 'Remove from Wishlist' : 'Add to Wishlist'}
                         </button>
                       </div>
                       {/* Shipping & Returns */}
