@@ -296,7 +296,7 @@ export const About = () => {
                 <a href="/shop" className="inline-block bg-white text-green-700 border border-transparent rounded-md py-3 px-8 font-medium hover:bg-green-50">
                   Shop Our Collection
                 </a>
-                <a href="#" className="inline-block ml-4 bg-transparent text-white border border-white rounded-md py-3 px-8 font-medium hover:bg-green-800">
+                <a href="/contact" className="inline-block ml-4 bg-transparent text-white border border-white rounded-md py-3 px-8 font-medium hover:bg-green-800">
                   Contact Us
                 </a>
               </div>
