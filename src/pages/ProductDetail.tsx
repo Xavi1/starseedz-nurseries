@@ -481,7 +481,7 @@ export const ProductDetail = () => {
                             </span>
                           </div>
                           <div className="flex flex-col items-center bg-gray-50 rounded-lg p-3">
-                            <div className="h-6 w-6 text-green-700" />
+                            <LeafIcon className="h-6 w-6 text-green-700" />
                             <span className="mt-1 text-xs text-center">
                               {product.careInstructions.water.split('.')[0]}
                             </span>
