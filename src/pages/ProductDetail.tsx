@@ -40,6 +40,12 @@ export const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
   const [showReviewModal, setShowReviewModal] = useState(false);
+  // Review form state
+  const [reviewName, setReviewName] = useState("");
+  const [reviewRating, setReviewRating] = useState("5");
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewError, setReviewError] = useState("");
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   // Detailed product data for extra info (could be merged into allProducts in the future)
   // Detailed product data for all products (generated for demo purposes)
@@ -597,15 +603,57 @@ export const ProductDetail = () => {
               &times;
             </button>
             <h3 className="text-lg font-semibold mb-4">Write a Review</h3>
-            {/* TODO: Add review form here */}
-            <form>
+            <form
+              onSubmit={e => {
+                e.preventDefault();
+                setReviewError("");
+                if (!reviewName.trim() || !reviewComment.trim()) {
+                  setReviewError("Please fill in all fields.");
+                  return;
+                }
+                if (!product) return;
+                setReviewSubmitting(true);
+                // Simulate API delay
+                setTimeout(() => {
+                  const newReview = {
+                    id: product.reviews.length ? Math.max(...product.reviews.map(r => r.id)) + 1 : 1,
+                    user: reviewName,
+                    date: new Date().toISOString().slice(0, 10),
+                    rating: parseInt(reviewRating),
+                    comment: reviewComment
+                  };
+                  // Add review to product state
+                  setProduct({
+                    ...product,
+                    reviews: [newReview, ...product.reviews],
+                    rating: Math.round(((product.rating * product.reviews.length + newReview.rating) / (product.reviews.length + 1)) * 10) / 10
+                  });
+                  setShowReviewModal(false);
+                  setReviewName("");
+                  setReviewRating("5");
+                  setReviewComment("");
+                  setReviewSubmitting(false);
+                }, 600);
+              }}
+            >
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                <input type="text" className="w-full border border-gray-300 rounded px-3 py-2" />
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded px-3 py-2"
+                  value={reviewName}
+                  onChange={e => setReviewName(e.target.value)}
+                  disabled={reviewSubmitting}
+                />
               </div>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
-                <select className="w-full border border-gray-300 rounded px-3 py-2">
+                <select
+                  className="w-full border border-gray-300 rounded px-3 py-2"
+                  value={reviewRating}
+                  onChange={e => setReviewRating(e.target.value)}
+                  disabled={reviewSubmitting}
+                >
                   <option value="5">5 - Excellent</option>
                   <option value="4">4 - Good</option>
                   <option value="3">3 - Average</option>
@@ -615,9 +663,22 @@ export const ProductDetail = () => {
               </div>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Comment</label>
-                <textarea className="w-full border border-gray-300 rounded px-3 py-2" rows={4}></textarea>
+                <textarea
+                  className="w-full border border-gray-300 rounded px-3 py-2"
+                  rows={4}
+                  value={reviewComment}
+                  onChange={e => setReviewComment(e.target.value)}
+                  disabled={reviewSubmitting}
+                ></textarea>
               </div>
-              <button type="submit" className="w-full bg-green-700 text-white py-2 rounded hover:bg-green-800">Submit Review</button>
+              {reviewError && <div className="mb-2 text-red-600 text-sm">{reviewError}</div>}
+              <button
+                type="submit"
+                className="w-full bg-green-700 text-white py-2 rounded hover:bg-green-800 disabled:opacity-60"
+                disabled={reviewSubmitting}
+              >
+                {reviewSubmitting ? "Submitting..." : "Submit Review"}
+              </button>
             </form>
           </div>
         </div>
