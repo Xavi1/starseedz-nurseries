@@ -39,6 +39,7 @@ export const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
+  const [showReviewModal, setShowReviewModal] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   // Detailed product data for extra info (could be merged into allProducts in the future)
   // Detailed product data for all products (generated for demo purposes)
@@ -583,7 +584,44 @@ export const ProductDetail = () => {
                   <div className="py-6">
                     {activeTab === 'description' && <div className="prose prose-green max-w-none">
                         <p>{product.longDescription}</p>
-                      </div>}
+      </div>}
+      {/* Review Modal */}
+      {showReviewModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
+            <button
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+              onClick={() => setShowReviewModal(false)}
+              aria-label="Close"
+            >
+              &times;
+            </button>
+            <h3 className="text-lg font-semibold mb-4">Write a Review</h3>
+            {/* TODO: Add review form here */}
+            <form>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input type="text" className="w-full border border-gray-300 rounded px-3 py-2" />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
+                <select className="w-full border border-gray-300 rounded px-3 py-2">
+                  <option value="5">5 - Excellent</option>
+                  <option value="4">4 - Good</option>
+                  <option value="3">3 - Average</option>
+                  <option value="2">2 - Poor</option>
+                  <option value="1">1 - Terrible</option>
+                </select>
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Comment</label>
+                <textarea className="w-full border border-gray-300 rounded px-3 py-2" rows={4}></textarea>
+              </div>
+              <button type="submit" className="w-full bg-green-700 text-white py-2 rounded hover:bg-green-800">Submit Review</button>
+            </form>
+          </div>
+        </div>
+      )}
                     {activeTab === 'care' && <div className="space-y-6">
                         <div className="flex items-start">
                           <div className="flex-shrink-0">
@@ -655,7 +693,10 @@ export const ProductDetail = () => {
                           <h3 className="text-lg font-medium text-gray-900">
                             Customer Reviews
                           </h3>
-                          <button className="text-sm font-medium text-green-700 hover:text-green-800">
+                          <button
+                            className="text-sm font-medium text-green-700 hover:text-green-800"
+                            onClick={() => setShowReviewModal(true)}
+                          >
                             Write a review
                           </button>
                         </div>
