@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Product } from '../components/ProductCard';
 
 interface WishlistContextType {
@@ -17,7 +17,20 @@ export const useWishlist = () => {
 };
 
 export const WishlistProvider = ({ children }: { children: ReactNode }) => {
-  const [wishlist, setWishlist] = useState<Product[]>([]);
+  const [wishlist, setWishlist] = useState<Product[]>(() => {
+    try {
+      const stored = localStorage.getItem('wishlist');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('wishlist', JSON.stringify(wishlist));
+    } catch {}
+  }, [wishlist]);
 
   const addToWishlist = (product: Product) => {
     setWishlist(prev => prev.some(item => item.id === product.id) ? prev : [...prev, product]);
