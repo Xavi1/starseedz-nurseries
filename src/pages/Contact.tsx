@@ -93,7 +93,7 @@ export default function ContactPage() {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 border border-green-300 rounded-md focus: focus:border-green-500"
+                    className="w-full px-4 py-2 border border-green-300 rounded-md focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
 
@@ -109,7 +109,7 @@ export default function ContactPage() {
                       value={formData.email}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-2 border border-green-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      className="w-full px-4 py-2 border border-green-300 rounded-md focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
                   </div>
 
@@ -123,7 +123,7 @@ export default function ContactPage() {
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-green-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      className="w-full px-4 py-2 border border-green-300 rounded-md focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
                   </div>
                 </div>
@@ -137,7 +137,7 @@ export default function ContactPage() {
                     name="subject"
                     value={formData.subject}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-green-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    className="w-full px-4 py-2 border border-green-300 rounded-md focus:border-green-500 focus:ring-2 focus:outline-none focus:ring-green-500"
                   >
                     <option value="General Inquiry">General Inquiry</option>
                     <option value="Plant Availability">Plant Availability</option>
@@ -159,7 +159,7 @@ export default function ContactPage() {
                     value={formData.message}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 border border-green-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    className="w-full px-4 py-2 border border-green-300 rounded-md focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500"
                   ></textarea>
                 </div>
 
