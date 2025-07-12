@@ -16,6 +16,7 @@ import { Cart } from './pages/Cart';
 import ContactPage from './pages/Contact';
 import WishlistPage from './pages/Wishlist';
 import FAQPage from './pages/FAQ';
+import PrivacyPolicyPage from './pages/PrivacyPolicy';
 
 export function App() {
   return (
@@ -42,6 +43,7 @@ export function App() {
                 <Route path="/wishlist" element={<WishlistPage />} />
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/faq" element={<FAQPage />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
               </Routes>
             </main>
             <Footer />
