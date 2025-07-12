@@ -20,15 +20,11 @@ export default function FAQPage() {
           </div>
           <div>
             <h2 className="text-xl font-semibold text-green-700 mb-2">Can I visit the nursery?</h2>
-            <p className="text-gray-700">Absolutely! We welcome visitors during business hours. No appointment needed.</p>
+            <p className="text-gray-700">We are not available for visitation at this time.</p>
           </div>
           <div>
             <h2 className="text-xl font-semibold text-green-700 mb-2">How do I care for my plants?</h2>
             <p className="text-gray-700">Each product page includes a care guide. For more tips, feel free to contact us or ask in-store.</p>
-          </div>
-          <div>
-            <h2 className="text-xl font-semibold text-green-700 mb-2">Do you offer landscaping or workshops?</h2>
-            <p className="text-gray-700">Yes! We offer landscaping services and regular workshops. Check our website or contact us for upcoming events.</p>
           </div>
         </div>
       </div>
