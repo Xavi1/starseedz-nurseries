@@ -93,7 +93,7 @@ export default function ContactPage() {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 border border-green-300 rounded-md focus:ring-2 focus:ring-black-500 focus:border-green-500"
+                    className="w-full px-4 py-2 border border-green-300 rounded-md focus: focus:border-green-500"
                   />
                 </div>
 
@@ -195,8 +195,8 @@ export default function ContactPage() {
                       </svg>
                     </div>
                     <div className="ml-3">
-                      <h3 className="text-lg font-medium text-black-800">Address</h3>
-                      <p className="text-gray-600">123 Garden Lane<br />Bloomsville, CA 90210</p>
+                      <h3 className="text-lg font-medium text-black-800">Service Area</h3>
+                      <p className="text-gray-600">Central<br />Couva</p>
                     </div>
                   </div>
 
@@ -208,7 +208,7 @@ export default function ContactPage() {
                     </div>
                     <div className="ml-3">
                       <h3 className="text-lg font-medium text-black-800">Phone</h3>
-                      <p className="text-gray-600">(555) 123-4567</p>
+                      <p className="text-gray-600">(868) 363-6604</p>
                     </div>
                   </div>
 
