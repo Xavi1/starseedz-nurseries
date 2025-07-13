@@ -93,15 +93,17 @@ const Footer = () => {
               <li className="flex items-start">
                 <MapPinIcon className="h-6 w-6 text-green-500 mr-2" />
                 <span className="text-gray-300">
-                  123 Garden Street
+                  Couva,
                   <br />
-                  Plantville, PL 12345
+                  Couva-Tabaquite-Talparo Regional Corporation, 
+                  <br />
+                  Trinidad and Tobago
                 </span>
               </li>
               <li className="flex items-center">
                 <PhoneIcon className="h-5 w-5 text-green-500 mr-2" />
                 <a href="tel:+11234567890" className="text-gray-300 hover:text-white">
-                  (123) 456-7890
+                  (868) 363-6604
                 </a>
               </li>
               <li className="flex items-center">
