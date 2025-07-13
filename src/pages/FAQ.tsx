@@ -11,16 +11,16 @@ export default function FAQPage() {
             <p className="text-gray-700">Monday to Friday: 9:00 AM - 6:00 PM<br />Saturday: 8:00 AM - 7:00 PM<br />Sunday: 10:00 AM - 5:00 PM</p>
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-green-700 mb-2">Where are you located?</h2>
+            <h2 className="text-xl font-semibold text-green-700 mb-2">What are areas for pickup?</h2>
             <p className="text-gray-700">Central Couva. See our Contact page for a map and more details.</p>
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-green-700 mb-2">Do you offer delivery?</h2>
-            <p className="text-gray-700">Yes, we offer free delivery on orders over $50 within our service area.</p>
+            <h2 className="text-xl font-semibold text-green-700 mb-2">Does the prcie includethe trays?</h2>
+            <p className="text-gray-700">No the trays are not included with te price.</p>
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-green-700 mb-2">Can I visit the nursery?</h2>
-            <p className="text-gray-700">We are not available for visitation at this time.</p>
+            <h2 className="text-xl font-semibold text-green-700 mb-2">How long would it take after placing the order?</h2>
+            <p className="text-gray-700">It would take 3 - 4 weeks to grow after placing the order.</p>
           </div>
           <div>
             <h2 className="text-xl font-semibold text-green-700 mb-2">How do I care for my plants?</h2>
