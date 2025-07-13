@@ -246,13 +246,13 @@ export default function ContactPage() {
 
               <div className="bg-white rounded-lg shadow-lg overflow-hidden">
                 <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.215209132873!2d-73.9888756845938!3d40.74844047932799!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDDCsDQ0JzU0LjQiTiA3M8KwNTknMTQuNyJX!5e0!3m2!1sen!2sus!4v1620000000000!5m2!1sen!2sus"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3929.002857264356!2d-61.4531!3d10.4227!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8c3607e2e2e2e2e3%3A0x0!2sCentral%20Couva%2C%20Trinidad%20and%20Tobago!5e0!3m2!1sen!2stt!4v1720850000000!5m2!1sen!2stt"
                   width="100%"
                   height="300"
                   style={{ border: 0 }}
                   allowFullScreen
                   loading="lazy"
-                  title="Nursery Location Map"
+                  title="Service Area: Central Couva"
                 ></iframe>
               </div>
             </div>
