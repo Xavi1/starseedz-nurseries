@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
-  "homepage" : "https://xavi1.github.io/starseedz-nurseries/",
+  
   "scripts": {
     "dev": "npx vite",
     "build": "npx vite build",
