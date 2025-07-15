@@ -28,35 +28,48 @@ export function ProductGrid() {
     }, new Set<string>())
   );
   const categories = ['all', ...allCategories];
-  return <section className="py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  return (
+    <section className="py-6 sm:py-12">
+      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="text-3xl font-extrabold text-gray-900">
-              Featured Products
+            <h2 className="text-xl sm:text-3xl font-extrabold text-gray-900 text-left mb-2 sm:mb-0">
+              Just For You
             </h2>
-            <p className="mt-4 text-gray-600">
+            <p className="mt-2 sm:mt-4 text-gray-600 text-left text-base sm:text-lg">
               Our most popular plants
             </p>
           </div>
-          <div className="mt-6 md:mt-0 flex items-center">
+          <div className="mt-4 sm:mt-0 flex items-center">
             <FilterIcon className="h-5 w-5 text-gray-400 mr-2" />
             <span className="text-sm text-gray-500 mr-4">Filter:</span>
             <div className="flex flex-wrap gap-2">
-              {categories.map(category => <button key={category} onClick={() => setActiveFilter(category)} className={`px-3 py-1 text-sm rounded-full ${activeFilter === category ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}>
+              {categories.map(category => (
+                <button
+                  key={category}
+                  onClick={() => setActiveFilter(category)}
+                  className={`px-3 py-1 text-sm rounded-full ${activeFilter === category ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
+                >
                   {category === 'all' ? 'All Products' : category}
-                </button>)}
+                </button>
+              ))}
             </div>
           </div>
         </div>
-        <div className="mt-10 grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-4">
-          {filteredProducts.map(product => <ProductCard key={product.id} product={product} />)}
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-10 sm:grid-cols-2 lg:grid-cols-4">
+          {filteredProducts.map(product => (
+            <ProductCard key={product.id} product={product} />
+          ))}
         </div>
-        <div className="mt-8 text-center">
-          <Link to="/shop" className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-700 hover:bg-green-800 shadow-sm">
+        <div className="mt-6 sm:mt-8 text-center">
+          <Link
+            to="/shop"
+            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-700 hover:bg-green-800 shadow-sm"
+          >
             View All Products
           </Link>
         </div>
       </div>
-    </section>;
+    </section>
+  );
 }
