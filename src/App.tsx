@@ -22,6 +22,7 @@ import ShippingPolicyPage from './pages/ShippingPolicy';
 
 export function App() {
   return (
+    <div className="overflow-x-hidden">
     <WishlistProvider>
       <CartProvider>
         <Router>
@@ -55,6 +56,7 @@ export function App() {
         </Router>
       </CartProvider>
     </WishlistProvider>
+    </div>
   );
 }
 
