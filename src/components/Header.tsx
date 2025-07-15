@@ -93,8 +93,39 @@ const Header = () => {
               )}
             </button>
           </div>
-          {/* Mobile menu button */}
-          <div className="flex md:hidden">
+          {/* Mobile icons and menu button */}
+          <div className="flex md:hidden items-center space-x-2">
+            {/* Search Icon */}
+            <button className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none" onClick={() => setShowSearch(true)} aria-label="Search">
+              <SearchIcon className="h-6 w-6" />
+            </button>
+            {/* Wishlist Icon */}
+            <button
+              className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none relative"
+              onClick={() => navigate('/wishlist')}
+              aria-label="View wishlist"
+            >
+              <HeartIcon className="h-6 w-6" />
+              {wishlist.length > 0 && (
+                <span className="absolute top-0 right-0 bg-red-600 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                  {wishlist.length}
+                </span>
+              )}
+            </button>
+            {/* Cart Icon */}
+            <button
+              className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none relative"
+              onClick={() => navigate('/cart')}
+              aria-label="View cart"
+            >
+              <ShoppingCartIcon className="h-6 w-6" />
+              {cartCount > 0 && (
+                <span className="absolute top-0 right-0 bg-green-600 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
+            </button>
+            {/* Hamburger menu button */}
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 rounded-md text-gray-500 hover:text-green-700 focus:outline-none">
               {isMenuOpen ? <XIcon className="h-6 w-6" /> : <MenuIcon className="h-6 w-6" />}
             </button>
@@ -116,37 +147,6 @@ const Header = () => {
             <Link to="/contact" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-green-700">
               Contact
             </Link>
-          </div>
-          <div className="pt-4 pb-3 border-t border-gray-200">
-            <div className="flex items-center px-5 space-x-4">
-              <button className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none">
-                <SearchIcon className="h-6 w-6" />
-              </button>
-            <button
-              className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none relative"
-              onClick={() => { setIsMenuOpen(false); navigate('/wishlist'); }}
-              aria-label="View wishlist"
-            >
-              <HeartIcon className="h-6 w-6" />
-              {wishlist.length > 0 && (
-                <span className="absolute top-0 right-0 bg-red-600 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                  {wishlist.length}
-                </span>
-              )}
-            </button>
-            <button
-              className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none relative"
-              onClick={() => { setIsMenuOpen(false); navigate('/cart'); }}
-              aria-label="View cart"
-            >
-              <ShoppingCartIcon className="h-6 w-6" />
-              {cartCount > 0 && (
-                <span className="absolute top-0 right-0 bg-green-600 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                  {cartCount}
-                </span>
-              )}
-            </button>
-            </div>
           </div>
         </div>}
     </header>
