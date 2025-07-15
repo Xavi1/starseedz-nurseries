@@ -94,11 +94,31 @@ const Header = () => {
             </button>
           </div>
           {/* Mobile icons and menu button */}
-          <div className="flex md:hidden items-center space-x-2">
-            {/* Search Icon */}
-            <button className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none" onClick={() => setShowSearch(true)} aria-label="Search">
-              <SearchIcon className="h-6 w-6" />
-            </button>
+          <div className="flex md:hidden items-center space-x-2 w-full justify-end">
+            {/* Mobile Search */}
+            {showSearch ? (
+              <input
+                ref={searchInputRef}
+                type="text"
+                className="w-40 px-3 py-2 border border-green-500 rounded-md shadow focus:outline-none focus:ring-2 focus:ring-green-700 transition"
+                placeholder="Search..."
+                value={searchValue}
+                onChange={e => setSearchValue(e.target.value)}
+                onBlur={() => setShowSearch(false)}
+                autoFocus
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && searchValue.trim()) {
+                    navigate(`/shop?search=${encodeURIComponent(searchValue.trim())}`);
+                    setShowSearch(false);
+                  }
+                }}
+                style={{ minWidth: '0' }}
+              />
+            ) : (
+              <button className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none" onClick={() => setShowSearch(true)} aria-label="Search">
+                <SearchIcon className="h-6 w-6" />
+              </button>
+            )}
             {/* Wishlist Icon */}
             <button
               className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none relative"
