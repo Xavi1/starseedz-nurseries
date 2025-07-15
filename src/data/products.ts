@@ -11,7 +11,7 @@ export const allProducts: ShopProduct[] = [
     name: 'Super Delhi Tomato Plants',
     price: 80.0,
     image: `${import.meta.env.BASE_URL}img/tomato.webp`,
-    category: ['Vegetables', 'Leafy Crops'],
+    category: ['Vegetables'],
     rating: 5,
     isBestSeller: true,
   },
