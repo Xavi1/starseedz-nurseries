@@ -129,6 +129,7 @@ const Footer = () => {
           </p>
           <div className="mt-4 md:mt-0">
             <img src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/cc-badges-ppmcvdam.png" alt="Payment methods" className="h-8" />
+            <img src="/img/wipay.webp" alt="wipay Payment method" className="h-6"/>
           </div>
         </div>
       </div>
