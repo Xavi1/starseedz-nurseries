@@ -202,7 +202,7 @@ export const Shop = () => {
     <div className="min-h-screen bg-white">
       <main>
         {/* Hero Banner */}
-        <div className="bg-green-700 text-white">
+        <div className="hidden lg:block bg-green-700 text-white">
           <div className="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8">
             <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
               Shop For Plants
