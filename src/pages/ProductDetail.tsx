@@ -571,19 +571,23 @@ export const ProductDetail = () => {
                 {/* Product Details Tabs */}
                 <div className="mt-16">
                   <div className="border-b border-gray-200">
-                    <div className="flex space-x-8 overflow-x-auto no-scrollbar sm:overflow-visible">
-                      <button onClick={() => setActiveTab('description')} className={`pb-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'description' ? 'border-green-700 text-green-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
-                        Description
-                      </button>
-                      <button onClick={() => setActiveTab('care')} className={`pb-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'care' ? 'border-green-700 text-green-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
-                        Care Instructions
-                      </button>
-                      <button onClick={() => setActiveTab('specifications')} className={`pb-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'specifications' ? 'border-green-700 text-green-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
-                        Specifications
-                      </button>
-                      <button onClick={() => setActiveTab('reviews')} className={`pb-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'reviews' ? 'border-green-700 text-green-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
-                        Reviews ({product.reviews.length})
-                      </button>
+                    <div className="relative">
+                      <div className="flex space-x-8 overflow-x-auto no-scrollbar sm:overflow-visible">
+                        <button onClick={() => setActiveTab('description')} className={`pb-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'description' ? 'border-green-700 text-green-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
+                          Description
+                        </button>
+                        <button onClick={() => setActiveTab('care')} className={`pb-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'care' ? 'border-green-700 text-green-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
+                          Care Instructions
+                        </button>
+                        <button onClick={() => setActiveTab('specifications')} className={`pb-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'specifications' ? 'border-green-700 text-green-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
+                          Specifications
+                        </button>
+                        <button onClick={() => setActiveTab('reviews')} className={`pb-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'reviews' ? 'border-green-700 text-green-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
+                          Reviews ({product.reviews.length})
+                        </button>
+                      </div>
+                      {/* Right edge gradient for scroll hint on mobile */}
+                      <div className="pointer-events-none absolute top-0 right-0 h-full w-8 bg-gradient-to-l from-white via-white/80 to-transparent sm:hidden" />
                     </div>
                   </div>
 
