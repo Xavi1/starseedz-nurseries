@@ -205,7 +205,7 @@ export const Shop = () => {
         <div className="bg-green-700 text-white">
           <div className="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8">
             <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-              Shop Our Plants
+              Shop For Plants
             </h1>
             <p className="mt-6 text-xl max-w-3xl">
               Discover our curated collection of beautiful plants and garden
