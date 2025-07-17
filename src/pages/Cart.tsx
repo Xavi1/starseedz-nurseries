@@ -1,9 +1,10 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ChevronRightIcon, HomeIcon, TrashIcon, ShoppingCartIcon, PlusIcon, MinusIcon, ArrowLeftIcon, CreditCardIcon, ShieldCheckIcon, TruckIcon } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
 export const Cart = () => {
   const { cart, removeFromCart, addToCart, clearCart } = useCart();
+  const navigate = useNavigate();
   // Calculate cart totals
   const subtotal = cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
   const shipping = subtotal > 50 ? 0 : 9.99;
@@ -126,7 +127,11 @@ export const Cart = () => {
                   </div>
                 </div>
                 <div className="mt-6">
-                  <button type="button" className="w-full flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-green-700 hover:bg-green-800 focus:outline-none">
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-green-700 hover:bg-green-800 focus:outline-none"
+                    onClick={() => navigate('/checkout')}
+                  >
                     <CreditCardIcon className="h-5 w-5 mr-2" />
                     Proceed to Checkout
                   </button>

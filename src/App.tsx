@@ -19,6 +19,7 @@ import FAQPage from './pages/FAQ';
 import PrivacyPolicyPage from './pages/PrivacyPolicy';
 import TermsOfServicePage from './pages/TermsOfService';
 import ShippingPolicyPage from './pages/ShippingPolicy';
+import {Checkout} from './pages/Checkout';
 
 export function App() {
   return (
@@ -49,6 +50,7 @@ export function App() {
                 <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
                 <Route path="/terms-of-service" element={<TermsOfServicePage />} />
                 <Route path="/shipping-policy" element={<ShippingPolicyPage />} />
+                <Route path="/checkout"  element={<Checkout />} />
               </Routes>
             </main>
             <Footer />
