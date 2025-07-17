@@ -360,24 +360,28 @@ export const Checkout = () => {
                       Shipping Method
                     </h3>
                     <div className="mt-4 space-y-4">
-                      <div className="flex items-center">
+                      <div className="flex items-start">
                         <input id="standard-shipping" name="shippingMethod" type="radio" checked={shippingMethod === 'standard'} onChange={() => setShippingMethod('standard')} className="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300" />
                         <label htmlFor="standard-shipping" className="ml-3 block text-sm font-medium text-gray-700">
-                          Standard Shipping (3-5 business days)
+                          Standard Shipping (3-5 business days)*
                         </label>
                         <span className="ml-auto text-sm font-medium text-gray-900">
                           {subtotal > 50 ? 'Free' : '$9.99'}
                         </span>
                       </div>
-                      <div className="flex items-center">
+                      <div className="flex items-start">
                         <input id="express-shipping" name="shippingMethod" type="radio" checked={shippingMethod === 'express'} onChange={() => setShippingMethod('express')} className="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300" />
                         <label htmlFor="express-shipping" className="ml-3 block text-sm font-medium text-gray-700">
-                          Express Shipping (1-2 business days)
+                          Express Shipping (1-2 business days)*
                         </label>
                         <span className="ml-auto text-sm font-medium text-gray-900">
                           $14.99
                         </span>
                       </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        * Ships after 3-5 weeks of growing
+                      </p>
+                       
                     </div>
                   </div>
                   {/* Billing Information */}
