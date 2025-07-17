@@ -397,6 +397,123 @@ export const Checkout = () => {
                         </label>
                       </div>
                     </div>
+                      {/* Billing Address Form (only shown when "Same as shipping" is unchecked) */}
+  {!useShippingForBilling && (
+    <div className="mt-6">
+      <h4 className="text-md font-medium text-gray-900 mb-4">
+        Billing Address
+      </h4>
+      <div className="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4">
+        <div>
+          <label htmlFor="billingFirstName" className="block text-sm font-medium text-gray-700">
+            First name
+          </label>
+          <input 
+            type="text" 
+            id="billingFirstName" 
+            name="firstName" 
+            value={billingInfo.firstName} 
+            onChange={e => handleInputChange(e, setBillingInfo)} 
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" 
+          />
+        </div>
+        <div>
+          <label htmlFor="billingLastName" className="block text-sm font-medium text-gray-700">
+            Last name
+          </label>
+          <input 
+            type="text" 
+            id="billingLastName" 
+            name="lastName" 
+            value={billingInfo.lastName} 
+            onChange={e => handleInputChange(e, setBillingInfo)} 
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" 
+          />
+        </div>
+        <div className="sm:col-span-2">
+          <label htmlFor="billingAddress" className="block text-sm font-medium text-gray-700">
+            Address
+          </label>
+          <input 
+            type="text" 
+            id="billingAddress" 
+            name="address" 
+            value={billingInfo.address} 
+            onChange={e => handleInputChange(e, setBillingInfo)} 
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" 
+          />
+        </div>
+        <div className="sm:col-span-2">
+          <label htmlFor="billingApartment" className="block text-sm font-medium text-gray-700">
+            Apartment, suite, etc. (optional)
+          </label>
+          <input 
+            type="text" 
+            id="billingApartment" 
+            name="apartment" 
+            value={billingInfo.apartment} 
+            onChange={e => handleInputChange(e, setBillingInfo)} 
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" 
+          />
+        </div>
+        <div>
+          <label htmlFor="billingCity" className="block text-sm font-medium text-gray-700">
+            City
+          </label>
+          <input 
+            type="text" 
+            id="billingCity" 
+            name="city" 
+            value={billingInfo.city} 
+            onChange={e => handleInputChange(e, setBillingInfo)} 
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" 
+          />
+        </div>
+        <div>
+          <label htmlFor="billingState" className="block text-sm font-medium text-gray-700">
+            State / Province
+          </label>
+          <input 
+            type="text" 
+            id="billingState" 
+            name="state" 
+            value={billingInfo.state} 
+            onChange={e => handleInputChange(e, setBillingInfo)} 
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" 
+          />
+        </div>
+        <div>
+          <label htmlFor="billingZipCode" className="block text-sm font-medium text-gray-700">
+            ZIP / Postal code
+          </label>
+          <input 
+            type="text" 
+            id="billingZipCode" 
+            name="zipCode" 
+            value={billingInfo.zipCode} 
+            onChange={e => handleInputChange(e, setBillingInfo)} 
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" 
+          />
+        </div>
+        <div>
+          <label htmlFor="billingCountry" className="block text-sm font-medium text-gray-700">
+            Country
+          </label>
+          <select 
+            id="billingCountry" 
+            name="country" 
+            value={billingInfo.country} 
+            onChange={e => handleInputChange(e, setBillingInfo)} 
+            className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+          >
+            <option value="United States">Trinidad and Tobago</option>
+            <option value="Canada">Canada</option>
+            <option value="Mexico">Mexico</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  )}
                   </div>
                   <div className="mt-6 flex justify-between">
                     <button type="button" onClick={() => navigate('/cart')} className="flex items-center text-sm text-gray-500 hover:text-gray-700">
