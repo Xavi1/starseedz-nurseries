@@ -24,6 +24,38 @@ export const Cart = () => {
         <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl mb-8">
           Shopping Cart
         </h1>
+        {/* Checkout Steps */}
+        <div className="mb-8">
+          <div className="flex items-center justify-center">
+            <div className="flex items-center">
+              <div className="bg-green-700 rounded-full h-8 w-8 flex items-center justify-center">
+                <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+              </div>
+              <div className="ml-2 text-sm font-medium text-green-700">Cart</div>
+            </div>
+            <div className="h-1 w-16 bg-green-700 mx-2"></div>
+            <div className="flex items-center">
+              <div className="bg-gray-300 rounded-full h-8 w-8 flex items-center justify-center">
+                <span className="text-white text-sm font-medium">1</span>
+              </div>
+              <div className="ml-2 text-sm font-medium text-gray-500">Shipping</div>
+            </div>
+            <div className="h-1 w-16 bg-gray-300 mx-2"></div>
+            <div className="flex items-center">
+              <div className="bg-gray-300 rounded-full h-8 w-8 flex items-center justify-center">
+                <span className="text-white text-sm font-medium">2</span>
+              </div>
+              <div className="ml-2 text-sm font-medium text-gray-500">Payment</div>
+            </div>
+            <div className="h-1 w-16 bg-gray-300 mx-2"></div>
+            <div className="flex items-center">
+              <div className="bg-gray-300 rounded-full h-8 w-8 flex items-center justify-center">
+                <span className="text-white text-sm font-medium">3</span>
+              </div>
+              <div className="ml-2 text-sm font-medium text-gray-500">Review</div>
+            </div>
+          </div>
+        </div>
         {cart.length === 0 ? <div className="text-center py-16 bg-gray-50 rounded-lg">
             <ShoppingCartIcon className="mx-auto h-12 w-12 text-gray-400" />
             <h2 className="mt-4 text-lg font-medium text-gray-900">
