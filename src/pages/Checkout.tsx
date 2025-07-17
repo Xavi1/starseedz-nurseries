@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronRightIcon, HomeIcon, ShoppingCartIcon, CreditCardIcon, ShieldCheckIcon, TruckIcon, CheckIcon, ChevronLeftIcon, ChevronDownIcon, AlertCircleIcon } from 'lucide-react';
+import { useCart } from '../context/CartContext';
 // Define cart item type (same as in Cart.tsx)
 interface CartItem {
   id: number;
@@ -13,10 +14,11 @@ interface CartItem {
 // Checkout steps
 type CheckoutStep = 'shipping' | 'payment' | 'review';
 export const Checkout = () => {
+  const { cart } = useCart();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState<CheckoutStep>('shipping');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   // Form states
   const [shippingInfo, setShippingInfo] = useState({
@@ -56,28 +58,7 @@ export const Checkout = () => {
     const fetchCartItems = () => {
       setLoading(true);
       // Mock data - same as in Cart.tsx
-      const mockCartItems: CartItem[] = [{
-        id: 1,
-        name: 'Monstera Deliciosa',
-        price: 39.99,
-        image: 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-        category: 'Indoor Plants',
-        quantity: 1
-      }, {
-        id: 3,
-        name: 'Fiddle Leaf Fig',
-        price: 49.99,
-        image: 'https://images.unsplash.com/photo-1616500163246-0ffbb872f4de?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-        category: 'Indoor Plants',
-        quantity: 2
-      }, {
-        id: 8,
-        name: 'Gardening Tool Set',
-        price: 34.99,
-        image: 'https://images.unsplash.com/photo-1585513553738-84971d9c2f8d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-        category: 'Garden Tools',
-        quantity: 1
-      }];
+      const mockCartItems: CartItem[] = [];
       setTimeout(() => {
         setCartItems(mockCartItems);
         setLoading(false);
@@ -621,24 +602,26 @@ export const Checkout = () => {
               </h2>
               <div className="flow-root">
                 <div className="divide-y divide-gray-200">
-                  {cartItems.map(item => <div key={item.id} className="py-4 flex">
-                      <div className="flex-shrink-0 w-16 h-16 overflow-hidden rounded-md border border-gray-200">
-                        <img src={item.image} alt={item.name} className="w-full h-full object-center object-cover" />
-                      </div>
-                      <div className="ml-4 flex-1 flex flex-col">
-                        <div className="flex justify-between">
-                          <h4 className="text-sm font-medium text-gray-900">
-                            {item.name}
-                          </h4>
-                          <p className="text-sm font-medium text-gray-900">
-                            ${(item.price * item.quantity).toFixed(2)}
-                          </p>
-                        </div>
-                        <p className="text-sm text-gray-500">
-                          Qty: {item.quantity}
-                        </p>
-                      </div>
-                    </div>)}
+                  {cart.map(item => (
+          <div key={item.product.id} className="py-4 flex">
+            <div className="flex-shrink-0 w-16 h-16 overflow-hidden rounded-md border border-gray-200">
+              <img src={item.product.image} alt={item.product.name} className="w-full h-full object-center object-cover" />
+            </div>
+            <div className="ml-4 flex-1 flex flex-col">
+              <div className="flex justify-between">
+                <h4 className="text-sm font-medium text-gray-900">
+                  {item.product.name}
+                </h4>
+                <p className="text-sm font-medium text-gray-900">
+                  ${(item.product.price * item.quantity).toFixed(2)}
+                </p>
+              </div>
+              <p className="text-sm text-gray-500">
+                Qty: {item.quantity}
+              </p>
+            </div>
+                    </div>
+                    ))}
                   <div className="py-4 flex items-center justify-between">
                     <dt className="text-base text-gray-600">Subtotal</dt>
                     <dd className="text-base font-medium text-gray-900">
