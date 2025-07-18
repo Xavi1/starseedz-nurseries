@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Header } from '../components/Header';
-import { Footer } from '../components/Footer';
 import { UserIcon, PackageIcon, CreditCardIcon, HomeIcon, BellIcon, LogOutIcon, ChevronRightIcon, PencilIcon, PlusIcon, EyeIcon, MapPinIcon, ShieldIcon, ChevronDownIcon } from 'lucide-react';
 // Mock order data
 const mockOrders = [{
@@ -135,7 +133,6 @@ export const Account = () => {
     setExpandedOrder(expandedOrder === orderId ? null : orderId);
   };
   return <div className="min-h-screen bg-gray-50">
-      <Header />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumbs */}
         <nav className="flex items-center text-sm mb-8">
@@ -574,6 +571,5 @@ export const Account = () => {
           </div>
         </div>
       </main>
-      <Footer />
     </div>;
 };
