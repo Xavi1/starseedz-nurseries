@@ -21,6 +21,7 @@ import TermsOfServicePage from './pages/TermsOfService';
 import ShippingPolicyPage from './pages/ShippingPolicy';
 import {Checkout} from './pages/Checkout';
 import Account from './pages/Account';
+import Signup from './pages/Signup';
 
 export function App() {
   return (
@@ -53,6 +54,7 @@ export function App() {
                 <Route path="/shipping-policy" element={<ShippingPolicyPage />} />
                 <Route path="/checkout"  element={<Checkout />} />
                 <Route path="/account"  element={<Account />} />
+                <Route path="/signup"  element={<Signup />} />
               </Routes>
             </main>
             <Footer />
