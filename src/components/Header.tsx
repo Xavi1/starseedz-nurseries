@@ -1,8 +1,8 @@
-import { ShoppingCartIcon, SearchIcon, MenuIcon, XIcon, HeartIcon } from 'lucide-react';
+import { ShoppingCartIcon, SearchIcon, MenuIcon, XIcon, UserIcon } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
-import { useWishlist } from '../context/WishlistContext';
+// import { useWishlist } from '../context/WishlistContext';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -11,7 +11,7 @@ const Header = () => {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { cartCount } = useCart();
-  const { wishlist } = useWishlist();
+  // const { wishlist } = useWishlist();
 
   useEffect(() => {
     if (showSearch && searchInputRef.current) {
@@ -81,16 +81,11 @@ const Header = () => {
               )}
             </button>
             <button
-              className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none relative"
-              onClick={() => navigate('/wishlist')}
-              aria-label="View wishlist"
+              className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none"
+              onClick={() => navigate('/account')}
+              aria-label="Account"
             >
-              <HeartIcon className="h-6 w-6" />
-              {wishlist.length > 0 && (
-                <span className="absolute top-0 right-0 bg-red-600 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                  {wishlist.length}
-                </span>
-              )}
+              <UserIcon className="h-6 w-6" />
             </button>
           </div>
           {/* Mobile icons and menu button */}
@@ -119,18 +114,13 @@ const Header = () => {
                 <SearchIcon className="h-6 w-6" />
               </button>
             )}
-            {/* Wishlist Icon */}
+            {/* Account Icon */}
             <button
-              className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none relative"
-              onClick={() => navigate('/wishlist')}
-              aria-label="View wishlist"
+              className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none"
+              onClick={() => navigate('/account')}
+              aria-label="Account"
             >
-              <HeartIcon className="h-6 w-6" />
-              {wishlist.length > 0 && (
-                <span className="absolute top-0 right-0 bg-red-600 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                  {wishlist.length}
-                </span>
-              )}
+              <UserIcon className="h-6 w-6" />
             </button>
             {/* Cart Icon */}
             <button
