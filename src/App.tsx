@@ -20,6 +20,7 @@ import PrivacyPolicyPage from './pages/PrivacyPolicy';
 import TermsOfServicePage from './pages/TermsOfService';
 import ShippingPolicyPage from './pages/ShippingPolicy';
 import {Checkout} from './pages/Checkout';
+import Account from './pages/Account';
 
 export function App() {
   return (
@@ -51,6 +52,7 @@ export function App() {
                 <Route path="/terms-of-service" element={<TermsOfServicePage />} />
                 <Route path="/shipping-policy" element={<ShippingPolicyPage />} />
                 <Route path="/checkout"  element={<Checkout />} />
+                <Route path="/account"  element={<Account />} />
               </Routes>
             </main>
             <Footer />
