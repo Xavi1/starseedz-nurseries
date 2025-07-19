@@ -85,6 +85,19 @@ const mockPaymentMethods = [{
   name: 'John Doe'
 }];
 type AccountTab = 'profile' | 'orders' | 'addresses' | 'payment' | 'preferences';
+
+// Simple modal component
+function Modal({ open, onClose, children }: { open: boolean; onClose: () => void; children: React.ReactNode }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
+        <button onClick={onClose} className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
+        {children}
+      </div>
+    </div>
+  );
+}
 export const Account = () => {
   const [activeTab, setActiveTab] = useState<AccountTab>('profile');
   const [editMode, setEditMode] = useState(false);
@@ -104,6 +117,46 @@ export const Account = () => {
     productRecommendations: false,
     specialOffers: true
   });
+
+  // Change password modal state
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    current: '',
+    new: '',
+    confirm: ''
+  });
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPasswordForm({ ...passwordForm, [e.target.name]: e.target.value });
+    setPasswordError('');
+    setPasswordSuccess('');
+  };
+
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Mock validation: require all fields, new === confirm, current !== new
+    if (!passwordForm.current || !passwordForm.new || !passwordForm.confirm) {
+      setPasswordError('Please fill in all fields.');
+      return;
+    }
+    if (passwordForm.new !== passwordForm.confirm) {
+      setPasswordError('New passwords do not match.');
+      return;
+    }
+    if (passwordForm.current === passwordForm.new) {
+      setPasswordError('New password must be different from current password.');
+      return;
+    }
+    // Simulate success
+    setPasswordSuccess('Password changed successfully!');
+    setPasswordForm({ current: '', new: '', confirm: '' });
+    setTimeout(() => {
+      setShowPasswordModal(false);
+      setPasswordSuccess('');
+    }, 1200);
+  };
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const {
       name,
@@ -290,17 +343,68 @@ export const Account = () => {
                       Security
                     </h3>
                     <div className="mt-4 space-y-4">
-                      <button className="text-sm text-green-700 font-medium hover:text-green-800">
+                      <button
+                        className="text-sm text-green-700 font-medium hover:text-green-800"
+                        type="button"
+                        onClick={() => setShowPasswordModal(true)}
+                      >
                         Change Password
                       </button>
                       <div>
                         <p className="text-sm text-gray-500">
-                          Last login: June 15, 2023 at 10:34 AM from Portland,
-                          OR
+                          Last login: June 15, 2023 at 10:34 AM from Portland, OR
                         </p>
                       </div>
                     </div>
                   </div>
+                  {/* Change Password Modal */}
+                  <Modal open={showPasswordModal} onClose={() => setShowPasswordModal(false)}>
+                    <h2 className="text-lg font-semibold mb-4 text-gray-900">Change Password</h2>
+                    <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                      <div>
+                        <label htmlFor="current" className="block text-sm font-medium text-gray-700">Current Password</label>
+                        <input
+                          type="password"
+                          id="current"
+                          name="current"
+                          value={passwordForm.current}
+                          onChange={handlePasswordChange}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                          autoComplete="current-password"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="new" className="block text-sm font-medium text-gray-700">New Password</label>
+                        <input
+                          type="password"
+                          id="new"
+                          name="new"
+                          value={passwordForm.new}
+                          onChange={handlePasswordChange}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                          autoComplete="new-password"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="confirm" className="block text-sm font-medium text-gray-700">Confirm New Password</label>
+                        <input
+                          type="password"
+                          id="confirm"
+                          name="confirm"
+                          value={passwordForm.confirm}
+                          onChange={handlePasswordChange}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                          autoComplete="new-password"
+                        />
+                      </div>
+                      {passwordError && <div className="text-red-600 text-sm">{passwordError}</div>}
+                      {passwordSuccess && <div className="text-green-700 text-sm">{passwordSuccess}</div>}
+                      <div className="flex justify-end space-x-2">
+                        <button type="button" onClick={() => setShowPasswordModal(false)} className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+                        <button type="submit" className="bg-green-700 border border-transparent rounded-md shadow-sm py-2 px-4 text-sm font-medium text-white hover:bg-green-800">Change Password</button>
+                      </div>
+                    </form>
+                  </Modal>
                 </div>}
               {/* Orders Tab */}
               {activeTab === 'orders' && <div className="p-6">
