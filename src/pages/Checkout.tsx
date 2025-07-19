@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronRightIcon, HomeIcon, ShoppingCartIcon, CreditCardIcon, ShieldCheckIcon, TruckIcon, CheckIcon, ChevronLeftIcon, ChevronDownIcon, AlertCircleIcon } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { CheckoutSteps } from '../components/CheckoutSteps';
 // Define cart item type (same as in Cart.tsx)
 interface CartItem {
   id: number;
@@ -216,45 +217,7 @@ export const Checkout = () => {
           Checkout
         </h1>
         {/* Checkout Steps */}
-        <div className="mb-8">
-          <div className="flex items-center justify-center">
-            <div className="flex items-center">
-              <div className="bg-green-700 rounded-full h-8 w-8 flex items-center justify-center">
-                <CheckIcon className="h-5 w-5 text-white" />
-              </div>
-              <div className="ml-2 text-sm font-medium text-green-700">
-                Cart
-              </div>
-            </div>
-            <div className="h-1 w-16 bg-green-700 mx-2"></div>
-            <div className="flex items-center">
-              <div className={`${currentStep === 'shipping' || currentStep === 'payment' || currentStep === 'review' ? 'bg-green-700' : 'bg-gray-300'} rounded-full h-8 w-8 flex items-center justify-center`}>
-                {currentStep === 'payment' || currentStep === 'review' ? <CheckIcon className="h-5 w-5 text-white" /> : <span className="text-white text-sm font-medium">1</span>}
-              </div>
-              <div className={`ml-2 text-sm font-medium ${currentStep === 'shipping' || currentStep === 'payment' || currentStep === 'review' ? 'text-green-700' : 'text-gray-500'}`}>
-                Shipping
-              </div>
-            </div>
-            <div className={`h-1 w-16 ${currentStep === 'payment' || currentStep === 'review' ? 'bg-green-700' : 'bg-gray-300'} mx-2`}></div>
-            <div className="flex items-center">
-              <div className={`${currentStep === 'payment' || currentStep === 'review' ? 'bg-green-700' : 'bg-gray-300'} rounded-full h-8 w-8 flex items-center justify-center`}>
-                {currentStep === 'review' ? <CheckIcon className="h-5 w-5 text-white" /> : <span className="text-white text-sm font-medium">2</span>}
-              </div>
-              <div className={`ml-2 text-sm font-medium ${currentStep === 'payment' || currentStep === 'review' ? 'text-green-700' : 'text-gray-500'}`}>
-                Payment
-              </div>
-            </div>
-            <div className={`h-1 w-16 ${currentStep === 'review' ? 'bg-green-700' : 'bg-gray-300'} mx-2`}></div>
-            <div className="flex items-center">
-              <div className={`${currentStep === 'review' ? 'bg-green-700' : 'bg-gray-300'} rounded-full h-8 w-8 flex items-center justify-center`}>
-                <span className="text-white text-sm font-medium">3</span>
-              </div>
-              <div className={`ml-2 text-sm font-medium ${currentStep === 'review' ? 'text-green-700' : 'text-gray-500'}`}>
-                Review
-              </div>
-            </div>
-          </div>
-        </div>
+        <CheckoutSteps currentStep="shipping" />
         <div className="lg:grid lg:grid-cols-12 lg:gap-x-12 lg:items-start">
           {/* Main content */}
           <div className="lg:col-span-7">
