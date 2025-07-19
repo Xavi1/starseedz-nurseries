@@ -3,14 +3,14 @@ import { initializeApp } from 'firebase/app';
 // import { getAuth } from 'firebase/auth'; // Uncomment if you need auth
 // import { getFirestore } from 'firebase/firestore'; // Uncomment if you need Firestore
 
-// TODO: Replace with your Firebase project config
 const firebaseConfig = {
-  apiKey: 'YOUR_API_KEY',
-  authDomain: 'YOUR_AUTH_DOMAIN',
-  projectId: 'YOUR_PROJECT_ID',
-  storageBucket: 'YOUR_STORAGE_BUCKET',
-  messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-  appId: 'YOUR_APP_ID',
+  apiKey: "AIzaSyBjyxPBFz42Z0t2WNYIAFHuYi1VKjQdc3U",
+  authDomain: "starseedz-nurseries.firebaseapp.com",
+  projectId: "starseedz-nurseries",
+  storageBucket: "starseedz-nurseries.firebasestorage.app",
+  messagingSenderId: "492281895671",
+  appId: "1:492281895671:web:291f1e0eafcbe09f41d1f2",
+  measurementId: "G-686DVWFK7L"
 };
 
 // Initialize Firebase
