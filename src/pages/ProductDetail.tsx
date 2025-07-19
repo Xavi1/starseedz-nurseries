@@ -40,6 +40,8 @@ export const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showCartPopup, setShowCartPopup] = useState(false);
+  const [popupProduct, setPopupProduct] = useState<Product | null>(null);
   // Review form state
   const [reviewName, setReviewName] = useState("");
   const [reviewRating, setReviewRating] = useState("5");
@@ -344,6 +346,9 @@ export const ProductDetail = () => {
   const addToCart = () => {
     if (product) {
       addToCartContext(product, quantity);
+      setPopupProduct(product);
+      setShowCartPopup(true);
+      setTimeout(() => setShowCartPopup(false), 3000);
     }
   };
   const handleWishlist = () => {
@@ -813,6 +818,67 @@ export const ProductDetail = () => {
                       </Link>)}
                   </div>
                 </div>
+               {/* Cart Added Popup */}
+<div className={`fixed bottom-4 right-4 z-50 pointer-events-none transition-all duration-500 ease-out transform ${
+  showCartPopup 
+    ? 'opacity-100 translate-y-0 scale-100' 
+    : 'opacity-0 translate-y-4 scale-95'
+}`}>
+  {popupProduct && (
+    <div className="bg-white rounded-lg shadow-xl overflow-hidden border border-green-200 w-80 pointer-events-auto">
+        <div className="p-4">
+          <div className="flex items-start">
+            <div className="flex-shrink-0 h-12 w-12 rounded-md overflow-hidden border border-gray-200">
+              <img 
+                src={popupProduct.image} 
+                alt={popupProduct.name} 
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <div className="ml-4 flex-1">
+              <div className="flex items-center">
+                <CheckCircleIcon className="h-4 w-4 text-green-600 mr-1" />
+                <h3 className="text-sm font-medium text-green-700">
+                  Added to your cart
+                </h3>
+              </div>
+              <p className="mt-1 text-sm text-gray-600">
+                {popupProduct.name}
+              </p>
+              <p className="mt-1 text-sm font-medium text-gray-900">
+                {quantity} × ${popupProduct.price.toFixed(2)}
+              </p>
+            </div>
+            <button
+              type="button"
+              className="ml-4 flex-shrink-0 text-gray-400 hover:text-gray-500 transition-colors duration-150"
+              onClick={() => setShowCartPopup(false)}
+            >
+              <span className="sr-only">Close</span>
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div className="bg-gray-50 px-4 py-3 flex justify-between items-center">
+          <button
+            onClick={() => setShowCartPopup(false)}
+            className="text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors duration-150"
+          >
+            Continue shopping
+          </button>
+          <Link 
+            to="/cart" 
+            className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-green-700 hover:bg-green-800 transition-colors duration-150"
+            onClick={() => setShowCartPopup(false)}
+          >
+            View cart
+          </Link>
+        </div>
+      </div>
+  )}
+</div>
               </div>
             </section>
           </>
