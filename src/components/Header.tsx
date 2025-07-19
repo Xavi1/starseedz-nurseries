@@ -68,13 +68,7 @@ const Header = () => {
                 <SearchIcon className="h-6 w-6" />
               </button>
             )}
-             <button
-              className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none"
-              onClick={() => navigate('/account')}
-              aria-label="Account"
-            >
-              <UserIcon className="h-6 w-6" />
-            </button>
+            
             <button
               className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none relative"
               onClick={() => navigate('/cart')}
@@ -86,6 +80,13 @@ const Header = () => {
                   {cartCount}
                 </span>
               )}
+            </button>
+             <button
+              className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none"
+              onClick={() => navigate('/account')}
+              aria-label="Account"
+            >
+              <UserIcon className="h-6 w-6" />
             </button>
           </div>
           {/* Mobile icons and menu button */}
@@ -114,14 +115,7 @@ const Header = () => {
                 <SearchIcon className="h-6 w-6" />
               </button>
             )}
-            {/* Account Icon */}
-            <button
-              className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none"
-              onClick={() => navigate('/account')}
-              aria-label="Account"
-            >
-              <UserIcon className="h-6 w-6" />
-            </button>
+         
             {/* Cart Icon */}
             <button
               className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none relative"
@@ -134,6 +128,14 @@ const Header = () => {
                   {cartCount}
                 </span>
               )}
+            </button>
+            {/* Account Icon */}
+            <button
+              className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none"
+              onClick={() => navigate('/account')}
+              aria-label="Account"
+            >
+              <UserIcon className="h-6 w-6" />
             </button>
             {/* Hamburger menu button */}
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 rounded-md text-gray-500 hover:text-green-700 focus:outline-none">
