@@ -54,21 +54,8 @@ export const Checkout = () => {
   const [shippingMethod, setShippingMethod] = useState('standard');
   const [shippingErrors, setShippingErrors] = useState<Record<string, string>>({});
   const [paymentErrors, setPaymentErrors] = useState<Record<string, string>>({});
-  // Mock cart data - in a real app this would come from context/state management
-  useEffect(() => {
-    const fetchCartItems = () => {
-      setLoading(true);
-      // Mock data - same as in Cart.tsx
-      const mockCartItems: CartItem[] = [];
-      setTimeout(() => {
-        setCartItems(mockCartItems);
-        setLoading(false);
-      }, 500);
-    };
-    fetchCartItems();
-  }, []);
   // Calculate cart totals
-  const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const subtotal = cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
   const shipping = shippingMethod === 'express' ? 14.99 : subtotal > 50 ? 0 : 9.99;
   const tax = subtotal * 0.07; // 7% tax rate
   const total = subtotal + shipping + tax;
@@ -602,21 +589,21 @@ export const Checkout = () => {
                     Items in your order
                   </h3>
                   <div className="divide-y divide-gray-200">
-                    {cartItems.map(item => <div key={item.id} className="py-4 flex">
+                    {cart.map(item => <div key={item.product.id} className="py-4 flex">
                         <div className="flex-shrink-0 w-16 h-16 overflow-hidden rounded-md border border-gray-200">
-                          <img src={item.image} alt={item.name} className="w-full h-full object-center object-cover" />
+                          <img src={item.product.image} alt={item.product.name} className="w-full h-full object-center object-cover" />
                         </div>
                         <div className="ml-4 flex-1 flex flex-col">
                           <div className="flex justify-between">
                             <h4 className="text-sm font-medium text-gray-900">
-                              {item.name}
+                              {item.product.name}
                             </h4>
                             <p className="text-sm font-medium text-gray-900">
-                              ${(item.price * item.quantity).toFixed(2)}
+                              ${(item.product.price * item.quantity).toFixed(2)}
                             </p>
                           </div>
                           <p className="text-sm text-gray-500">
-                            {item.category}
+                            {item.product.category}
                           </p>
                           <p className="text-sm text-gray-500">
                             Qty: {item.quantity}
