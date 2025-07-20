@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { UserIcon, PackageIcon, CreditCardIcon, HomeIcon, BellIcon, LogOutIcon, ChevronRightIcon, PencilIcon, PlusIcon, EyeIcon, MapPinIcon, ShieldIcon, ChevronDownIcon } from 'lucide-react';
+import { UserIcon, PackageIcon, CreditCardIcon, HomeIcon, BellIcon, LogOutIcon, ChevronRightIcon, PencilIcon, PlusIcon, EyeIcon, MapPinIcon, ShieldIcon, ChevronDownIcon, HeartIcon } from 'lucide-react';
 // Mock order data
 const mockOrders = [{
   id: '2023-1542',
@@ -84,7 +84,7 @@ const mockPaymentMethods = [{
   expiry: '12/24',
   name: 'John Doe'
 }];
-type AccountTab = 'profile' | 'orders' | 'addresses' | 'payment' | 'preferences';
+type AccountTab = 'profile' | 'orders' | 'addresses' | 'payment' | 'preferences' | 'wishlist';
 
 // Simple modal component
 function Modal({ open, onClose, children }: { open: boolean; onClose: () => void; children: React.ReactNode }) {
@@ -221,6 +221,10 @@ export const Account = () => {
                 <button onClick={() => setActiveTab('orders')} className={`w-full flex items-center px-6 py-4 text-sm font-medium ${activeTab === 'orders' ? 'text-green-700 bg-green-50' : 'text-gray-700 hover:bg-gray-50'}`}>
                   <PackageIcon className="h-5 w-5 mr-3" />
                   Order History
+                </button>
+                <button onClick={() => setActiveTab('wishlist')} className={`w-full flex items-center px-6 py-4 text-sm font-medium ${activeTab === 'wishlist' ? 'text-green-700 bg-green-50' : 'text-gray-700 hover:bg-gray-50'}`}>
+                  <HeartIcon className="h-5 w-5 mr-3" />
+                  My Wishlist
                 </button>
                 <button onClick={() => setActiveTab('addresses')} className={`w-full flex items-center px-6 py-4 text-sm font-medium ${activeTab === 'addresses' ? 'text-green-700 bg-green-50' : 'text-gray-700 hover:bg-gray-50'}`}>
                   <MapPinIcon className="h-5 w-5 mr-3" />
@@ -490,6 +494,31 @@ export const Account = () => {
                       </ul>
                     </div>}
                 </div>}
+              {/* My Wishlist Tab*/}
+              {activeTab === 'wishlist' && <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-medium text-gray-900">
+                    My Wishlist
+                  </h2>
+                </div>
+                <div className="text-center py-12 bg-gray-50 rounded-md">
+                  <HeartIcon className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-lg font-medium text-gray-900">
+                  Your wishlist is empty
+                </h3>
+                <p className="mt-1 text-sm text-gray-500">
+                   You haven't added any items to your wishlist yet.
+                </p>
+              <div className="mt-6">
+              <Link 
+               to="/wishlist" 
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-700 hover:bg-green-800"
+              >
+              View Wishlist
+              </Link>
+              </div>
+              </div>
+  </div>}
               {/* Addresses Tab */}
               {activeTab === 'addresses' && <div className="p-6">
                   <div className="flex items-center justify-between mb-6">
