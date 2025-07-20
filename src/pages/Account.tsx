@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { UserIcon, PackageIcon, CreditCardIcon, HomeIcon, BellIcon, LogOutIcon, ChevronRightIcon, PencilIcon, PlusIcon, EyeIcon, MapPinIcon, ShieldIcon, ChevronDownIcon, HeartIcon } from 'lucide-react';
+import { useWishlist } from '../context/WishlistContext';
 // Mock order data
 const mockOrders = [{
   id: '2023-1542',
@@ -102,6 +103,7 @@ export const Account = () => {
   const [activeTab, setActiveTab] = useState<AccountTab>('profile');
   const [editMode, setEditMode] = useState(false);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const { wishlist, removeFromWishlist } = useWishlist();
   // Mock user data
   const [userData, setUserData] = useState({
     firstName: 'John',
@@ -496,28 +498,66 @@ export const Account = () => {
                 </div>}
               {/* My Wishlist Tab*/}
               {activeTab === 'wishlist' && <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-medium text-gray-900">
-                    My Wishlist
-                  </h2>
-                </div>
-                <div className="text-center py-12 bg-gray-50 rounded-md">
-                  <HeartIcon className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-lg font-medium text-gray-900">
-                  Your wishlist is empty
+    <div className="flex items-center justify-between mb-6">
+      <h2 className="text-xl font-medium text-gray-900">
+        My Wishlist
+      </h2>
+    </div>
+    {wishlist.length === 0 ? (
+      <div className="text-center py-12 bg-gray-50 rounded-md">
+        <HeartIcon className="mx-auto h-12 w-12 text-gray-400" />
+        <h3 className="mt-2 text-lg font-medium text-gray-900">
+          Your wishlist is empty
+        </h3>
+        <p className="mt-1 text-sm text-gray-500">
+          You haven't added any items to your wishlist yet.
+        </p>
+        <div className="mt-6">
+          <Link 
+            to="/pages/Wishlist" 
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-700 hover:bg-green-800"
+          >
+            View Wishlist
+          </Link>
+        </div>
+      </div>
+    ) : (
+      <div className="bg-white border border-gray-200 rounded-md overflow-hidden">
+        <ul className="divide-y divide-gray-200">
+          {wishlist.map(product => (
+            <li key={product.id} className="p-4 flex items-center">
+              <img 
+                src={product.image} 
+                alt={product.name} 
+                className="h-16 w-16 object-cover rounded-md"
+              />
+              <div className="ml-4 flex-1">
+                <h3 className="text-sm font-medium text-gray-900">
+                  {product.name}
                 </h3>
-                <p className="mt-1 text-sm text-gray-500">
-                   You haven't added any items to your wishlist yet.
+                <p className="text-sm text-gray-500 mt-1">
+                  ${product.price.toFixed(2)}
                 </p>
-              <div className="mt-6">
-              <Link 
-               to="/wishlist" 
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-700 hover:bg-green-800"
+              </div>
+              <button 
+                onClick={() => removeFromWishlist(product.id)}
+                className="text-red-600 hover:text-red-800"
               >
-              View Wishlist
-              </Link>
-              </div>
-              </div>
+                Remove
+              </button>
+            </li>
+          ))}
+        </ul>
+        <div className="p-4 border-t border-gray-200">
+          <Link 
+            to="/wishlist" 
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-700 hover:bg-green-800"
+          >
+            View Full Wishlist
+          </Link>
+        </div>
+      </div>
+    )}
   </div>}
               {/* Addresses Tab */}
               {activeTab === 'addresses' && <div className="p-6">
