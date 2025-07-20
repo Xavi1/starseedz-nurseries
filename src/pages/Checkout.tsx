@@ -469,7 +469,7 @@ export const Checkout = () => {
             onChange={e => handleInputChange(e, setBillingInfo)} 
             className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
           >
-            <option value="United States">Trinidad and Tobago</option>
+            <option value="Trinidad and Tobago">Trinidad and Tobago</option>
             <option value="Canada">Canada</option>
             <option value="Mexico">Mexico</option>
           </select>
