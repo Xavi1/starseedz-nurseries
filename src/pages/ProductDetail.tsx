@@ -42,6 +42,8 @@ export const ProductDetail = () => {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showCartPopup, setShowCartPopup] = useState(false);
   const [popupProduct, setPopupProduct] = useState<Product | null>(null);
+  const [showWishlistPopup, setShowWishlistPopup] = useState(false);
+  const [wishlistAction, setWishlistAction] = useState<'added' | 'removed'>('added');
   // Review form state
   const [reviewName, setReviewName] = useState("");
   const [reviewRating, setReviewRating] = useState("5");
@@ -352,14 +354,19 @@ export const ProductDetail = () => {
     }
   };
   const handleWishlist = () => {
-    if (product) {
-      if (isInWishlist(product.id)) {
-        removeFromWishlist(product.id);
-      } else {
-        addToWishlist(product);
-      }
+  if (product) {
+    if (isInWishlist(product.id)) {
+      removeFromWishlist(product.id);
+      setWishlistAction('removed');
+    } else {
+      addToWishlist(product);
+      setWishlistAction('added');
     }
-  };
+    setPopupProduct(product);
+    setShowWishlistPopup(true);
+    setTimeout(() => setShowWishlistPopup(false), 3000);
+  }
+};
   return (
     <div className="min-h-screen bg-white">
       <main>
@@ -877,6 +884,58 @@ export const ProductDetail = () => {
           </Link>
         </div>
       </div>
+  )}
+</div>
+{/* Wishlist Popup */}
+<div className={`fixed bottom-4 right-4 z-50 pointer-events-none transition-all duration-500 ease-out transform ${
+  showWishlistPopup 
+    ? 'opacity-100 translate-y-0 scale-100' 
+    : 'opacity-0 translate-y-4 scale-95'
+}`}>
+  {popupProduct && (
+    <div className="bg-white rounded-lg shadow-xl overflow-hidden border border-green-200 w-80 pointer-events-auto">
+      <div className="p-4">
+        <div className="flex items-start">
+          <div className="flex-shrink-0 h-12 w-12 rounded-md overflow-hidden border border-gray-200">
+            <img 
+              src={popupProduct.image} 
+              alt={popupProduct.name} 
+              className="h-full w-full object-cover"
+            />
+          </div>
+          <div className="ml-4 flex-1">
+            <div className="flex items-center">
+              <CheckCircleIcon className={`h-4 w-4 ${wishlistAction === 'added' ? 'text-green-600' : 'text-red-500'} mr-1`} />
+              <h3 className={`text-sm font-medium ${wishlistAction === 'added' ? 'text-green-700' : 'text-red-600'}`}>
+                {wishlistAction === 'added' ? 'Added to wishlist' : 'Removed from wishlist'}
+              </h3>
+            </div>
+            <p className="mt-1 text-sm text-gray-600">
+              {popupProduct.name}
+            </p>
+          </div>
+          <button
+            type="button"
+            className="ml-4 flex-shrink-0 text-gray-400 hover:text-gray-500 transition-colors duration-150"
+            onClick={() => setShowWishlistPopup(false)}
+          >
+            <span className="sr-only">Close</span>
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div className="bg-gray-50 px-4 py-3 flex justify-end">
+        <Link 
+          to="/wishlist" 
+          className="text-sm font-medium text-green-700 hover:text-green-800 transition-colors duration-150"
+          onClick={() => setShowWishlistPopup(false)}
+        >
+          View wishlist
+        </Link>
+      </div>
+    </div>
   )}
 </div>
               </div>
