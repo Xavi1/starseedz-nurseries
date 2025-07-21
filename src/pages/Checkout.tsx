@@ -328,10 +328,6 @@ export const Checkout = () => {
                           $14.99
                         </span>
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        * Ships after 3-5 weeks of growing
-                      </p>
-                       
                     </div>
                   </div>
                   {/* Billing Information */}
