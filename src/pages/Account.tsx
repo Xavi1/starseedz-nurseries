@@ -85,6 +85,7 @@ const mockPaymentMethods = [{
   expiry: '12/24',
   name: 'John Doe'
 }];
+
 type AccountTab = 'profile' | 'orders' | 'addresses' | 'payment' | 'preferences' | 'wishlist';
 
 // Simple modal component
@@ -129,6 +130,24 @@ export const Account = () => {
   });
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
+
+  // Address modal state
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [addressForm, setAddressForm] = useState({
+    id: 0,
+    name: '',
+    isDefault: false,
+    firstName: 'John',
+    lastName: 'Doe',
+    address: '',
+    apartment: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    country: 'United States',
+    phone: '(555) 123-4567'
+  });
+  const [addresses, setAddresses] = useState(mockAddresses);
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPasswordForm({ ...passwordForm, [e.target.name]: e.target.value });
@@ -184,6 +203,38 @@ export const Account = () => {
     setEditMode(false);
     // Show success message (in a real app)
   };
+
+  const handleAddressSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (addressForm.id) {
+      // Update existing address
+      setAddresses(addresses.map(addr => 
+        addr.id === addressForm.id ? addressForm : addr
+      ));
+    } else {
+      // Add new address
+      const newId = Math.max(...addresses.map(a => a.id), 0) + 1;
+      setAddresses([...addresses, { ...addressForm, id: newId }]);
+    }
+    setShowAddressModal(false);
+  };
+
+  const handleEditAddress = (address: typeof mockAddresses[0]) => {
+    setAddressForm(address);
+    setShowAddressModal(true);
+  };
+
+  const handleDeleteAddress = (id: number) => {
+    setAddresses(addresses.filter(addr => addr.id !== id));
+  };
+
+  const handleSetDefaultAddress = (id: number) => {
+    setAddresses(addresses.map(addr => ({
+      ...addr,
+      isDefault: addr.id === id
+    })));
+  };
+
   const toggleOrderDetails = (orderId: string) => {
     setExpandedOrder(expandedOrder === orderId ? null : orderId);
   };
@@ -559,51 +610,84 @@ export const Account = () => {
       </div>
     )}
   </div>}
-              {/* Addresses Tab */}
-              {activeTab === 'addresses' && <div className="p-6">
+               {/* Addresses Tab */}
+              {activeTab === 'addresses' && (
+                <div className="p-6">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-medium text-gray-900">
                       My Addresses
                     </h2>
-                    <button className="flex items-center text-sm font-medium text-green-700 hover:text-green-800">
+                    <button 
+                      onClick={() => {
+                        setAddressForm({
+                          id: 0,
+                          name: '',
+                          isDefault: false,
+                          firstName: userData.firstName,
+                          lastName: userData.lastName,
+                          address: '',
+                          apartment: '',
+                          city: '',
+                          state: '',
+                          zipCode: '',
+                          country: 'United States',
+                          phone: userData.phone
+                        });
+                        setShowAddressModal(true);
+                      }} 
+                      className="flex items-center text-sm font-medium text-green-700 hover:text-green-800"
+                    >
                       <PlusIcon className="h-4 w-4 mr-1" />
                       Add New Address
                     </button>
                   </div>
                   <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                    {mockAddresses.map(address => <div key={address.id} className="border border-gray-200 rounded-md p-4 relative">
-                        {address.isDefault && <span className="absolute top-4 right-4 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                    {addresses.map(address => (
+                      <div key={address.id} className="border border-gray-200 rounded-md p-4 relative">
+                        {address.isDefault && (
+                          <span className="absolute top-4 right-4 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
                             Default
-                          </span>}
+                          </span>
+                        )}
                         <h3 className="font-medium text-gray-900">
                           {address.name}
                         </h3>
                         <div className="mt-2 text-sm text-gray-500 space-y-1">
-                          <p>
-                            {address.firstName} {address.lastName}
-                          </p>
+                          <p>{address.firstName} {address.lastName}</p>
                           <p>{address.address}</p>
                           {address.apartment && <p>{address.apartment}</p>}
-                          <p>
-                            {address.city}, {address.state} {address.zipCode}
-                          </p>
+                          <p>{address.city}, {address.state} {address.zipCode}</p>
                           <p>{address.country}</p>
                           <p className="pt-1">{address.phone}</p>
                         </div>
                         <div className="mt-4 flex space-x-4">
-                          <button className="text-sm text-green-700 font-medium hover:text-green-800">
+                          <button 
+                            onClick={() => handleEditAddress(address)}
+                            className="text-sm text-green-700 font-medium hover:text-green-800"
+                          >
                             Edit
                           </button>
-                          {!address.isDefault && <button className="text-sm text-gray-700 font-medium hover:text-gray-800">
+                          {!address.isDefault && (
+                            <button 
+                              onClick={() => handleSetDefaultAddress(address.id)}
+                              className="text-sm text-gray-700 font-medium hover:text-gray-800"
+                            >
                               Set as default
-                            </button>}
-                          <button className="text-sm text-red-600 font-medium hover:text-red-700">
+                            </button>
+                          )}
+                          <button 
+                            onClick={() => handleDeleteAddress(address.id)}
+                            className="text-sm text-red-600 font-medium hover:text-red-700"
+                          >
                             Delete
                           </button>
                         </div>
-                      </div>)}
+                      </div>
+                    ))}
                   </div>
-                </div>}
+                </div>
+              )}
+
               {/* Payment Methods Tab */}
               {activeTab === 'payment' && <div className="p-6">
                   <div className="flex items-center justify-between mb-6">
@@ -743,6 +827,189 @@ export const Account = () => {
             </div>
           </div>
         </div>
+
+          {/* Address Modal */}
+        <Modal open={showAddressModal} onClose={() => setShowAddressModal(false)}>
+          <h2 className="text-lg font-semibold mb-4 text-gray-900">
+            {addressForm.id ? 'Edit Address' : 'Add New Address'}
+          </h2>
+          <form onSubmit={handleAddressSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 gap-y-4 sm:grid-cols-2 sm:gap-x-4">
+              <div className="sm:col-span-2">
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                  Address Nickname (e.g., Home, Work)
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={addressForm.name}
+                  onChange={(e) => setAddressForm({...addressForm, name: e.target.value})}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+                  First name
+                </label>
+                <input
+                  type="text"
+                  id="firstName"
+                  name="firstName"
+                  value={addressForm.firstName}
+                  onChange={(e) => setAddressForm({...addressForm, firstName: e.target.value})}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+                  Last name
+                </label>
+                <input
+                  type="text"
+                  id="lastName"
+                  name="lastName"
+                  value={addressForm.lastName}
+                  onChange={(e) => setAddressForm({...addressForm, lastName: e.target.value})}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                  required
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+                  Street address
+                </label>
+                <input
+                  type="text"
+                  id="address"
+                  name="address"
+                  value={addressForm.address}
+                  onChange={(e) => setAddressForm({...addressForm, address: e.target.value})}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                  required
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label htmlFor="apartment" className="block text-sm font-medium text-gray-700">
+                  Apartment, suite, etc. (optional)
+                </label>
+                <input
+                  type="text"
+                  id="apartment"
+                  name="apartment"
+                  value={addressForm.apartment}
+                  onChange={(e) => setAddressForm({...addressForm, apartment: e.target.value})}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                />
+              </div>
+              <div>
+                <label htmlFor="city" className="block text-sm font-medium text-gray-700">
+                  City
+                </label>
+                <input
+                  type="text"
+                  id="city"
+                  name="city"
+                  value={addressForm.city}
+                  onChange={(e) => setAddressForm({...addressForm, city: e.target.value})}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="state" className="block text-sm font-medium text-gray-700">
+                  State
+                </label>
+                <input
+                  type="text"
+                  id="state"
+                  name="state"
+                  value={addressForm.state}
+                  onChange={(e) => setAddressForm({...addressForm, state: e.target.value})}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700">
+                  ZIP code
+                </label>
+                <input
+                  type="text"
+                  id="zipCode"
+                  name="zipCode"
+                  value={addressForm.zipCode}
+                  onChange={(e) => setAddressForm({...addressForm, zipCode: e.target.value})}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="country" className="block text-sm font-medium text-gray-700">
+                  Country
+                </label>
+                <select
+                  id="country"
+                  name="country"
+                  value={addressForm.country}
+                  onChange={(e) => setAddressForm({...addressForm, country: e.target.value})}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                  required
+                >
+                  <option>United States</option>
+                  <option>Canada</option>
+                  <option>United Kingdom</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                  Phone
+                </label>
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  value={addressForm.phone}
+                  onChange={(e) => setAddressForm({...addressForm, phone: e.target.value})}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                  required
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <div className="flex items-center">
+                  <input
+                    id="isDefault"
+                    name="isDefault"
+                    type="checkbox"
+                    checked={addressForm.isDefault}
+                    onChange={(e) => setAddressForm({...addressForm, isDefault: e.target.checked})}
+                    className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                  />
+                  <label htmlFor="isDefault" className="ml-2 block text-sm text-gray-700">
+                    Set as default address
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div className="mt-6 flex items-center justify-end space-x-3">
+              <button 
+                type="button" 
+                onClick={() => setShowAddressModal(false)} 
+                className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button 
+                type="submit" 
+                className="bg-green-700 border border-transparent rounded-md shadow-sm py-2 px-4 text-sm font-medium text-white hover:bg-green-800"
+              >
+                Save Address
+              </button>
+            </div>
+          </form>
+        </Modal>
       </main>
     </div>;
 };
