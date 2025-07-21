@@ -204,7 +204,7 @@ export const Checkout = () => {
           Checkout
         </h1>
         {/* Checkout Steps */}
-        <CheckoutSteps currentStep="shipping" />
+        <CheckoutSteps currentStep={currentStep} />
         <div className="lg:grid lg:grid-cols-12 lg:gap-x-12 lg:items-start">
           {/* Main content */}
           <div className="lg:col-span-7">
