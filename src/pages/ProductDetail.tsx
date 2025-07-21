@@ -342,7 +342,7 @@ export const ProductDetail = () => {
     setQuantity(newQuantity);
   };
   // Use cart context
-  const { addToCart: addToCartContext } = useCart();
+  const { addToCart: addToCartContext, cart } = useCart();
   // Use wishlist context
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const addToCart = () => {
@@ -367,6 +367,9 @@ export const ProductDetail = () => {
     setTimeout(() => setShowWishlistPopup(false), 3000);
   }
 };
+  // Only allow review if user has purchased this product (in cart with quantity > 0)
+  const hasPurchased = cart.some(item => item.product.id === product?.id && item.quantity > 0);
+
   return (
     <div className="min-h-screen bg-white">
       <main>
@@ -772,8 +775,10 @@ export const ProductDetail = () => {
                             Customer Reviews
                           </h3>
                           <button
-                            className="text-sm font-medium text-green-700 hover:text-green-800"
-                            onClick={() => setShowReviewModal(true)}
+                            className={`text-sm font-medium ${hasPurchased ? 'text-green-700 hover:text-green-800' : 'text-gray-400 cursor-not-allowed'}`}
+                            onClick={() => hasPurchased && setShowReviewModal(true)}
+                            disabled={!hasPurchased}
+                            title={hasPurchased ? '' : 'You can only review products you have purchased.'}
                           >
                             Write a review
                           </button>
