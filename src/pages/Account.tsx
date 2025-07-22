@@ -1,7 +1,20 @@
+// Simple modal component
+function Modal({ open, onClose, children }: { open: boolean; onClose: () => void; children: React.ReactNode }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
+        <button onClick={onClose} className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
+        {children}
+      </div>
+    </div>
+  );
+}
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { UserIcon, PackageIcon, CreditCardIcon, HomeIcon, BellIcon, LogOutIcon, ChevronRightIcon, PencilIcon, PlusIcon, EyeIcon, MapPinIcon, ShieldIcon, ChevronDownIcon, HeartIcon } from 'lucide-react';
 import { useWishlist } from '../context/WishlistContext';
+
 // Mock order data
 const mockOrders = [{
   id: '2023-1542',
@@ -88,19 +101,72 @@ const mockPaymentMethods = [{
 
 type AccountTab = 'profile' | 'orders' | 'addresses' | 'payment' | 'preferences' | 'wishlist';
 
-// Simple modal component
-function Modal({ open, onClose, children }: { open: boolean; onClose: () => void; children: React.ReactNode }) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
-        <button onClick={onClose} className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
-        {children}
-      </div>
-    </div>
-  );
-}
+type PaymentMethod = {
+  id: number;
+  isDefault: boolean;
+  type: string;
+  last4: string;
+  expiry: string;
+  name: string;
+};
 export const Account = () => {
+  // Payment methods state
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(mockPaymentMethods);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  
+
+  // Payment method handlers
+  const handlePaymentSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!paymentForm.cardNumber || !paymentForm.name || !paymentForm.expiry || !paymentForm.cvc) {
+      return;
+    }
+    const last4 = paymentForm.cardNumber.slice(-4);
+    if (paymentForm.id) {
+      setPaymentMethods(paymentMethods.map(pm => 
+        pm.id === paymentForm.id ? {
+          ...paymentForm,
+          last4,
+          type: paymentForm.type
+        } : pm
+      ));
+    } else {
+      const newId = Math.max(...paymentMethods.map(p => p.id), 0) + 1;
+      setPaymentMethods([...paymentMethods, {
+        id: newId,
+        isDefault: paymentForm.isDefault,
+        type: paymentForm.type,
+        last4,
+        expiry: paymentForm.expiry,
+        name: paymentForm.name
+      }]);
+    }
+    setShowPaymentModal(false);
+  };
+
+  const handleEditPayment = (payment: PaymentMethod) => {
+    setPaymentForm({
+      id: payment.id,
+      isDefault: payment.isDefault,
+      type: payment.type,
+      cardNumber: `**** **** **** ${payment.last4}`,
+      name: payment.name,
+      expiry: payment.expiry,
+      cvc: ''
+    });
+    setShowPaymentModal(true);
+  };
+
+  const handleDeletePayment = (id: number) => {
+    setPaymentMethods(paymentMethods.filter(pm => pm.id !== id));
+  };
+
+  const handleSetDefaultPayment = (id: number) => {
+    setPaymentMethods(paymentMethods.map(pm => ({
+      ...pm,
+      isDefault: pm.id === id
+    })));
+  };
   const [activeTab, setActiveTab] = useState<AccountTab>('profile');
   const [editMode, setEditMode] = useState(false);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
@@ -119,6 +185,17 @@ export const Account = () => {
     orderUpdates: true,
     productRecommendations: false,
     specialOffers: true
+  });
+
+  // Payment modal state
+  const [paymentForm, setPaymentForm] = useState({
+    id: 0,
+    isDefault: false,
+    type: 'Visa',
+    cardNumber: '',
+    name: `${userData.firstName} ${userData.lastName}`,
+    expiry: '',
+    cvc: ''
   });
 
   // Change password modal state
@@ -148,7 +225,6 @@ export const Account = () => {
     phone: '(555) 123-4567'
   });
   const [addresses, setAddresses] = useState(mockAddresses);
-
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPasswordForm({ ...passwordForm, [e.target.name]: e.target.value });
     setPasswordError('');
@@ -687,52 +763,204 @@ export const Account = () => {
                   </div>
                 </div>
               )}
-
               {/* Payment Methods Tab */}
-              {activeTab === 'payment' && <div className="p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-medium text-gray-900">
-                      Payment Methods
-                    </h2>
-                    <button className="flex items-center text-sm font-medium text-green-700 hover:text-green-800">
-                      <PlusIcon className="h-4 w-4 mr-1" />
-                      Add New Payment Method
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                    {mockPaymentMethods.map(payment => <div key={payment.id} className="border border-gray-200 rounded-md p-4 relative">
-                        {payment.isDefault && <span className="absolute top-4 right-4 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                            Default
-                          </span>}
-                        <div className="flex items-center">
-                          <div className="h-10 w-16 bg-gray-100 rounded flex items-center justify-center">
-                            <span className="font-medium text-gray-900">
-                              {payment.type}
-                            </span>
-                          </div>
-                          <div className="ml-4">
-                            <h3 className="font-medium text-gray-900">
-                              {payment.type} ending in {payment.last4}
-                            </h3>
-                            <p className="text-sm text-gray-500">
-                              Expires {payment.expiry}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="mt-4 flex space-x-4">
-                          <button className="text-sm text-green-700 font-medium hover:text-green-800">
-                            Edit
-                          </button>
-                          {!payment.isDefault && <button className="text-sm text-gray-700 font-medium hover:text-gray-800">
-                              Set as default
-                            </button>}
-                          <button className="text-sm text-red-600 font-medium hover:text-red-700">
-                            Delete
-                          </button>
-                        </div>
-                      </div>)}
-                  </div>
-                </div>}
+              {activeTab === 'payment' && (
+  <div className="p-6">
+    <div className="flex items-center justify-between mb-6">
+      <h2 className="text-xl font-medium text-gray-900">
+        Payment Methods
+      </h2>
+      <button 
+        onClick={() => {
+          setPaymentForm({
+            id: 0,
+            isDefault: false,
+            type: 'Visa',
+            cardNumber: '',
+            name: `${userData.firstName} ${userData.lastName}`,
+            expiry: '',
+            cvc: ''
+          });
+          setShowPaymentModal(true);
+        }} 
+        className="flex items-center text-sm font-medium text-green-700 hover:text-green-800"
+      >
+        <PlusIcon className="h-4 w-4 mr-1" />
+        Add New Payment Method
+      </button>
+    </div>
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+      {paymentMethods.map(payment => (
+        <div key={payment.id} className="border border-gray-200 rounded-md p-4 relative">
+          {payment.isDefault && (
+            <span className="absolute top-4 right-4 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+              Default
+            </span>
+          )}
+          <div className="flex items-center">
+            <div className="h-10 w-16 bg-gray-100 rounded flex items-center justify-center">
+              <span className="font-medium text-gray-900">
+                {payment.type}
+              </span>
+            </div>
+            <div className="ml-4">
+              <h3 className="font-medium text-gray-900">
+                {payment.type} ending in {payment.last4}
+              </h3>
+              <p className="text-sm text-gray-500">
+                Expires {payment.expiry}
+              </p>
+              <p className="text-sm text-gray-500">
+                {payment.name}
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 flex space-x-4">
+            <button 
+              onClick={() => handleEditPayment(payment)}
+              className="text-sm text-green-700 font-medium hover:text-green-800"
+            >
+              Edit
+            </button>
+            {!payment.isDefault && (
+              <button 
+                onClick={() => handleSetDefaultPayment(payment.id)}
+                className="text-sm text-gray-700 font-medium hover:text-gray-800"
+              >
+                Set as default
+              </button>
+            )}
+            <button 
+              onClick={() => handleDeletePayment(payment.id)}
+              className="text-sm text-red-600 font-medium hover:text-red-700"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+                {/* Add/Edit Payment Method Modal */}
+<Modal open={showPaymentModal} onClose={() => setShowPaymentModal(false)}>
+  <h2 className="text-lg font-semibold mb-4 text-gray-900">
+    {paymentForm.id ? 'Edit Payment Method' : 'Add New Payment Method'}
+  </h2>
+  <form onSubmit={handlePaymentSubmit} className="space-y-4">
+    <div className="grid grid-cols-1 gap-y-4">
+      <div>
+        <label htmlFor="type" className="block text-sm font-medium text-gray-700">
+          Card Type
+        </label>
+        <select
+          id="type"
+          name="type"
+          value={paymentForm.type}
+          onChange={(e) => setPaymentForm({...paymentForm, type: e.target.value})}
+          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+          required
+        >
+          <option value="Visa">Visa</option>
+          <option value="Mastercard">Mastercard</option>
+          <option value="American Express">American Express</option>
+          <option value="Discover">Discover</option>
+        </select>
+      </div>
+      <div>
+        <label htmlFor="cardNumber" className="block text-sm font-medium text-gray-700">
+          Card Number
+        </label>
+        <input
+          type="text"
+          id="cardNumber"
+          name="cardNumber"
+          value={paymentForm.cardNumber}
+          onChange={(e) => setPaymentForm({...paymentForm, cardNumber: e.target.value})}
+          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+          placeholder="4242 4242 4242 4242"
+          required
+        />
+      </div>
+      <div>
+        <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+          Name on Card
+        </label>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          value={paymentForm.name}
+          onChange={(e) => setPaymentForm({...paymentForm, name: e.target.value})}
+          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+          required
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="expiry" className="block text-sm font-medium text-gray-700">
+            Expiry Date
+          </label>
+          <input
+            type="text"
+            id="expiry"
+            name="expiry"
+            value={paymentForm.expiry}
+            onChange={(e) => setPaymentForm({...paymentForm, expiry: e.target.value})}
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+            placeholder="MM/YY"
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="cvc" className="block text-sm font-medium text-gray-700">
+            CVC
+          </label>
+          <input
+            type="text"
+            id="cvc"
+            name="cvc"
+            value={paymentForm.cvc}
+            onChange={(e) => setPaymentForm({...paymentForm, cvc: e.target.value})}
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+            placeholder="123"
+            required
+          />
+        </div>
+      </div>
+      <div>
+        <div className="flex items-center">
+          <input
+            id="isDefault"
+            name="isDefault"
+            type="checkbox"
+            checked={paymentForm.isDefault}
+            onChange={(e) => setPaymentForm({...paymentForm, isDefault: e.target.checked})}
+            className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+          />
+          <label htmlFor="isDefault" className="ml-2 block text-sm text-gray-700">
+            Set as default payment method
+          </label>
+        </div>
+      </div>
+    </div>
+    <div className="mt-6 flex items-center justify-end space-x-3">
+      <button 
+        type="button" 
+        onClick={() => setShowPaymentModal(false)} 
+        className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50"
+      >
+        Cancel
+      </button>
+      <button 
+        type="submit" 
+        className="bg-green-700 border border-transparent rounded-md shadow-sm py-2 px-4 text-sm font-medium text-white hover:bg-green-800"
+      >
+        Save Payment Method
+      </button>
+    </div>
+  </form>
+</Modal>
               {/* Preferences Tab */}
               {activeTab === 'preferences' && <div className="p-6">
                   <div className="flex items-center justify-between mb-6">
