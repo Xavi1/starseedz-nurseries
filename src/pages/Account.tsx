@@ -414,7 +414,16 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
   };
 
   const handleDeletePayment = (id: number) => {
-    setPaymentMethods(paymentMethods.filter(pm => pm.id !== id));
+    setDeletePaymentId(id);
+    setDeletePaymentConfirmOpen(true);
+  };
+
+  const confirmDeletePayment = () => {
+    if (deletePaymentId !== null) {
+      setPaymentMethods(paymentMethods.filter(pm => pm.id !== deletePaymentId));
+      setDeletePaymentId(null);
+      setDeletePaymentConfirmOpen(false);
+    }
   };
 
   const handleSetDefaultPayment = (id: number) => {
@@ -443,7 +452,7 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
     specialOffers: true
   });
 
-  // Payment modal state
+  // Payment modal states
   const [paymentForm, setPaymentForm] = useState({
     id: 0,
     isDefault: false,
@@ -453,6 +462,8 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
     expiry: '',
     cvc: ''
   });
+  const [deletePaymentId, setDeletePaymentId] = useState<number | null>(null);
+  const [deletePaymentConfirmOpen, setDeletePaymentConfirmOpen] = useState(false);
 
   // Change password modal state
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -1268,6 +1279,38 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
     </div>
   </form>
 </Modal>
+
+        {/* Delete Payment Method Confirmation Modal */}
+        <Modal open={deletePaymentConfirmOpen} onClose={() => {
+          setDeletePaymentId(null);
+          setDeletePaymentConfirmOpen(false);
+        }}>
+          <h2 className="text-lg font-semibold mb-4 text-gray-900">
+            Confirm Delete Payment Method
+          </h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Are you sure you want to delete this payment method? This action cannot be undone.
+          </p>
+          <div className="flex items-center justify-end space-x-3">
+            <button
+              type="button"
+              onClick={() => {
+                setDeletePaymentId(null);
+                setDeletePaymentConfirmOpen(false);
+              }}
+              className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={confirmDeletePayment}
+              className="bg-red-600 border border-transparent rounded-md shadow-sm py-2 px-4 text-sm font-medium text-white hover:bg-red-700"
+            >
+              Delete Payment Method
+            </button>
+          </div>
+        </Modal>
               {/* Preferences Tab */}
               {activeTab === 'preferences' && <div className="p-6">
                   <div className="flex items-center justify-between mb-6">
