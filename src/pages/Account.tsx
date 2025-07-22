@@ -113,10 +113,266 @@ export const Account = () => {
   // Payment methods state
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(mockPaymentMethods);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+  // Payment form validation state
+const [paymentErrors, setPaymentErrors] = useState({
+  cardNumber: '',
+  name: '',
+  expiry: '',
+  cvc: '',
+  general: ''
+});
+
+// Card number validation
+const validateCardNumber = (cardNumber: string): boolean => {
+  // Remove spaces and non-digits
+  const cleanNumber = cardNumber.replace(/\D/g, '');
+  
+  // Check length based on card type
+  if (cleanNumber.length < 13 || cleanNumber.length > 19) {
+    return false;
+  }
+  
+  // Luhn algorithm validation
+  let sum = 0;
+  let isEven = false;
+  
+  for (let i = cleanNumber.length - 1; i >= 0; i--) {
+    let digit = parseInt(cleanNumber.charAt(i), 10);
+    
+    if (isEven) {
+      digit *= 2;
+      if (digit > 9) {
+        digit = digit % 10 + 1;
+      }
+    }
+    
+    sum += digit;
+    isEven = !isEven;
+  }
+  
+  return sum % 10 === 0;
+};
+
+// Get card type from number
+const getCardType = (cardNumber: string): string => {
+  const cleanNumber = cardNumber.replace(/\D/g, '');
+  
+  if (cleanNumber.match(/^4/)) return 'Visa';
+  if (cleanNumber.match(/^5[1-5]/) || cleanNumber.match(/^2[2-7]/)) return 'Mastercard';
+  if (cleanNumber.match(/^3[47]/)) return 'American Express';
+  if (cleanNumber.match(/^6(?:011|5)/)) return 'Discover';
+  
+  return 'Visa'; // Default
+};
+
+// Format card number for display
+const formatCardNumber = (value: string): string => {
+  const cleanValue = value.replace(/\D/g, '');
+  const cardType = getCardType(cleanValue);
+  
+  if (cardType === 'American Express') {
+    return cleanValue.replace(/(\d{4})(\d{6})(\d{5})/, '$1 $2 $3');
+  } else {
+    return cleanValue.replace(/(\d{4})(?=\d)/g, '$1 ');
+  }
+};
+
+// Format expiry date
+const formatExpiryDate = (value: string): string => {
+  const cleanValue = value.replace(/\D/g, '');
+  if (cleanValue.length >= 2) {
+    return cleanValue.substring(0, 2) + '/' + cleanValue.substring(2, 4);
+  }
+  return cleanValue;
+};
+
+// Validate expiry date
+const validateExpiryDate = (expiry: string): boolean => {
+  const cleanExpiry = expiry.replace(/\D/g, '');
+  if (cleanExpiry.length !== 4) return false;
+  
+  const month = parseInt(cleanExpiry.substring(0, 2), 10);
+  const year = parseInt('20' + cleanExpiry.substring(2, 4), 10);
+  
+  if (month < 1 || month > 12) return false;
+  
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  
+  if (year < currentYear || (year === currentYear && month < currentMonth)) {
+    return false;
+  }
+  
+  return true;
+};
+
+// Validate CVC
+const validateCVC = (cvc: string, cardType: string): boolean => {
+  const cleanCVC = cvc.replace(/\D/g, '');
+  if (cardType === 'American Express') {
+    return cleanCVC.length === 4;
+  } else {
+    return cleanCVC.length === 3;
+  }
+};
+
+// Validate name
+const validateName = (name: string): boolean => {
+  return name.trim().length >= 2 && /^[a-zA-Z\s]+$/.test(name.trim());
+};
+
+// Enhanced payment form change handler
+const handlePaymentFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const { name, value, type } = e.target;
+  let formattedValue = value;
+  
+  // Format inputs as user types
+  if (name === 'cardNumber') {
+    formattedValue = formatCardNumber(value);
+    // Auto-detect card type
+    const detectedType = getCardType(value);
+    setPaymentForm(prev => ({ ...prev, type: detectedType }));
+  } else if (name === 'expiry') {
+    formattedValue = formatExpiryDate(value);
+  } else if (name === 'cvc') {
+    formattedValue = value.replace(/\D/g, '').substring(0, 4);
+  }
+  
+  if (type === 'checkbox') {
+    const target = e.target as HTMLInputElement;
+    setPaymentForm(prev => ({ ...prev, [name]: target.checked }));
+  } else {
+    setPaymentForm(prev => ({ ...prev, [name]: formattedValue }));
+  }
+  
+  // Clear specific field error when user starts typing
+  if (paymentErrors[name as keyof typeof paymentErrors]) {
+    setPaymentErrors(prev => ({ ...prev, [name]: '', general: '' }));
+  }
+};
+
+// Enhanced payment form validation
+const validatePaymentForm = (): boolean => {
+  const errors = {
+    cardNumber: '',
+    name: '',
+    expiry: '',
+    cvc: '',
+    general: ''
+  };
+  
+  let isValid = true;
+  
+  // Validate card number
+  if (!paymentForm.cardNumber.trim()) {
+    errors.cardNumber = 'Card number is required';
+    isValid = false;
+  } else if (!validateCardNumber(paymentForm.cardNumber)) {
+    errors.cardNumber = 'Please enter a valid card number';
+    isValid = false;
+  }
+  
+  // Validate name
+  if (!paymentForm.name.trim()) {
+    errors.name = 'Cardholder name is required';
+    isValid = false;
+  } else if (!validateName(paymentForm.name)) {
+    errors.name = 'Please enter a valid name (letters and spaces only)';
+    isValid = false;
+  }
+  
+  // Validate expiry
+  if (!paymentForm.expiry.trim()) {
+    errors.expiry = 'Expiry date is required';
+    isValid = false;
+  } else if (!validateExpiryDate(paymentForm.expiry)) {
+    errors.expiry = 'Please enter a valid expiry date (MM/YY)';
+    isValid = false;
+  }
+  
+  // Validate CVC
+  if (!paymentForm.cvc.trim()) {
+    errors.cvc = 'CVC is required';
+    isValid = false;
+  } else if (!validateCVC(paymentForm.cvc, paymentForm.type)) {
+    const expectedLength = paymentForm.type === 'American Express' ? 4 : 3;
+    errors.cvc = `CVC must be ${expectedLength} digits`;
+    isValid = false;
+  }
+  
+  setPaymentErrors(errors);
+  return isValid;
+};
+
+// Enhanced payment form submit handler
+let handlePaymentSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  // Validate form
+  if (!validatePaymentForm()) {
+    return;
+  }
+  
+  try {
+    const cleanCardNumber = paymentForm.cardNumber.replace(/\D/g, '');
+    const last4 = cleanCardNumber.slice(-4);
+    
+    if (paymentForm.id) {
+      // Update existing payment method
+      setPaymentMethods(paymentMethods.map(pm => 
+        pm.id === paymentForm.id ? {
+          ...pm,
+          isDefault: paymentForm.isDefault,
+          type: paymentForm.type,
+          last4,
+          expiry: paymentForm.expiry,
+          name: paymentForm.name
+        } : pm
+      ));
+    } else {
+      // Add new payment method
+      const newId = Math.max(...paymentMethods.map(p => p.id), 0) + 1;
+      setPaymentMethods([...paymentMethods, {
+        id: newId,
+        isDefault: paymentForm.isDefault,
+        type: paymentForm.type,
+        last4,
+        expiry: paymentForm.expiry,
+        name: paymentForm.name
+      }]);
+    }
+    
+    // Clear form and close modal
+    setPaymentForm({
+      id: 0,
+      isDefault: false,
+      type: 'Visa',
+      cardNumber: '',
+      name: `${userData.firstName} ${userData.lastName}`,
+      expiry: '',
+      cvc: ''
+    });
+    setPaymentErrors({
+      cardNumber: '',
+      name: '',
+      expiry: '',
+      cvc: '',
+      general: ''
+    });
+    setShowPaymentModal(false);
+  } catch (error) {
+    setPaymentErrors(prev => ({
+      ...prev,
+      general: 'An error occurred while saving the payment method. Please try again.'
+    }));
+  }
+};
   
 
   // Payment method handlers
-  const handlePaymentSubmit = (e: React.FormEvent) => {
+ handlePaymentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!paymentForm.cardNumber || !paymentForm.name || !paymentForm.expiry || !paymentForm.cvc) {
       return;
@@ -847,6 +1103,11 @@ export const Account = () => {
   <h2 className="text-lg font-semibold mb-4 text-gray-900">
     {paymentForm.id ? 'Edit Payment Method' : 'Add New Payment Method'}
   </h2>
+  {paymentErrors.general && (
+    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+      <p className="text-sm text-red-600">{paymentErrors.general}</p>
+    </div>
+  )}
   <form onSubmit={handlePaymentSubmit} className="space-y-4">
     <div className="grid grid-cols-1 gap-y-4">
       <div>
@@ -857,7 +1118,7 @@ export const Account = () => {
           id="type"
           name="type"
           value={paymentForm.type}
-          onChange={(e) => setPaymentForm({...paymentForm, type: e.target.value})}
+          onChange={handlePaymentFormChange}
           className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
           required
         >
@@ -867,6 +1128,7 @@ export const Account = () => {
           <option value="Discover">Discover</option>
         </select>
       </div>
+      
       <div>
         <label htmlFor="cardNumber" className="block text-sm font-medium text-gray-700">
           Card Number
@@ -876,12 +1138,21 @@ export const Account = () => {
           id="cardNumber"
           name="cardNumber"
           value={paymentForm.cardNumber}
-          onChange={(e) => setPaymentForm({...paymentForm, cardNumber: e.target.value})}
-          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+          onChange={handlePaymentFormChange}
+          className={`mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none sm:text-sm ${
+            paymentErrors.cardNumber 
+              ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+              : 'border-gray-300 focus:ring-green-500 focus:border-green-500'
+          }`}
           placeholder="4242 4242 4242 4242"
+          maxLength={19}
           required
         />
+        {paymentErrors.cardNumber && (
+          <p className="mt-1 text-sm text-red-600">{paymentErrors.cardNumber}</p>
+        )}
       </div>
+      
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700">
           Name on Card
@@ -891,11 +1162,19 @@ export const Account = () => {
           id="name"
           name="name"
           value={paymentForm.name}
-          onChange={(e) => setPaymentForm({...paymentForm, name: e.target.value})}
-          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+          onChange={handlePaymentFormChange}
+          className={`mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none sm:text-sm ${
+            paymentErrors.name 
+              ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+              : 'border-gray-300 focus:ring-green-500 focus:border-green-500'
+          }`}
           required
         />
+        {paymentErrors.name && (
+          <p className="mt-1 text-sm text-red-600">{paymentErrors.name}</p>
+        )}
       </div>
+      
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="expiry" className="block text-sm font-medium text-gray-700">
@@ -906,12 +1185,21 @@ export const Account = () => {
             id="expiry"
             name="expiry"
             value={paymentForm.expiry}
-            onChange={(e) => setPaymentForm({...paymentForm, expiry: e.target.value})}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+            onChange={handlePaymentFormChange}
+            className={`mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none sm:text-sm ${
+              paymentErrors.expiry 
+                ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                : 'border-gray-300 focus:ring-green-500 focus:border-green-500'
+            }`}
             placeholder="MM/YY"
+            maxLength={5}
             required
           />
+          {paymentErrors.expiry && (
+            <p className="mt-1 text-sm text-red-600">{paymentErrors.expiry}</p>
+          )}
         </div>
+        
         <div>
           <label htmlFor="cvc" className="block text-sm font-medium text-gray-700">
             CVC
@@ -921,13 +1209,22 @@ export const Account = () => {
             id="cvc"
             name="cvc"
             value={paymentForm.cvc}
-            onChange={(e) => setPaymentForm({...paymentForm, cvc: e.target.value})}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-            placeholder="123"
+            onChange={handlePaymentFormChange}
+            className={`mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none sm:text-sm ${
+              paymentErrors.cvc 
+                ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                : 'border-gray-300 focus:ring-green-500 focus:border-green-500'
+            }`}
+            placeholder={paymentForm.type === 'American Express' ? '1234' : '123'}
+            maxLength={4}
             required
           />
+          {paymentErrors.cvc && (
+            <p className="mt-1 text-sm text-red-600">{paymentErrors.cvc}</p>
+          )}
         </div>
       </div>
+      
       <div>
         <div className="flex items-center">
           <input
@@ -935,7 +1232,7 @@ export const Account = () => {
             name="isDefault"
             type="checkbox"
             checked={paymentForm.isDefault}
-            onChange={(e) => setPaymentForm({...paymentForm, isDefault: e.target.checked})}
+            onChange={handlePaymentFormChange}
             className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
           />
           <label htmlFor="isDefault" className="ml-2 block text-sm text-gray-700">
@@ -944,17 +1241,27 @@ export const Account = () => {
         </div>
       </div>
     </div>
+    
     <div className="mt-6 flex items-center justify-end space-x-3">
       <button 
         type="button" 
-        onClick={() => setShowPaymentModal(false)} 
+        onClick={() => {
+          setShowPaymentModal(false);
+          setPaymentErrors({
+            cardNumber: '',
+            name: '',
+            expiry: '',
+            cvc: '',
+            general: ''
+          });
+        }} 
         className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50"
       >
         Cancel
       </button>
       <button 
         type="submit" 
-        className="bg-green-700 border border-transparent rounded-md shadow-sm py-2 px-4 text-sm font-medium text-white hover:bg-green-800"
+        className="bg-green-700 border border-transparent rounded-md shadow-sm py-2 px-4 text-sm font-medium text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
       >
         Save Payment Method
       </button>
