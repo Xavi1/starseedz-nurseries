@@ -11,9 +11,11 @@ function Modal({ open, onClose, children }: { open: boolean; onClose: () => void
   );
 }
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { UserIcon, PackageIcon, CreditCardIcon, HomeIcon, BellIcon, LogOutIcon, ChevronRightIcon, PencilIcon, PlusIcon, EyeIcon, MapPinIcon, ShieldIcon, ChevronDownIcon, HeartIcon } from 'lucide-react';
 import { useWishlist } from '../context/WishlistContext';
+import { auth } from '../firebase';
+import { signOut } from 'firebase/auth';
 
 // Mock order data
 const mockOrders = [{
@@ -581,6 +583,16 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
   const toggleOrderDetails = (orderId: string) => {
     setExpandedOrder(expandedOrder === orderId ? null : orderId);
   };
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/login'); // or your login route
+    } catch (error) {
+      alert('Logout failed. Please try again.');
+    }
+  };
   return <div className="min-h-screen bg-gray-50">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumbs */}
@@ -636,7 +648,7 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
                 </button>
               </nav>
               <div className="px-6 py-4 border-t border-gray-200">
-                <button className="flex items-center text-sm font-medium text-red-600 hover:text-red-700">
+                <button className="flex items-center text-sm font-medium text-red-600 hover:text-red-700" onClick={handleLogout}>
                   <LogOutIcon className="h-5 w-5 mr-3" />
                   Log Out
                 </button>
