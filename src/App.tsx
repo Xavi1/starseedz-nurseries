@@ -22,6 +22,7 @@ import ShippingPolicyPage from './pages/ShippingPolicy';
 import {Checkout} from './pages/Checkout';
 import {Account} from './pages/Account';
 import Signup from './pages/Signup';
+import Login from './pages/Login';
 
 export function App() {
   return (
@@ -55,6 +56,7 @@ export function App() {
                 <Route path="/checkout"  element={<Checkout />} />
                 <Route path="/account"  element={<Account />} />
                 <Route path="/signup"  element={<Signup />} />
+                <Route path="/login" element={<Login />} />
               </Routes>
             </main>
             <Footer />
