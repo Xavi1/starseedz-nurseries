@@ -588,7 +588,7 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigate('/login'); // or your login route
+      navigate('/'); // Redirect to homepage
     } catch (error) {
       alert('Logout failed. Please try again.');
     }
