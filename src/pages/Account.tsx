@@ -438,14 +438,20 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
   const [editMode, setEditMode] = useState(false);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const { wishlist, removeFromWishlist } = useWishlist();
-  // Mock user data
+  // User data (email will sync with logged-in user)
   const [userData, setUserData] = useState({
     firstName: 'John',
     lastName: 'Doe',
-    email: 'john.doe@example.com',
+    email: '',
     phone: '(555) 123-4567',
     birthdate: '1985-06-15'
   });
+  // Sync userData.email with currentUser.email
+  useEffect(() => {
+    if (currentUser && currentUser.email && userData.email !== currentUser.email) {
+      setUserData(prev => ({ ...prev, email: currentUser.email || '' }));
+    }
+  }, [currentUser, userData.email]);
   // Mock user preferences
   const [preferences, setPreferences] = useState({
     emailMarketing: true,
