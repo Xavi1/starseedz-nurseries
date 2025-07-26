@@ -15,6 +15,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { UserIcon, PackageIcon, CreditCardIcon, HomeIcon, BellIcon, LogOutIcon, ChevronRightIcon, PencilIcon, PlusIcon, EyeIcon, MapPinIcon, ShieldIcon, ChevronDownIcon, HeartIcon } from 'lucide-react';
 import { useWishlist } from '../context/WishlistContext';
 import { auth } from '../firebase';
+import { updateUserProfile } from '../firebaseHelpers';
 import { signOut, onAuthStateChanged, User } from 'firebase/auth';
 
 // Mock order data
@@ -548,11 +549,23 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
       });
     }
   };
-  const handleProfileSubmit = (e: React.FormEvent) => {
+  const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would send the updated profile data to a backend API
+    if (currentUser && currentUser.uid) {
+      try {
+        await updateUserProfile(currentUser.uid, {
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          email: userData.email,
+          phone: userData.phone,
+          birthdate: userData.birthdate
+        });
+        // Optionally show a success message here
+      } catch (err) {
+        // Optionally show an error message here
+      }
+    }
     setEditMode(false);
-    // Show success message (in a real app)
   };
 
   const handleAddressSubmit = (e: React.FormEvent) => {

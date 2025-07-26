@@ -1,3 +1,8 @@
+// Update user profile
+export const updateUserProfile = async (userId, profileData) => {
+  const userRef = doc(db, "users", userId);
+  await updateDoc(userRef, profileData);
+};
 import {
   collection,
   addDoc,
