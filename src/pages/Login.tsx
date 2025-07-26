@@ -7,6 +7,7 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -14,7 +15,11 @@ const Login: React.FC = () => {
     setError('');
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate('/'); // Redirect to home or dashboard
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        navigate('/'); // Redirect to home or dashboard
+      }, 1200);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -26,6 +31,13 @@ const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      {showSuccess && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-6 text-center">
+            <p className="text-green-700 text-lg font-semibold">Login successful</p>
+          </div>
+        </div>
+      )}
       <form onSubmit={handleLogin} className="bg-white p-8 rounded shadow-md w-full max-w-md">
         <h2 className="text-2xl font-bold mb-6 text-center">Log In</h2>
         {error && <div className="mb-4 text-red-600">{error}</div>}
