@@ -15,7 +15,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { UserIcon, PackageIcon, CreditCardIcon, HomeIcon, BellIcon, LogOutIcon, ChevronRightIcon, PencilIcon, PlusIcon, EyeIcon, MapPinIcon, ShieldIcon, ChevronDownIcon, HeartIcon } from 'lucide-react';
 import { useWishlist } from '../context/WishlistContext';
 import { auth } from '../firebase';
-import { updateUserProfile } from '../firebaseHelpers';
+import { updateUserProfile, getUserById } from '../firebaseHelpers';
 import { signOut, onAuthStateChanged, User } from 'firebase/auth';
 
 // Mock order data
@@ -447,12 +447,32 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
     phone: '(555) 123-4567',
     birthdate: '1985-06-15'
   });
-  // Sync userData.email with currentUser.email
+
+  // Fetch user profile from Firestore on login
   useEffect(() => {
-    if (currentUser && currentUser.email && userData.email !== currentUser.email) {
-      setUserData(prev => ({ ...prev, email: currentUser.email || '' }));
-    }
-  }, [currentUser, userData.email]);
+    const fetchUserProfile = async () => {
+      if (currentUser && currentUser.uid) {
+        try {
+          const userProfile = await getUserById(currentUser.uid);
+          if (userProfile) {
+            setUserData({
+              firstName: userProfile.firstname || '',
+              lastName: userProfile.lastname || '',
+              email: userProfile.email || currentUser.email || '',
+              phone: userProfile.phone || '',
+              birthdate: userProfile.birthdate || ''
+            });
+          } else {
+            // If no profile exists, fallback to auth email
+            setUserData(prev => ({ ...prev, email: currentUser.email || '' }));
+          }
+        } catch (err) {
+          setUserData(prev => ({ ...prev, email: currentUser.email || '' }));
+        }
+      }
+    };
+    fetchUserProfile();
+  }, [currentUser]);
   // Mock user preferences
   const [preferences, setPreferences] = useState({
     emailMarketing: true,
@@ -549,9 +569,12 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
       });
     }
   };
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileSaveSuccess, setProfileSaveSuccess] = useState(false);
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (currentUser && currentUser.uid) {
+      setProfileSaving(true);
       try {
         await updateUserProfile(currentUser.uid, {
           firstname: userData.firstName,
@@ -560,10 +583,12 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
           phone: userData.phone,
           birthdate: userData.birthdate
         });
-        // Optionally show a success message here
+        setProfileSaveSuccess(true);
+        setTimeout(() => setProfileSaveSuccess(false), 1500);
       } catch (err) {
         // Optionally show an error message here
       }
+      setProfileSaving(false);
     }
     setEditMode(false);
   };
@@ -742,9 +767,12 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
                         <button type="button" onClick={() => setEditMode(false)} className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">
                           Cancel
                         </button>
-                        <button type="submit" className="bg-green-700 border border-transparent rounded-md shadow-sm py-2 px-4 text-sm font-medium text-white hover:bg-green-800">
-                          Save Changes
+                        <button type="submit" className="bg-green-700 border border-transparent rounded-md shadow-sm py-2 px-4 text-sm font-medium text-white hover:bg-green-800 disabled:opacity-60" disabled={profileSaving}>
+                          {profileSaving ? 'Saving...' : 'Save Changes'}
                         </button>
+                        {profileSaveSuccess && (
+                          <span className="ml-3 text-green-700 text-sm font-medium">Profile saved!</span>
+                        )}
                       </div>
                     </form> : <div className="bg-white border border-gray-200 rounded-md overflow-hidden">
                       <dl className="divide-y divide-gray-200">
