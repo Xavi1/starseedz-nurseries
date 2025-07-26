@@ -8,6 +8,7 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [fadeOut, setFadeOut] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -16,10 +17,14 @@ const Login: React.FC = () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       setShowSuccess(true);
+      setFadeOut(false);
       setTimeout(() => {
-        setShowSuccess(false);
-        navigate('/'); // Redirect to home or dashboard
-      }, 1200);
+        setFadeOut(true);
+        setTimeout(() => {
+          setShowSuccess(false);
+          navigate('/'); // Redirect to home or dashboard
+        }, 400); // match fade duration
+      }, 900); // show for 900ms, then fade for 400ms
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -32,8 +37,8 @@ const Login: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       {showSuccess && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-6 text-center">
+        <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 transition-opacity duration-400 ${fadeOut ? 'opacity-0' : 'opacity-100'}`}>
+          <div className={`bg-white rounded-lg shadow-lg p-6 text-center transition-all duration-400 ${fadeOut ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
             <p className="text-green-700 text-lg font-semibold">Login successful</p>
           </div>
         </div>
