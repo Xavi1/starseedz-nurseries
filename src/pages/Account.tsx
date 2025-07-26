@@ -16,6 +16,8 @@ import { UserIcon, PackageIcon, CreditCardIcon, HomeIcon, BellIcon, LogOutIcon, 
 import { useWishlist } from '../context/WishlistContext';
 import { auth } from '../firebase';
 import { updateUserProfile, getUserById } from '../firebaseHelpers';
+import { db } from '../firebaseConfig';
+import { doc, setDoc } from 'firebase/firestore';
 import { signOut, onAuthStateChanged, User } from 'firebase/auth';
 
 // Mock order data
@@ -448,9 +450,10 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
     birthdate: '1985-06-15'
   });
 
-  // Fetch user profile from Firestore on login
+  // Fetch user profile from Firestore on login, or create if not found
   useEffect(() => {
-    const fetchUserProfile = async () => {
+    // Only run on mount or when currentUser changes
+    const fetchOrCreateUserProfile = async () => {
       if (currentUser && currentUser.uid) {
         try {
           const userProfile = await getUserById(currentUser.uid);
@@ -463,15 +466,30 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
               birthdate: userProfile.birthdate || ''
             });
           } else {
-            // If no profile exists, fallback to auth email
-            setUserData(prev => ({ ...prev, email: currentUser.email || '' }));
+            // If no profile exists, create one with available info (from auth only, not userData), using uid as doc id
+            const newUser = {
+              firstname: currentUser.displayName ? currentUser.displayName.split(' ')[0] : '',
+              lastname: currentUser.displayName ? currentUser.displayName.split(' ').slice(1).join(' ') : '',
+              email: currentUser.email || '',
+              phone: '',
+              birthdate: '',
+              address: '',
+            };
+            await setDoc(doc(db, 'users', currentUser.uid), newUser, { merge: true });
+            setUserData({
+              firstName: newUser.firstname,
+              lastName: newUser.lastname,
+              email: newUser.email,
+              phone: newUser.phone,
+              birthdate: newUser.birthdate
+            });
           }
         } catch (err) {
           setUserData(prev => ({ ...prev, email: currentUser.email || '' }));
         }
       }
     };
-    fetchUserProfile();
+    fetchOrCreateUserProfile();
   }, [currentUser]);
   // Mock user preferences
   const [preferences, setPreferences] = useState({
