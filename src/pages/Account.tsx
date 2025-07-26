@@ -554,8 +554,8 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
     if (currentUser && currentUser.uid) {
       try {
         await updateUserProfile(currentUser.uid, {
-          firstName: userData.firstName,
-          lastName: userData.lastName,
+          firstname: userData.firstName,
+          lastname: userData.lastName,
           email: userData.email,
           phone: userData.phone,
           birthdate: userData.birthdate

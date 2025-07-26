@@ -5,9 +5,12 @@ import { Timestamp } from "firebase/firestore";
 interface User {
   id?: string; // Document ID will be added when retrieved
   createdAt: Timestamp;
-  name: string;
+  firstname: string;
+  lastname: string;
+  birthdate: string;
   email: string;
   address: string;
+  phone: string;
   // Add other user fields as needed
 }
 
