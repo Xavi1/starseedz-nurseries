@@ -10,12 +10,12 @@ function Modal({ open, onClose, children }: { open: boolean; onClose: () => void
     </div>
   );
 }
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserIcon, PackageIcon, CreditCardIcon, HomeIcon, BellIcon, LogOutIcon, ChevronRightIcon, PencilIcon, PlusIcon, EyeIcon, MapPinIcon, ShieldIcon, ChevronDownIcon, HeartIcon } from 'lucide-react';
 import { useWishlist } from '../context/WishlistContext';
-import { auth } from '../firebase.js';
-import { signOut } from 'firebase/auth';
+import { auth } from '../firebase';
+import { signOut, onAuthStateChanged, User } from 'firebase/auth';
 
 // Mock order data
 const mockOrders = [{
@@ -112,7 +112,7 @@ type PaymentMethod = {
   name: string;
 };
 export const Account = () => {
-  // Payment methods state
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(mockPaymentMethods);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
@@ -593,6 +593,23 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
       alert('Logout failed. Please try again.');
     }
   };
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setCurrentUser(user);
+      } else {
+        setCurrentUser(null);
+        navigate('/login');
+      }
+    });
+    return () => unsubscribe();
+  }, [navigate]);
+
+  if (!currentUser) {
+    return null; // Or a loading spinner
+  }
+
   return <div className="min-h-screen bg-gray-50">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumbs */}
