@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Header } from '../components/Header';
-import { Footer } from '../components/Footer';
 import { ChevronRightIcon, HomeIcon, PackageIcon, TruckIcon, CreditCardIcon, CheckCircleIcon, ArrowLeftIcon, PrinterIcon, ShoppingCartIcon } from 'lucide-react';
 // Define types
 interface OrderItem {
@@ -214,7 +212,6 @@ export const OrderDetails = () => {
   }, [orderId]);
   if (loading) {
     return <div className="min-h-screen bg-white">
-        <Header />
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex justify-center items-center h-64">
             <div className="text-center">
@@ -223,12 +220,10 @@ export const OrderDetails = () => {
             </div>
           </div>
         </main>
-        <Footer />
       </div>;
   }
   if (!order) {
     return <div className="min-h-screen bg-white">
-        <Header />
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center py-16 bg-gray-50 rounded-lg">
             <PackageIcon className="mx-auto h-12 w-12 text-gray-400" />
@@ -245,11 +240,9 @@ export const OrderDetails = () => {
             </div>
           </div>
         </main>
-        <Footer />
       </div>;
   }
   return <div className="min-h-screen bg-gray-50">
-      <Header />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumbs */}
         <nav className="flex items-center text-sm mb-8">
@@ -535,6 +528,5 @@ export const OrderDetails = () => {
           </div>
         </div>
       </main>
-      <Footer />
     </div>;
 };

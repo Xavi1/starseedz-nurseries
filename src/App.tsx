@@ -23,6 +23,7 @@ import {Checkout} from './pages/Checkout';
 import {Account} from './pages/Account';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
+import { OrderDetails } from './pages/OrderDetails';
 
 export function App() {
   return (
@@ -57,6 +58,7 @@ export function App() {
                 <Route path="/account"  element={<Account />} />
                 <Route path="/signup"  element={<Signup />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/order-details" element={<OrderDetails />} />
               </Routes>
             </main>
             <Footer />
