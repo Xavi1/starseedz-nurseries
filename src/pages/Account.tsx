@@ -952,10 +952,13 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
                                   </p>
                                 </div>
                                 <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                                  <button className="flex items-center text-green-700 hover:text-green-800">
+                                  <Link
+                                    to={`/order-details`}
+                                    className="flex items-center text-green-700 hover:text-green-800"
+                                  >
                                     <EyeIcon className="h-4 w-4 mr-1" />
                                     View Order Details
-                                  </button>
+                                  </Link>
                                 </div>
                               </div>
                             </div>
