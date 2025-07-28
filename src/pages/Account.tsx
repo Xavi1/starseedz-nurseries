@@ -14,6 +14,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserIcon, PackageIcon, CreditCardIcon, HomeIcon, BellIcon, LogOutIcon, ChevronRightIcon, PencilIcon, PlusIcon, EyeIcon, MapPinIcon, ShieldIcon, ChevronDownIcon, HeartIcon } from 'lucide-react';
 import { useWishlist } from '../context/WishlistContext';
+import { useCart } from '../context/CartContext';
 import { auth } from '../firebase';
 import { updateUserProfile, getUserById } from '../firebaseHelpers';
 import { db } from '../firebaseConfig';
@@ -440,7 +441,8 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
   const [activeTab, setActiveTab] = useState<AccountTab>('profile');
   const [editMode, setEditMode] = useState(false);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
-  const { wishlist, removeFromWishlist } = useWishlist();
+  const { wishlist, removeFromWishlist, clearWishlist } = useWishlist();
+  const { clearCart } = useCart();
   // User data (email will sync with logged-in user)
   const [userData, setUserData] = useState({
     firstName: 'John',
@@ -649,6 +651,8 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
 
   const handleLogout = async () => {
     try {
+      clearCart();
+      clearWishlist();
       await signOut(auth);
       navigate('/'); // Redirect to homepage
     } catch (error) {

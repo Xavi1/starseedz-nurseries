@@ -56,7 +56,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     setCart(prev => prev.filter(item => item.product.id !== productId));
   };
 
-  const clearCart = () => setCart([]);
+  const clearCart = () => {
+    setCart([]);
+  };
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
