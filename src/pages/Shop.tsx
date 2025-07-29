@@ -29,7 +29,7 @@ export const Shop = () => {
       id: 101,
       name: 'Super Delhi Tomato Plants',
       price: 80.0,
-      image: '/img/tomato.webp',
+      image: '../dist/img/tomato.webp',
       category: ['Vegetables', 'Leafy Crops'],
       rating: 5,
       isBestSeller: true,
