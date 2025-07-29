@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ProductCard, Product } from '../components/ProductCard';
-import { ChevronRightIcon, HomeIcon, StarIcon, ShoppingCartIcon, HeartIcon, LeafIcon, SunIcon, ThermometerIcon, AlertCircleIcon, TruckIcon, RefreshCwIcon, CheckCircleIcon, PlusIcon, MinusIcon } from 'lucide-react';
+import { ChevronRightIcon, HomeIcon, StarIcon, ShoppingCartIcon, HeartIcon, LeafIcon, SunIcon, DropletIcon, ThermometerIcon, AlertCircleIcon, TruckIcon, RefreshCwIcon, CheckCircleIcon, PlusIcon, MinusIcon } from 'lucide-react';
 import { allProducts, ShopProduct } from '../data/products';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -503,7 +503,7 @@ export const ProductDetail = () => {
                             </span>
                           </div>
                           <div className="flex flex-col items-center bg-gray-50 rounded-lg p-3">
-                            <LeafIcon className="h-6 w-6 text-green-700" />
+                            <DropletIcon className="h-6 w-6 text-green-700" />
                             <span className="mt-1 text-xs text-center">
                               {product.careInstructions.water.split('.')[0]}
                             </span>
@@ -719,7 +719,7 @@ export const ProductDetail = () => {
                         </div>
                         <div className="flex items-start">
                           <div className="flex-shrink-0">
-                            <div className="h-6 w-6 text-green-700" />
+                            <DropletIcon className="h-6 w-6 text-green-700" />
                           </div>
                           <div className="ml-3">
                             <h4 className="text-base font-medium text-gray-900">
