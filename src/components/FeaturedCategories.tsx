@@ -29,11 +29,17 @@ const FeaturedCategories: React.FC = () => {
             Find the perfect plants for your space
           </p>
         </div>
-                        <div className="grid grid-cols-2 gap-3 sm:mt-0 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:mt-0 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {categories.map(category => (
             <div key={category.name} className="group relative">
               <div className="relative w-full h-80 bg-white rounded-lg overflow-hidden shadow-md">
-                <img src={category.image} alt={category.name} className="w-full h-full object-center object-cover group-hover:opacity-90 transition-opacity duration-300" />
+                <Link to={`/shop?category=${encodeURIComponent(category.name)}`} className="block w-full h-full">
+                  <img 
+                    src={category.image} 
+                    alt={category.name} 
+                    className="w-full h-full object-center object-cover group-hover:opacity-90 transition-opacity duration-300" 
+                  />
+                </Link>
               </div>
               <div className="mt-4 text-center">
                 <h3 className="text-lg font-medium text-gray-900">
