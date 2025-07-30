@@ -69,7 +69,9 @@ export const ProductDetail = () => {
         const data = docSnap.data();
         setProduct({
   ...(data as DetailedProduct),
-  specifications: data.specifications ?? {},
+  specifications: data.specifications ?? {
+    Mature_Height: "", GrowthRate: "", PotSize: "", Difficulty: "", LightRequirements : "", Prefriendly: ""
+  },
   careInstructions: data.careInstructions ?? {
     light: "", water: "", temperature: "", warnings: ""
   },
