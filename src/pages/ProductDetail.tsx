@@ -106,11 +106,6 @@ export const ProductDetail = () => {
     setQuantity(newQuantity);
   };
 
-  
-
-  if (loading) return <p>Loading...</p>;
-  if (!product) return <p>Product not found.</p>;
-
    // Only allow review if user has purchased this product (in cart with quantity > 0)
   const hasPurchased = cart.some(item => item.product.id === product?.id && item.quantity > 0);
 
