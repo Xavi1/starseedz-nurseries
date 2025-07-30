@@ -759,7 +759,7 @@ export const ProductDetail = () => {
                       </div>}
                     {activeTab === 'specifications' && <div className="border-t border-gray-200">
                         <dl>
-                          {Object.entries(product.specifications).map(([key, value], index) => <div key={key} className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6`}>
+                          {product.specifications && Object.entries(product.specifications).map(([key, value], index) => <div key={key} className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6`}>
                                 <dt className="text-sm font-medium text-gray-500">
                                   {key}
                                 </dt>
