@@ -201,8 +201,8 @@ export const ProductDetail = () => {
       inStock: true,
       relatedProducts: [101, 104, 105]
     },
-    1: {
-      id: 1,
+    107: {
+      id: 107,
       description: 'A popular tropical houseplant with iconic split leaves.',
       longDescription: 'The Monstera Deliciosa, also known as the Swiss Cheese Plant, is famous for its unique split leaves and is a favorite among plant enthusiasts. Native to the tropical forests of southern Mexico, this plant can grow quite large and makes a stunning statement piece in any room. Its air-purifying qualities and relatively easy care make it a popular choice for both beginners and experienced plant owners.',
       careInstructions: {
@@ -225,10 +225,10 @@ export const ProductDetail = () => {
         { id: 3, user: 'Sarah K.', date: '2023-06-10', rating: 5, comment: 'This Monstera is thriving in my living room! The leaves are gorgeous and it arrived in perfect condition.' }
       ],
       inStock: true,
-      relatedProducts: [102, 106, 6]
+      relatedProducts: [102, 106, 108]
     },
-    6: {
-      id: 6,
+    108: {
+      id: 108,
       description: 'Aromatic Mediterranean herb for cooking.',
       longDescription: 'Rosemary is a fragrant, evergreen herb used in a variety of dishes. It thrives in well-drained soil and full sun. Drought tolerant once established.',
       careInstructions: {
@@ -249,10 +249,10 @@ export const ProductDetail = () => {
         { id: 1, user: 'Olga V.', date: '2024-05-12', rating: 4, comment: 'Great for my kitchen garden.' }
       ],
       inStock: true,
-      relatedProducts: [15, 16, 102]
+      relatedProducts: [109, 108, 102]
     },
-    15: {
-      id: 15,
+    109: {
+      id: 109,
       description: 'Classic basil variety for Italian cuisine.',
       longDescription: 'Basil Herb Plant is a must-have for any kitchen garden. Its aromatic leaves are perfect for pesto, salads, and sauces. Easy to grow in pots or garden beds.',
       careInstructions: {
@@ -273,10 +273,10 @@ export const ProductDetail = () => {
         { id: 1, user: 'Mario L.', date: '2024-06-02', rating: 5, comment: 'Best basil for my pasta!' }
       ],
       inStock: true,
-      relatedProducts: [16, 102, 6]
+      relatedProducts: [110, 102, 109]
     },
-    16: {
-      id: 16,
+    110: {
+      id: 110,
       description: 'Refreshing mint plant for teas and desserts.',
       longDescription: 'Mint Herb Plant is easy to grow and spreads quickly. Use fresh leaves in teas, desserts, and salads. Best grown in containers to control spreading.',
       careInstructions: {
@@ -297,7 +297,7 @@ export const ProductDetail = () => {
         { id: 1, user: 'Sophie W.', date: '2024-05-20', rating: 5, comment: 'Perfect for mojitos!' }
       ],
       inStock: true,
-      relatedProducts: [15, 102, 6]
+      relatedProducts: [108, 102, 107]
     }
   };
   useEffect(() => {
