@@ -75,6 +75,11 @@ export const ProductDetail = () => {
     
     if (docSnap.exists()) {
       const data = docSnap.data();
+      console.log("Raw Firestore data:", docSnap.data());
+
+         
+      // SAFELY get specifications with fallbacks
+      const firestoreSpecs = data.specifications || {}; 
       
       // Debug: Log the raw specifications from Firestore
       console.log('Raw specifications from Firestore:', data.specifications);
@@ -82,17 +87,18 @@ export const ProductDetail = () => {
       // Handle the Map data
       const specsFromFirestore = data.specifications || {};
       
+      
       setProduct({
-        ...(data as DetailedProduct),
+        ...data,
         specifications: {
-          "Difficulty": specsFromFirestore["Difficulty"] || "Not specified",
-          "Growth Rate": specsFromFirestore["Growth Rate"] || "Not specified",
-          "Light Requirements": specsFromFirestore["Light Requirements"] || "Not specified",
-          "Mature Height": specsFromFirestore["Mature Height"] || "Not specified",
-          "Pet Friendly": specsFromFirestore["Pet Friendly"] || "Not specified", 
-          "Pot Size": specsFromFirestore["Pot Size"] || "Not specified"
+          "Difficulty": firestoreSpecs["Difficulty"]?.trim() || "Not specified",
+          "Growth Rate": firestoreSpecs["Growth Rate"]?.trim() || "Not specified",
+          "Light Requirements": firestoreSpecs["Light Requirements"]?.trim() || "Not specified",
+          "Mature Height": firestoreSpecs["Mature Height"]?.trim() || "Not specified",
+          "Pet Friendly": firestoreSpecs["Pet Friendly"]?.trim() || "Not specified",
+          "Pot Size": firestoreSpecs["Pot Size"]?.trim() || "Not specified"
         }
-      });
+      } as DetailedProduct);
     }
   } catch (error) {
     console.error("Error fetching product:", error);
