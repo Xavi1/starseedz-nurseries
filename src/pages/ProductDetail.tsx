@@ -520,16 +520,9 @@ export const ProductDetail = () => {
                       {activeTab === 'specifications' && (
   <div className="border-t border-gray-200">
     <dl>
-      {product.specifications && [
-        { key: "Difficulty", value: product.specifications.Difficulty },
-        { key: "Growth Rate", value: product.specifications["Growth Rate"] },
-        { key: "Light Requirements", value: product.specifications["Light Requirements"] },
-        { key: "Mature Height", value: product.specifications["Mature Height"] },
-        { key: "Pet Friendly", value: product.specifications["Pet Friendly"] },
-        { key: "Pot Size", value: product.specifications["Pot Size"] }
-      ].map(({key, value}, index) => (
+      {product.specifications && Object.entries(product.specifications).map(([key, value], index) => (
         <div 
-          key={key} 
+          key={key}
           className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6`}
         >
           <dt className="text-sm font-medium text-gray-500">
