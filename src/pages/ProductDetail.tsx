@@ -23,12 +23,12 @@ interface DetailedProduct extends Product {
     warnings: string;
   };
  specifications: {
-    "Mature Height"?: string;
-    "Growth Rate"?: string;
-    "Pot Size"?: string;
-    Difficulty?: string;
-    "Light Requirements"?: string;
-    "Pet Friendly"?: string;
+    "Difficulty": string;
+    "Growth Rate": string;
+    "Light Requirements": string;
+    "Mature Height": string;
+    "Pet Friendly": string;
+    "Pot Size": string;
   };
   reviews: {
     id: number;
