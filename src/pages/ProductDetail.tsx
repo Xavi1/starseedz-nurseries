@@ -66,40 +66,40 @@ export const ProductDetail = () => {
 
   useEffect(() => {
     const fetchProduct = async () => {
-      if (!id) return;
-      setLoading(true);
-      const docRef = doc(db, 'products', id);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-   setProduct({
-  ...(data as DetailedProduct),
-  specifications: {
-    "Mature Height": data.specifications?.["Mature Height"] || "",
-    "Growth Rate": data.specifications?.["Growth Rate"] || "",
-    "Pot Size": data.specifications?.["Pot Size"] || "",
-    Difficulty: data.specifications?.Difficulty || "",
-    "Light Requirements": data.specifications?.["Light Requirements"] || "",
-    "Pet Friendly": data.specifications?.["Pet Friendly"] || ""
-  },
-  careInstructions: data.careInstructions ?? {
-    light: "", water: "", temperature: "", warnings: ""
-  },
-  reviews: data.reviews ?? [],
-  quantity: 1
-});
-        if (data.relatedProducts?.length) {
-          const related = await Promise.all(
-  data.relatedProducts.map(async (pid: string | number) => {
-    const relSnap = await getDoc(doc(db, 'products', pid.toString()));
-    return relSnap.exists() ? relSnap.data() as Product : null;
-  })
-);
-          setRelatedProducts(related.filter(Boolean) as Product[]);
+  if (!id) return;
+  setLoading(true);
+  
+  try {
+    const docRef = doc(db, 'products', id);
+    const docSnap = await getDoc(docRef);
+    
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      
+      // Debug: Log the raw specifications from Firestore
+      console.log('Raw specifications from Firestore:', data.specifications);
+      
+      // Handle the Map data
+      const specsFromFirestore = data.specifications || {};
+      
+      setProduct({
+        ...(data as DetailedProduct),
+        specifications: {
+          "Difficulty": specsFromFirestore["Difficulty"] || "Not specified",
+          "Growth Rate": specsFromFirestore["Growth Rate"] || "Not specified",
+          "Light Requirements": specsFromFirestore["Light Requirements"] || "Not specified",
+          "Mature Height": specsFromFirestore["Mature Height"] || "Not specified",
+          "Pet Friendly": specsFromFirestore["Pet Friendly"] || "Not specified", 
+          "Pot Size": specsFromFirestore["Pot Size"] || "Not specified"
         }
-      }
-      setLoading(false);
-    };
+      });
+    }
+  } catch (error) {
+    console.error("Error fetching product:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
     fetchProduct();
   }, [id]);
