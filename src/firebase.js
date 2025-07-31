@@ -21,3 +21,4 @@ const db = getFirestore(app);
 
 // Explicit exports
 export { auth, db };
+

@@ -22,8 +22,13 @@ interface DetailedProduct extends Product {
     temperature: string;
     warnings: string;
   };
-  specifications: {
-    [key: string]: string;
+ specifications: {
+    "Mature Height"?: string;
+    "Growth Rate"?: string;
+    "Pot Size"?: string;
+    Difficulty?: string;
+    "Light Requirements"?: string;
+    "Pet Friendly"?: string;
   };
   reviews: {
     id: number;
@@ -67,10 +72,15 @@ export const ProductDetail = () => {
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         const data = docSnap.data();
-        setProduct({
+   setProduct({
   ...(data as DetailedProduct),
-  specifications: data.specifications ?? {
-    Mature_Height: "", GrowthRate: "", PotSize: "", Difficulty: "", LightRequirements : "", Prefriendly: ""
+  specifications: {
+    "Mature Height": data.specifications?.["Mature Height"] || "",
+    "Growth Rate": data.specifications?.["Growth Rate"] || "",
+    "Pot Size": data.specifications?.["Pot Size"] || "",
+    Difficulty: data.specifications?.Difficulty || "",
+    "Light Requirements": data.specifications?.["Light Requirements"] || "",
+    "Pet Friendly": data.specifications?.["Pet Friendly"] || ""
   },
   careInstructions: data.careInstructions ?? {
     light: "", water: "", temperature: "", warnings: ""
@@ -80,11 +90,11 @@ export const ProductDetail = () => {
 });
         if (data.relatedProducts?.length) {
           const related = await Promise.all(
-            data.relatedProducts.map(async pid => {
-              const relSnap = await getDoc(doc(db, 'products', pid.toString()));
-              return relSnap.exists() ? relSnap.data() as Product : null;
-            })
-          );
+  data.relatedProducts.map(async (pid: string | number) => {
+    const relSnap = await getDoc(doc(db, 'products', pid.toString()));
+    return relSnap.exists() ? relSnap.data() as Product : null;
+  })
+);
           setRelatedProducts(related.filter(Boolean) as Product[]);
         }
       }
@@ -507,18 +517,32 @@ export const ProductDetail = () => {
                             </div>
                           </div>
                         </div>}
-                      {activeTab === 'specifications' && <div className="border-t border-gray-200">
-                          <dl>
-                            {product.specifications && Object.entries(product.specifications).map(([key, value], index) => <div key={key} className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6`}>
-                                  <dt className="text-sm font-medium text-gray-500">
-                                    {key}
-                                  </dt>
-                                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                    {value}
-                                  </dd>
-                                </div>)}
-                          </dl>
-                        </div>}
+                      {activeTab === 'specifications' && (
+  <div className="border-t border-gray-200">
+    <dl>
+      {product.specifications && [
+        { key: "Difficulty", value: product.specifications.Difficulty },
+        { key: "Growth Rate", value: product.specifications["Growth Rate"] },
+        { key: "Light Requirements", value: product.specifications["Light Requirements"] },
+        { key: "Mature Height", value: product.specifications["Mature Height"] },
+        { key: "Pet Friendly", value: product.specifications["Pet Friendly"] },
+        { key: "Pot Size", value: product.specifications["Pot Size"] }
+      ].map(({key, value}, index) => (
+        <div 
+          key={key} 
+          className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6`}
+        >
+          <dt className="text-sm font-medium text-gray-500">
+            {key}
+          </dt>
+          <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            {value || "Not specified"}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+)}
                       {activeTab === 'reviews' && <div className="space-y-8">
                           <div className="flex items-center justify-between">
                             <h3 className="text-lg font-medium text-gray-900">
