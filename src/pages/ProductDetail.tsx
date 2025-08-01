@@ -78,7 +78,9 @@ export const ProductDetail = () => {
       try {
         const docRef = doc(db, 'products', id);
         const docSnap = await getDoc(docRef);
+        console.log("Fetching product with ID:", id);
         if (docSnap.exists()) {
+          console.log("Product found:", docSnap.data());
           const data = docSnap.data();
           const category = Array.isArray(data.category) ? data.category : [data.category || "Unknown"];
           const specs = data.specifications || {};
@@ -117,9 +119,11 @@ export const ProductDetail = () => {
           };
           setProduct(detailedProduct);
         } else {
+          console.warn("No product found for ID:", id);
           setProduct(null);
         }
       } catch (error) {
+        console.error("Error fetching product:", error);
         setProduct(null);
       } finally {
         setLoading(false);
