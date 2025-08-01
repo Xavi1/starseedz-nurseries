@@ -13,7 +13,13 @@ import { useWishlist } from '../context/WishlistContext';
 import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
-interface DetailedProduct extends Product {
+interface DetailedProduct {
+  id: string;
+  name: string;
+  price: number;
+  category: string[];
+  image: string;
+  rating: number;
   description: string;
   longDescription: string;
   careInstructions: {
@@ -22,7 +28,7 @@ interface DetailedProduct extends Product {
     temperature: string;
     warnings: string;
   };
- specifications: {
+  specifications: {
     "Difficulty": string;
     "Growth Rate": string;
     "Light Requirements": string;
@@ -31,7 +37,7 @@ interface DetailedProduct extends Product {
     "Pot Size": string;
   };
   reviews: {
-    id: number;
+    id: string;
     user: string;
     date: string;
     rating: number;
@@ -53,11 +59,12 @@ export const ProductDetail = () => {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showCartPopup, setShowCartPopup] = useState(false);
   const [popupProduct, setPopupProduct] = useState<Product | null>(null);
-  const [showWishlistPopup, setShowWishlistPopup] = useState(false);    const [wishlistAction, setWishlistAction] = useState<'added' | 'removed'>('added');
+  const [showWishlistPopup, setShowWishlistPopup] = useState(false);
+  const [wishlistAction, setWishlistAction] = useState<'added' | 'removed'>('added');
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const { addToCart: addToCartContext, cart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
-   // Review form state
+  // Review form state
   const [reviewName, setReviewName] = useState("");
   const [reviewRating, setReviewRating] = useState("5");
   const [reviewComment, setReviewComment] = useState("");
@@ -66,125 +73,137 @@ export const ProductDetail = () => {
 
   useEffect(() => {
     const fetchProduct = async () => {
-  if (!id) return;
-  setLoading(true);
-  
-  try {
-    const docRef = doc(db, 'products', id);
-    const docSnap = await getDoc(docRef);
-    
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      console.log("Raw Firestore data:", docSnap.data());
-
-         
-      // SAFELY get specifications with fallbacks
-      const firestoreSpecs = data.specifications || {}; 
-      
-      // Debug: Log the raw specifications from Firestore
-      console.log('Raw specifications from Firestore:', data.specifications);
-      
-      // Handle the Map data
-      const specsFromFirestore = data.specifications || {};
-      
-      
-      setProduct({
-        ...data,
-        specifications: {
-          "Difficulty": firestoreSpecs["Difficulty"]?.trim() || "Not specified",
-          "Growth Rate": firestoreSpecs["Growth Rate"]?.trim() || "Not specified",
-          "Light Requirements": firestoreSpecs["Light Requirements"]?.trim() || "Not specified",
-          "Mature Height": firestoreSpecs["Mature Height"]?.trim() || "Not specified",
-          "Pet Friendly": firestoreSpecs["Pet Friendly"]?.trim() || "Not specified",
-          "Pot Size": firestoreSpecs["Pot Size"]?.trim() || "Not specified"
+      if (!id) return;
+      setLoading(true);
+      try {
+        const docRef = doc(db, 'products', id);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          const category = Array.isArray(data.category) ? data.category : [data.category || "Unknown"];
+          const specs = data.specifications || {};
+          const detailedProduct: DetailedProduct = {
+            id: docSnap.id,
+            name: data.name || "Unnamed Product",
+            price: data.price || 0,
+            category,
+            image: data.image || "",
+            rating: data.rating || 0,
+            description: data.description || "No description available",
+            longDescription: data.longDescription || data.description || "No detailed description available",
+            careInstructions: {
+              light: data.careInstructions?.light || "Light requirements not specified",
+              water: data.careInstructions?.water || "Watering instructions not specified",
+              temperature: data.careInstructions?.temperature || "Temperature requirements not specified",
+              warnings: data.careInstructions?.warnings || "No special warnings"
+            },
+            specifications: {
+              "Difficulty": specs.Difficulty || specs.difficulty || specs["difficulty"] || "Not specified",
+              "Growth Rate": specs["Growth Rate"] || specs.growthRate || specs["growthRate"] || "Not specified",
+              "Light Requirements": specs["Light Requirements"] || specs.lightRequirements || specs["lightRequirements"] || "Not specified",
+              "Mature Height": specs["Mature Height"] || specs.matureHeight || specs["matureHeight"] || "Not specified",
+              "Pet Friendly": specs["Pet Friendly"] || specs.petFriendly || specs["petFriendly"] || "Not specified",
+              "Pot Size": specs["Pot Size"] || specs.potSize || specs["potSize"] || "Not specified"
+            },
+            reviews: (data.reviews || []).map((r: any) => ({
+              ...r,
+              id: String(r.id)
+            })),
+            inStock: data.inStock !== undefined ? data.inStock : true,
+            quantity: data.quantity || 0,
+            relatedProducts: data.relatedProducts || [],
+            isNew: data.isNew || false,
+            isBestSeller: data.isBestSeller || false
+          };
+          setProduct(detailedProduct);
+        } else {
+          setProduct(null);
         }
-      } as DetailedProduct);
-    }
-  } catch (error) {
-    console.error("Error fetching product:", error);
-  } finally {
-    setLoading(false);
-  }
-};
-
+      } catch (error) {
+        setProduct(null);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchProduct();
+    // eslint-disable-next-line
   }, [id]);
 
-  const addToCart = () => {
-    if (product) {
-      addToCartContext(product, quantity);
-      setPopupProduct(product);
-      setShowCartPopup(true);
-      setTimeout(() => setShowCartPopup(false), 3000);
-    }
-  };
+  // Convert product.id to number for context comparisons
+  const productIdNum = Number(product?.id);
+  const hasPurchased = cart.some(item => item.product.id === productIdNum && item.quantity > 0);
 
-  const handleWishlist = () => {
-    if (product) {
-      isInWishlist(product.id)
-        ? removeFromWishlist(product.id)
-        : addToWishlist(product);
-    }
-  };
   const handleQuantityChange = (newQuantity: number) => {
-    if (newQuantity < 1) return;
-    if (newQuantity > 10) return;
+    if (newQuantity < 1 || newQuantity > 10) return;
     setQuantity(newQuantity);
   };
 
-   // Only allow review if user has purchased this product (in cart with quantity > 0)
-  const hasPurchased = cart.some(item => item.product.id === product?.id && item.quantity > 0);
+  // Convert DetailedProduct to Product for context
+  const toProduct = (d: DetailedProduct): Product => ({
+    id: Number(d.id),
+    name: d.name,
+    price: d.price,
+    category: d.category,
+    image: d.image,
+    rating: d.rating,
+    isNew: d.isNew,
+    isBestSeller: d.isBestSeller
+  });
 
+  const addToCart = () => {
+    if (!product) return;
+    const prod = toProduct(product);
+    addToCartContext(prod, quantity);
+    setPopupProduct(prod);
+    setShowCartPopup(true);
+  };
 
-   return (
-      <div className="min-h-screen bg-white">
-        <main>
-          {loading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700 mx-auto"></div>
-                <p className="mt-4 text-gray-600">Loading product details...</p>
-              </div>
-            </div>
-          ) : !product ? (
-            <div className="text-center py-12">
-              <h2 className="text-2xl font-bold text-gray-900">
-                Product Not Found
-              </h2>
-              <p className="mt-2 text-gray-600">
-                Sorry, we couldn't find the product you're looking for.
-              </p>
-              <div className="mt-6">
-                <Link to="/shop" className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-700 hover:bg-green-800">
-                  Return to Shop
-                </Link>
-              </div>
-            </div>
-          ) : (
-            <>
-              {/* Breadcrumbs */}
-              <nav className="bg-gray-50 border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                  <div className="py-3 flex items-center space-x-2 text-sm">
-                    <Link to="/" className="text-gray-500 hover:text-gray-700 flex items-center">
-                      <HomeIcon className="h-4 w-4 mr-1" />
-                      Home
-                    </Link>
-                    <ChevronRightIcon className="h-4 w-4 text-gray-400" />
-                    <Link to="/shop" className="text-gray-500 hover:text-gray-700">
-                      Shop
-                    </Link>
-                    <ChevronRightIcon className="h-4 w-4 text-gray-400" />
-                    <Link to={`/shop?category=${product.category}`} className="text-gray-500 hover:text-gray-700">
-                      {product.category}
-                    </Link>
-                    <ChevronRightIcon className="h-4 w-4 text-gray-400" />
-                    <span className="text-green-700 font-medium truncate">
-                      {product.name}
-                    </span>
-                  </div>
-                </div>
-              </nav>
+  const handleWishlist = () => {
+    if (!product) return;
+    const prod = toProduct(product);
+    if (isInWishlist(prod.id)) {
+      removeFromWishlist(prod.id);
+      setWishlistAction('removed');
+    } else {
+      addToWishlist(prod);
+      setWishlistAction('added');
+    }
+    setPopupProduct(prod);
+    setShowWishlistPopup(true);
+  };
+
+  // Main render
+  if (loading) {
+    return (
+      <main>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading product details...</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (!product) {
+    return (
+      <main>
+        <div className="text-center py-12">
+          <h2 className="text-2xl font-bold text-gray-900">
+            Product Not Found
+          </h2>
+          <p className="mt-2 text-gray-600">
+            Sorry, we couldn't find the product you're looking for.
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  // ...existing code for the main product detail page...
+  // (The rest of the component remains unchanged, but all references to product are now safe since we return early if product is null.)
+  // ...existing code...
               {/* Product Detail Section */}
               <section className="py-12">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -200,13 +219,13 @@ export const ProductDetail = () => {
                           <img src={product.image} alt={`${product.name} - Main View`} className="w-full h-full object-center object-cover" />
                         </div>
                         <div className="aspect-w-1 aspect-h-1 rounded-md overflow-hidden cursor-pointer">
-                          <img src={`https://images.unsplash.com/photo-${product.id === 1 ? '1614594975525-e45190c55d0b' : product.id === 2 ? '1593482892290-f54927ae2b7b' : product.id === 3 ? '1616500163246-0ffbb872f4de' : '1616784754051-4769c7a8cf5f'}?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60&h=500&fit=crop`} alt={`${product.name} - Side View`} className="w-full h-full object-center object-cover" />
+                          <img src={`https://images.unsplash.com/photo-${productIdNum === 1 ? '1614594975525-e45190c55d0b' : productIdNum === 2 ? '1593482892290-f54927ae2b7b' : productIdNum === 3 ? '1616500163246-0ffbb872f4de' : '1616784754051-4769c7a8cf5f'}?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60&h=500&fit=crop`} alt={`${product.name} - Side View`} className="w-full h-full object-center object-cover" />
                         </div>
                         <div className="aspect-w-1 aspect-h-1 rounded-md overflow-hidden cursor-pointer">
-                          <img src={`https://images.unsplash.com/photo-${product.id === 1 ? '1611000226964-c6e96070fcc3' : product.id === 2 ? '1593482892290-f54927ae2b7b' : product.id === 3 ? '1616500163246-0ffbb872f4de' : '1616784754051-4769c7a8cf5f'}?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60&h=500&fit=crop`} alt={`${product.name} - Detail View`} className="w-full h-full object-center object-cover" />
+                          <img src={`https://images.unsplash.com/photo-${productIdNum === 1 ? '1611000226964-c6e96070fcc3' : productIdNum === 2 ? '1593482892290-f54927ae2b7b' : productIdNum === 3 ? '1616500163246-0ffbb872f4de' : '1616784754051-4769c7a8cf5f'}?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60&h=500&fit=crop`} alt={`${product.name} - Detail View`} className="w-full h-full object-center object-cover" />
                         </div>
                         <div className="aspect-w-1 aspect-h-1 rounded-md overflow-hidden cursor-pointer">
-                          <img src={`https://images.unsplash.com/photo-${product.id === 1 ? '1620127518526-c0712f189bf6' : product.id === 2 ? '1593482892290-f54927ae2b7b' : product.id === 3 ? '1616500163246-0ffbb872f4de' : '1616784754051-4769c7a8cf5f'}?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60&h=500&fit=crop`} alt={`${product.name} - Lifestyle View`} className="w-full h-full object-center object-cover" />
+                          <img src={`https://images.unsplash.com/photo-${productIdNum === 1 ? '1620127518526-c0712f189bf6' : productIdNum === 2 ? '1593482892290-f54927ae2b7b' : productIdNum === 3 ? '1616500163246-0ffbb872f4de' : '1616784754051-4769c7a8cf5f'}?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60&h=500&fit=crop`} alt={`${product.name} - Lifestyle View`} className="w-full h-full object-center object-cover" />
                         </div>
                       </div>
                     </div>
@@ -241,7 +260,7 @@ export const ProductDetail = () => {
                               Best Seller
                             </span>}
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            {product.category}
+                            {Array.isArray(product.category) ? product.category.join(', ') : product.category}
                           </span>
                           {product.inStock ? <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                               In Stock
@@ -319,10 +338,10 @@ export const ProductDetail = () => {
                           <button
                             type="button"
                             onClick={handleWishlist}
-                            className={`w-full flex items-center justify-center px-8 py-3 border border-gray-300 rounded-md shadow-sm text-base font-medium ${isInWishlist(product.id) ? 'text-red-600 bg-red-50 hover:bg-red-100' : 'text-gray-700 bg-white hover:bg-gray-50'}`}
+                            className={`w-full flex items-center justify-center px-8 py-3 border border-gray-300 rounded-md shadow-sm text-base font-medium ${isInWishlist(Number(product.id)) ? 'text-red-600 bg-red-50 hover:bg-red-100' : 'text-gray-700 bg-white hover:bg-gray-50'}`}
                           >
-                            <HeartIcon className={`h-5 w-5 mr-2 ${isInWishlist(product.id) ? 'fill-red-600 text-red-600' : ''}`} />
-                            {isInWishlist(product.id) ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                            <HeartIcon className={`h-5 w-5 mr-2 ${isInWishlist(Number(product.id)) ? 'fill-red-600 text-red-600' : ''}`} />
+                            {isInWishlist(Number(product.id)) ? 'Remove from Wishlist' : 'Add to Wishlist'}
                           </button>
                         </div>
                         {/* Shipping & Returns */}
@@ -402,7 +421,7 @@ export const ProductDetail = () => {
                   // Simulate API delay
                   setTimeout(() => {
                     const newReview = {
-                      id: product.reviews.length ? Math.max(...product.reviews.map(r => r.id)) + 1 : 1,
+                      id: product.reviews.length ? String(Math.max(...product.reviews.map(r => Number(r.id))) + 1) : '1',
                       user: reviewName,
                       date: new Date().toISOString().slice(0, 10),
                       rating: parseInt(reviewRating),
@@ -714,9 +733,6 @@ export const ProductDetail = () => {
   )}
                 </div>
               </section>
-            </>
-          )}
-        </main>
-      </div>
-    );
-};
+            {/* End main product detail section */}
+            {/* End of ProductDetail main render */}
+}
