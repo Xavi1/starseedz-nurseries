@@ -46,7 +46,7 @@ interface DetailedProduct {
   }[];
   inStock: boolean;
   quantity?: number;
-  relatedProducts: number[];
+  relatedProducts: Product[]; 
   isNew?: boolean;
   isBestSeller?: boolean;
 }
