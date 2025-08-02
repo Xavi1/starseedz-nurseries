@@ -92,22 +92,33 @@ useEffect(() => {
         //  Fetch related product data
         const relatedRefs = data.relatedProducts || [];
         const relatedDocs = await Promise.all(
-          relatedRefs.map(async (ref: any) => {
-            const productSnap = await getDoc(doc(db, ref.referencePath));
-            const pd = productSnap.data();
-            return {
-              id: productSnap.id,
-              name: pd?.name || "",
-              price: pd?.price || 0,
-              category: pd?.category || [],
-              image: pd?.image || "",
-              rating: pd?.rating || 0,
-              isNew: pd?.isNew || false,
-              isBestSeller: pd?.isBestSeller || false
-            };
-          })
-        );
-        setRelatedProducts(relatedDocs);
+  relatedRefs.map(async (ref: any) => {
+    if (!ref?.referencePath) return null;
+    try {
+      const productSnap = await getDoc(doc(db, ref.referencePath));
+      const pd = productSnap.data();
+      return productSnap.exists()
+        ? {
+            id: productSnap.id,
+            name: pd?.name || "",
+            price: pd?.price || 0,
+            category: pd?.category || [],
+            image: pd?.image || "",
+            rating: pd?.rating || 0,
+            isNew: pd?.isNew || false,
+            isBestSeller: pd?.isBestSeller || false
+          }
+        : null;
+    } catch (err) {
+      console.warn("Failed to fetch related product:", err);
+      return null;
+    }
+  })
+);
+
+// Remove nulls just in case
+setRelatedProducts(relatedDocs.filter(Boolean));
+
 
         //  Fetch reviews from global collection
         const reviewsQuery = query(
