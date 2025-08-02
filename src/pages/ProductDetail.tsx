@@ -12,6 +12,7 @@ import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 
 interface DetailedProduct {
   id: string;
@@ -70,68 +71,107 @@ export const ProductDetail = () => {
   const [reviewComment, setReviewComment] = useState("");
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewError, setReviewError] = useState("");
+  
 
-  useEffect(() => {
-    const fetchProduct = async () => {
-      if (!id) return;
-      setLoading(true);
-      try {
-        const docRef = doc(db, 'products', id);
-        const docSnap = await getDoc(docRef);
-        console.log("Fetching product with ID:", id);
-        if (docSnap.exists()) {
-          console.log("Product found:", docSnap.data());
-          const data = docSnap.data();
-          const category = Array.isArray(data.category) ? data.category : [data.category || "Unknown"];
-          const specs = data.specifications || {};
-          const detailedProduct: DetailedProduct = {
-            id: docSnap.id,
-            name: data.name || "Unnamed Product",
-            price: data.price || 0,
-            category,
-            image: data.image || "",
-            rating: data.rating || 0,
-            description: data.description || "No description available",
-            longDescription: data.longDescription || data.description || "No detailed description available",
-            careInstructions: {
-              light: data.careInstructions?.light || "Light requirements not specified",
-              water: data.careInstructions?.water || "Watering instructions not specified",
-              temperature: data.careInstructions?.temperature || "Temperature requirements not specified",
-              warnings: data.careInstructions?.warnings || "No special warnings"
-            },
-            specifications: {
-              "Difficulty": specs.Difficulty || specs.difficulty || specs["difficulty"] || "Not specified",
-              "Growth Rate": specs["Growth Rate"] || specs.growthRate || specs["growthRate"] || "Not specified",
-              "Light Requirements": specs["Light Requirements"] || specs.lightRequirements || specs["lightRequirements"] || "Not specified",
-              "Mature Height": specs["Mature Height"] || specs.matureHeight || specs["matureHeight"] || "Not specified",
-              "Pet Friendly": specs["Pet Friendly"] || specs.petFriendly || specs["petFriendly"] || "Not specified",
-              "Pot Size": specs["Pot Size"] || specs.potSize || specs["potSize"] || "Not specified"
-            },
-            reviews: (data.reviews || []).map((r: any) => ({
-              ...r,
-              id: String(r.id)
-            })),
-            inStock: data.inStock !== undefined ? data.inStock : true,
-            quantity: data.quantity || 0,
-            relatedProducts: data.relatedProducts || [],
-            isNew: data.isNew || false,
-            isBestSeller: data.isBestSeller || false
+useEffect(() => {
+  const fetchProduct = async () => {
+    if (!id) return;
+    setLoading(true);
+    try {
+      const docRef = doc(db, 'products', id);
+      const docSnap = await getDoc(docRef);
+      console.log("Fetching product with ID:", id);
+
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        console.log("Product found:", data);
+
+        const category = Array.isArray(data.category) ? data.category : [data.category || "Unknown"];
+        const specs = data.specifications || data.specificatons || {};
+
+        //  Fetch related product data
+        const relatedRefs = data.relatedProducts || [];
+        const relatedDocs = await Promise.all(
+          relatedRefs.map(async (ref: any) => {
+            const productSnap = await getDoc(doc(db, ref.referencePath));
+            const pd = productSnap.data();
+            return {
+              id: productSnap.id,
+              name: pd?.name || "",
+              price: pd?.price || 0,
+              category: pd?.category || [],
+              image: pd?.image || "",
+              rating: pd?.rating || 0,
+              isNew: pd?.isNew || false,
+              isBestSeller: pd?.isBestSeller || false
+            };
+          })
+        );
+        setRelatedProducts(relatedDocs);
+
+        //  Fetch reviews from global collection
+        const reviewsQuery = query(
+          collection(db, 'reviews'),
+          where('productId', '==', docRef)
+        );
+        const reviewsSnap = await getDocs(reviewsQuery);
+        const reviews = reviewsSnap.docs.map((reviewDoc) => {
+          const r = reviewDoc.data();
+          return {
+            id: reviewDoc.id,
+            user: r.firstname?.id || 'Anonymous',
+            date: r.createdAt?.toDate?.()?.toISOString().split('T')[0] || '',
+            rating: r.rating,
+            comment: r.comment
           };
-          setProduct(detailedProduct);
-        } else {
-          console.warn("No product found for ID:", id);
-          setProduct(null);
-        }
-      } catch (error) {
-        console.error("Error fetching product:", error);
+        });
+
+        const detailedProduct: DetailedProduct = {
+          id: docSnap.id,
+          name: data.name || "Unnamed Product",
+          price: data.price || 0,
+          category,
+          image: data.image || "",
+          rating: data.rating || 0,
+          description: data.description || "No description available",
+          longDescription: data.longDescription || data.description || "No detailed description available",
+          careInstructions: {
+            light: data.careInstructions?.light || "Light requirements not specified",
+            water: data.careInstructions?.water || "Watering instructions not specified",
+            temperature: data.careInstructions?.temperature || "Temperature requirements not specified",
+            warnings: data.careInstructions?.warnings || "No special warnings"
+          },
+          specifications: {
+            "Difficulty": specs.Difficulty || specs.difficulty || specs["difficulty"] || "Not specified",
+            "Growth Rate": specs["Growth Rate"] || specs.growthRate || specs["growthRate"] || "Not specified",
+            "Light Requirements": specs["Light Requirements"] || specs.lightRequirements || specs["lightRequirements"] || "Not specified",
+            "Mature Height": specs["Mature Height"] || specs.matureHeight || specs["matureHeight"] || "Not specified",
+            "Pet Friendly": specs["Pet Friendly"] || specs.petFriendly || specs["petFriendly"] || "Not specified",
+            "Pot Size": specs["Pot Size"] || specs.potSize || specs["potSize"] || "Not specified"
+          },
+          reviews,
+          inStock: data.inStock !== undefined ? data.inStock : true,
+          quantity: data.quantity || 0,
+          relatedProducts: [], // we already set this separately
+          isNew: data.isNew || false,
+          isBestSeller: data.isBestSeller || false
+        };
+
+        setProduct(detailedProduct);
+      } else {
+        console.warn("No product found for ID:", id);
         setProduct(null);
-      } finally {
-        setLoading(false);
       }
-    };
-    fetchProduct();
-    // eslint-disable-next-line
-  }, [id]);
+    } catch (error) {
+      console.error("Error fetching product:", error);
+      setProduct(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchProduct();
+}, [id]);
 
   // Convert product.id to number for context comparisons
   const productIdNum = Number(product?.id);
