@@ -17,7 +17,7 @@ import { useWishlist } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
 import { auth } from '../firebase';
 import { updateUserProfile, getUserById } from '../firebaseHelpers';
-import { db } from '../firebaseConfig';
+import { db } from '../firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { signOut, onAuthStateChanged, User } from 'firebase/auth';
 
