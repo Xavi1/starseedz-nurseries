@@ -29,6 +29,7 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
   const [user] = useAuthState(auth);
   const [wishlist, setWishlist] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     const fetchWishlist = async () => {
@@ -40,6 +41,7 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
 
       try {
         setLoading(true);
+        setError(null);
         const q = query(
           collection(db, 'wishlists'),
           where('userId', '==', user.uid)
@@ -56,7 +58,8 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
         });
 
         setWishlist(products);
-      } catch (error) {
+      } catch (err) {
+        setError(err as Error);
         console.error('Error fetching wishlist:', error);
       } finally {
         setLoading(false);
@@ -67,7 +70,10 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
   }, [user]);
 
   const addToWishlist = async (product: Product) => {
-    if (!user) throw new Error('User not authenticated');
+    if (!user) {
+      setError(new Error('User not authenticated'));
+      return;
+    }
     
     if (isInWishlist(product.id)) return;
 
@@ -87,14 +93,18 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
 
       // Update local state
       setWishlist(prev => [...prev, product]);
-    } catch (error) {
-      console.error('Error adding to wishlist:', error);
-      throw error;
+    } catch (err) {
+      setError(err as Error);
+      console.error('Error adding to wishlist:', err);
+      throw err;
     }
   };
 
   const removeFromWishlist = async (productId: number) => {
-    if (!user) throw new Error('User not authenticated');
+    if (!user) {
+      setError(new Error('User not authenticated'));
+      return;
+    }
 
     try {
       // Find the wishlist document to delete
@@ -111,16 +121,21 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
 
       // Update local state
       setWishlist(prev => prev.filter(item => item.id !== productId));
-    } catch (error) {
-      console.error('Error removing from wishlist:', error);
-      throw error;
+    } catch (err) {
+      setError(err as Error);
+      console.error('Error removing from wishlist:', err);
+      throw err;
     }
   };
 
   const clearWishlist = async () => {
-    if (!user) throw new Error('User not authenticated');
+    if (!user) {
+      setError(new Error('User not authenticated'));
+      return;
+    }
 
     try {
+      setError(null);
       // Get all wishlist items for the user
       const q = query(
         collection(db, 'wishlists'),
@@ -134,9 +149,10 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
 
       // Update local state
       setWishlist([]);
-    } catch (error) {
-      console.error('Error clearing wishlist:', error);
-      throw error;
+    } catch (err) {
+      setError(err as Error);
+      console.error('Error clearing wishlist:', err);
+      throw err;
     }
   };
 
@@ -152,7 +168,8 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
         removeFromWishlist, 
         isInWishlist, 
         clearWishlist,
-        loading 
+        loading,
+        error 
       }}
     >
       {children}
