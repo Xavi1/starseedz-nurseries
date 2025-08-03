@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ProductCard } from '../components/ProductCard';
 import { auth, db } from '../firebase';
-import { collection, query, addDoc, serverTimestamp, where, getDocs, doc, deleteDoc } from 'firebase/firestore';
+import { collection, query,where, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { useAuthState } from 'react-firebase-hooks/auth';
 
 interface Product {
@@ -11,7 +11,6 @@ interface Product {
   title: string;
   price: number;
   image: string;
-  // ... other fields
 }
 
 export default function WishlistPage() {
