@@ -14,6 +14,7 @@ interface WishlistContextType {
   isInWishlist: (productId: number) => boolean;
   clearWishlist: () => Promise<void>;
   loading: boolean;
+  error: Error | null;
 }
 
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
