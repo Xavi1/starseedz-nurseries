@@ -1009,7 +1009,7 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
         </p>
         <div className="mt-6">
           <Link 
-            to="/pages/Wishlist" 
+            to="/wishlist" 
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-700 hover:bg-green-800"
           >
             View Wishlist
