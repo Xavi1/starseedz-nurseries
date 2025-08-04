@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
 
@@ -10,6 +10,7 @@ const Login: React.FC = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [fadeOut, setFadeOut] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation(); 
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,7 +23,8 @@ const Login: React.FC = () => {
         setFadeOut(true);
         setTimeout(() => {
           setShowSuccess(false);
-          navigate('/'); // Redirect to home or dashboard
+           const from = location.state?.from || '/';
+           navigate(from); // Redirect to home or dashboard
         }, 400); // match fade duration
       }, 900); // show for 900ms, then fade for 400ms
     } catch (err: unknown) {
