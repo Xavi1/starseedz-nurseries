@@ -666,7 +666,7 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
         setCurrentUser(user);
       } else {
         setCurrentUser(null);
-        navigate('/login', { state: { from: window.location.pathname } });
+        navigate('/login', { state: { from: window.location.pathname }, replace: false  });
       }
     });
     return () => unsubscribe();

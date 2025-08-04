@@ -10,7 +10,8 @@ const Login: React.FC = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [fadeOut, setFadeOut] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation(); 
+  const location = useLocation();
+  const from = location.state?.from || '/'; 
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +25,7 @@ const Login: React.FC = () => {
         setTimeout(() => {
           setShowSuccess(false);
            const from = location.state?.from || '/';
-           navigate(from); // Redirect to home or dashboard
+           navigate(from, { replace: false }); // Redirect to home or dashboard
         }, 400); // match fade duration
       }, 900); // show for 900ms, then fade for 400ms
     } catch (err: unknown) {
