@@ -1,6 +1,6 @@
 import React from 'react';
 import { useWishlist } from '../context/WishlistContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ProductCard } from '../components/ProductCard';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../firebase';
@@ -10,26 +10,43 @@ import 'react-toastify/dist/ReactToastify.css';
 export default function WishlistPage() {
   const { wishlist, removeFromWishlist, loading, error } = useWishlist();
   const [user, authLoading] = useAuthState(auth);
+  const navigate = useNavigate();
 
   const handleRemove = async (productId: number) => {
+    if (!user) {
+      toast.info(
+        <div>
+          <p>Please sign in to manage your wishlist</p>
+          <button 
+            onClick={() => {
+              navigate('/login');
+              toast.dismiss();
+            }}
+            className="mt-2 px-3 py-1 bg-green-600 text-white rounded text-sm"
+          >
+            Go to Login
+          </button>
+        </div>,
+        {
+          position: "top-right",
+          autoClose: 5000,
+          closeOnClick: false,
+          draggable: true,
+        }
+      );
+      return;
+    }
+
     try {
       await removeFromWishlist(productId);
       toast.success('Removed from wishlist', {
         position: "top-right",
         autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
       });
     } catch (error) {
       toast.error('Failed to remove item', {
         position: "top-right",
         autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
       });
     }
   };
@@ -61,37 +78,20 @@ export default function WishlistPage() {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="max-w-4xl mx-auto py-12 px-4">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-6">Your Wishlist</h1>
-        </div>
-        <div className="text-center py-12">
-          <p className="text-lg text-gray-600 mb-4">Please sign in to view your wishlist.</p>
-          <Link 
-            to="/login" 
-            className="inline-block px-6 py-2 bg-green-700 text-white rounded hover:bg-green-800"
-          >
-            Sign In
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-4xl mx-auto py-12 px-4">
       <ToastContainer />
       <h1 className="text-3xl font-bold mb-6">Your Wishlist</h1>
       {wishlist.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-lg text-gray-600 mb-4">Your wishlist is empty.</p>
+          <p className="text-lg text-gray-600 mb-4">
+            {user ? 'Your wishlist is empty.' : 'Sign in to save items to your wishlist.'}
+          </p>
           <Link 
-            to="/shop" 
+            to={user ? "/shop" : "/login"}
             className="inline-block px-6 py-2 bg-green-700 text-white rounded hover:bg-green-800"
           >
-            Continue Shopping
+            {user ? 'Continue Shopping' : 'Sign In'}
           </Link>
         </div>
       ) : (
@@ -102,7 +102,7 @@ export default function WishlistPage() {
               <button
                 onClick={() => handleRemove(product.id)}
                 className="absolute top-2 right-2 bg-white rounded-full p-2 shadow hover:bg-red-100"
-                title="Remove from Wishlist"
+                title={user ? "Remove from Wishlist" : "Sign in to manage wishlist"}
                 disabled={loading}
               >
                 {loading ? (
