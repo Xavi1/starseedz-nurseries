@@ -10,9 +10,10 @@ import {
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { collection, getDocs, query, where } from 'firebase/firestore';
+import { useAuthState } from 'react-firebase-hooks/auth';
 
 interface DetailedProduct {
   id: string;
@@ -110,6 +111,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
 
 export const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const [user] = useAuthState(auth);
   const [product, setProduct] = useState<DetailedProduct | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
@@ -128,6 +130,9 @@ export const ProductDetail = () => {
   const [reviewComment, setReviewComment] = useState("");
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewError, setReviewError] = useState("");
+
+  // Sign-In Popup
+  const [showSignInPopup, setShowSignInPopup] = useState(false);
   
 
 useEffect(() => {
@@ -271,6 +276,11 @@ setRelatedProducts(relatedDocs.filter(Boolean));
   };
 
   const handleWishlist = () => {
+     if (!user) {
+    setShowSignInPopup(true);
+    return;
+    }
+
     if (!product) return;
     const prod = toProduct(product);
     if (isInWishlist(prod.id)) {
@@ -842,6 +852,44 @@ setRelatedProducts(relatedDocs.filter(Boolean));
     </div>
   )}
 </div>
+)}
+{/* Sign In Popup */}
+{showSignInPopup && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="bg-white rounded-lg shadow-xl overflow-hidden w-96">
+      <div className="p-6">
+        <div className="flex items-start">
+          <div className="flex-shrink-0 h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+            <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div className="ml-4">
+            <h3 className="text-lg font-medium text-gray-900">Sign In Required</h3>
+            <div className="mt-2 text-sm text-gray-600">
+              <p>You need to be signed in to add items to your wishlist.</p>
+            </div>
+            <div className="mt-4 flex justify-end space-x-3">
+              <button
+                type="button"
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                onClick={() => setShowSignInPopup(false)}
+              >
+                Cancel
+              </button>
+              <Link
+                to="/login"
+                className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-green-700 hover:bg-green-800"
+                onClick={() => setShowSignInPopup(false)}
+              >
+                Sign In
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 )}
           </div>
         </section>
