@@ -1,5 +1,5 @@
 import { ShoppingCartIcon, SearchIcon, MenuIcon, XIcon, UserIcon } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 // import { useWishlist } from '../context/WishlistContext';
@@ -83,7 +83,10 @@ const Header = () => {
             </button>
              <button
               className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none"
-              onClick={() => navigate('/account')}
+              onClick={() => navigate('/account', { 
+             state: { from: location.pathname },
+            replace: false
+            })}
               aria-label="Account"
             >
               <UserIcon className="h-6 w-6" />
@@ -132,7 +135,10 @@ const Header = () => {
             {/* Account Icon */}
             <button
               className="p-1 rounded-full text-gray-500 hover:text-green-700 focus:outline-none"
-              onClick={() => navigate('/account')}
+              onClick={() => navigate('/account', { 
+              state: { from: location.pathname },
+              replace: false
+              })}
               aria-label="Account"
             >
               <UserIcon className="h-6 w-6" />
