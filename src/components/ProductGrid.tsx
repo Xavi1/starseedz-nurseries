@@ -1,13 +1,61 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ProductCard } from './ProductCard';
 import { FilterIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { allProducts } from '../data/products';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebase';
+
+// Match the Product interface with what ProductCard expects
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  image: string;
+  category: string[];
+  rating: number;
+  description?: string;
+  stock?: number;
+}
 
 export function ProductGrid() {
   const [activeFilter, setActiveFilter] = useState<string>('all');
-  // Use centralized product data
-  const products = allProducts;
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const productsCollection = collection(db, 'products');
+        const snapshot = await getDocs(productsCollection);
+        
+        const productsData = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            // Convert string ID to number if needed
+            id: Number(doc.id) || Date.now(), // Fallback to timestamp if conversion fails
+            name: data.name || '',
+            price: data.price || 0,
+            image: data.image || '',
+            category: Array.isArray(data.category) ? data.category : [],
+            rating: data.rating || 0,
+            description: data.description,
+            stock: data.stock
+          } as Product;
+        });
+
+        setProducts(productsData);
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to load products. Please try again later.');
+        setLoading(false);
+        console.error('Error fetching products:', err);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
   // Support multiple categories per product
   const filteredProducts = activeFilter === 'all'
     ? products
@@ -16,6 +64,7 @@ export function ProductGrid() {
           ? product.category.includes(activeFilter)
           : product.category === activeFilter
       );
+
   // Flatten all categories for filter buttons
   const allCategories = Array.from(
     products.reduce((set, product) => {
@@ -26,8 +75,30 @@ export function ProductGrid() {
       }
       return set;
     }, new Set<string>())
-  );
+  ).sort();
+
   const categories = ['all', ...allCategories];
+
+  if (loading) {
+    return (
+      <section className="py-6 sm:py-12">
+        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 text-center">
+          <p>Loading products...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="py-6 sm:py-12">
+        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 text-center">
+          <p className="text-red-500">{error}</p>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="py-6 sm:py-12">
       <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
