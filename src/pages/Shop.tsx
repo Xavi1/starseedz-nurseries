@@ -6,6 +6,9 @@ import { Pagination } from '../components/Pagination';
 import { SortDropdown } from '../components/SortDropdown';
 import { ChevronRightIcon, HomeIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebase';
+
 export const Shop = () => {
   const location = useLocation();
   // Get category from query string
@@ -16,129 +19,76 @@ export const Shop = () => {
   const [activePriceRange, setActivePriceRange] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [sortOption, setSortOption] = useState('featured');
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const productGridRef = useRef<HTMLDivElement>(null);
-  // Sample product data - expanded from the existing ProductGrid component
-  // Change Product type for this file only (override or locally define)
-  type ShopProduct = Omit<Product, 'category'> & {
-    category: string[];
-  };
 
-  const allProducts: ShopProduct[] = [
-    // Homepage featured products
-    {
-      id: 101,
-      name: 'Super Delhi Tomato Plants',
-      price: 80.0,
-      image: '/img/tomato.webp',
-      category: ['Vegetables', 'Leafy Crops'],
-      rating: 5,
-      isBestSeller: true,
-    },
-    {
-      id: 102,
-      name: 'Chive',
-      price: 60.0,
-      image: '/img/chives.webp',
-      category: ['Herbs'],
-      rating: 4,
-    },
-    {
-      id: 103,
-      name: 'Fine Thyme',
-      price: 60.0,
-      image: '/img/thyme.webp',
-      category: ['Herbs'],
-      rating: 4,
-    },
-    {
-      id: 104,
-      name: 'Pimento',
-      price: 60.0,
-      image: '/img/pimento.webp',
-      category: ['Peppers'],
-      rating: 5,
-    },
-    {
-      id: 105,
-      name: 'Chilli pepper',
-      price: 60.0,
-      image: '/img/chilli.webp',
-      category: ['Peppers'],
-      rating: 4,
-      isNew: true,
-    },
-    {
-      id: 106,
-      name: 'Kale',
-      price: 50.0,
-      image: '/img/kale.webp',
-      category: ['Vegetables', 'Leafy Crops'],
-      rating: 5,
-      isBestSeller: true,
-    },
-    {
-      id: 1,
-      name: 'Monstera Deliciosa',
-      price: 39.99,
-      image:
-        'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-      category: ['Vegetables'],
-      rating: 4,
-    },
-    {
-      id: 6,
-      name: 'Rosemary Herb',
-      price: 29.99,
-      image:
-        'https://images.unsplash.com/photo-1515586000433-45406d8e6662?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-      category: ['Herbs'],
-      rating: 3,
-    },
-    {
-      id: 15,
-      name: 'Basil Herb Plant',
-      price: 30.00,
-      image:
-        '/img/basil.webp',
-      category: ['Herbs'],
-      rating: 4,
-    },
-    {
-      id: 16,
-      name: 'Mint Herb Plant',
-      price: 29.99,
-      image:
-        'https://images.unsplash.com/photo-1628556270448-4d4e4148e1b1?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-      category: ['Herbs'],
-      rating: 3,
-    },
-  ];
+  // Fetch products from Firebase
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const productsCollection = collection(db, 'products');
+        const snapshot = await getDocs(productsCollection);
+        
+        const productsData = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: Number(doc.id) || Date.now(),
+            name: data.name || '',
+            price: data.price || 0,
+            image: data.image || '',
+            category: Array.isArray(data.category) ? data.category : [],
+            rating: data.rating || 0,
+            description: data.description,
+            stock: data.stock,
+            isBestSeller: data.isBestSeller || false,
+            isNew: data.isNew || false
+          } as Product;
+        });
+
+        setAllProducts(productsData);
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to load products. Please try again later.');
+        setLoading(false);
+        console.error('Error fetching products:', err);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  // Get unique categories from products
+  const shopCategories = Array.from(
+    allProducts.reduce((set, product) => {
+      if (Array.isArray(product.category)) {
+        product.category.forEach(cat => set.add(cat));
+      } else {
+        set.add(product.category);
+      }
+      return set;
+    }, new Set<string>())
+  ).sort();
+
   // Filter by category
-  const shopCategories = [
-    'Peppers',
-    'Leafy Crops',
-    'Herbs',
-    'Curcubits',
-    'Beans',
-    'Fruits',
-  ];
   const categoryFilteredProducts =
     activeCategory === 'all'
       ? allProducts
       : allProducts.filter(product => product.category.includes(activeCategory));
+
   // Apply search filter
   const searchFilteredProducts = searchQuery
     ? categoryFilteredProducts.filter(product => {
         const name = product.name.toLowerCase();
-        // Check if search term is in name or name is in search term
         const nameMatch = name.includes(searchQuery) || searchQuery.includes(name);
-        // Check if search term matches any category
         const categoryMatch = product.category.some(cat =>
           cat.toLowerCase().includes(searchQuery) || searchQuery.includes(cat.toLowerCase())
         );
         return nameMatch || categoryMatch;
       })
     : categoryFilteredProducts;
+
   // Filter by price
   const priceRanges = {
     all: [0, 1000],
@@ -146,6 +96,7 @@ export const Shop = () => {
     '30-50': [30, 49.99],
     'over-50': [50, 1000],
   };
+
   const priceFilteredProducts =
     activePriceRange === 'all'
       ? searchFilteredProducts
@@ -156,6 +107,7 @@ export const Shop = () => {
             product.price <=
               priceRanges[activePriceRange as keyof typeof priceRanges][1]
         );
+
   // Sort products
   const sortProducts = (products: Product[], option: string) => {
     switch (option) {
@@ -171,16 +123,18 @@ export const Shop = () => {
         return [...products].sort((a, b) => b.rating - a.rating);
       default:
         return products;
-      // featured or default
     }
   };
+
   const sortedProducts = sortProducts(priceFilteredProducts, sortOption);
+
   // Pagination
   const productsPerPage = 8;
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
   const currentProducts = sortedProducts.slice(indexOfFirstProduct, indexOfLastProduct);
   const totalPages = Math.ceil(sortedProducts.length / productsPerPage);
+
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber);
     window.scrollTo({
@@ -188,16 +142,36 @@ export const Shop = () => {
       behavior: 'smooth',
     });
   };
+
   useEffect(() => {
-    // Update filter if URL changes (e.g., user clicks a category from homepage)
     setActiveCategory(params.get('category') || 'all');
-    setCurrentPage(1); // Reset to first page when category changes from URL
+    setCurrentPage(1);
   }, [location.search]);
 
-  // Reset to first page when category or price filter changes from sidebar/buttons
   useEffect(() => {
     setCurrentPage(1);
   }, [activeCategory, activePriceRange, searchQuery]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <p>Loading products...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center text-red-500">
+          <p>{error}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white">
       <main>
@@ -277,7 +251,7 @@ export const Shop = () => {
                             ? 'Under $10'
                             : activePriceRange === 'over-50'
                             ? 'Over $50'
-                            : `${
+                            : `$${
                                 priceRanges[activePriceRange as keyof typeof priceRanges][0]
                               } - $${priceRanges[activePriceRange as keyof typeof priceRanges][1]}`}
                         </span>
