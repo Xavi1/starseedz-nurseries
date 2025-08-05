@@ -53,7 +53,7 @@ interface DetailedProduct {
 }
 
 // Development-only error boundary component
-const DevErrorBoundary: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const DevErrorBoundary: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   if (process.env.NODE_ENV === 'production') {
     return <>{children}</>;
   }
