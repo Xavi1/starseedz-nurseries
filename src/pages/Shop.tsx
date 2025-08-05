@@ -61,15 +61,14 @@ export const Shop = () => {
 
   // Get unique categories from products
   const shopCategories = Array.from(
-    allProducts.reduce((set, product) => {
-      if (Array.isArray(product.category)) {
-        product.category.forEach(cat => set.add(cat));
-      } else {
-        set.add(product.category);
-      }
-      return set;
-    }, new Set<string>())
-  ).sort();
+  allProducts.reduce((set, product) => {
+    const categories = Array.isArray(product.category) 
+      ? product.category 
+      : [product.category];
+    categories.forEach(cat => set.add(cat));
+    return set;
+  }, new Set<string>())
+).sort();
 
   // Filter by category
   const categoryFilteredProducts =
@@ -79,15 +78,22 @@ export const Shop = () => {
 
   // Apply search filter
   const searchFilteredProducts = searchQuery
-    ? categoryFilteredProducts.filter(product => {
-        const name = product.name.toLowerCase();
-        const nameMatch = name.includes(searchQuery) || searchQuery.includes(name);
-        const categoryMatch = product.category.some(cat =>
-          cat.toLowerCase().includes(searchQuery) || searchQuery.includes(cat.toLowerCase())
-        );
-        return nameMatch || categoryMatch;
-      })
-    : categoryFilteredProducts;
+  ? categoryFilteredProducts.filter(product => {
+      const name = product.name.toLowerCase();
+      const nameMatch = name.includes(searchQuery) || searchQuery.includes(name);
+      
+      // Ensure category is treated as array
+      const categories = Array.isArray(product.category) 
+        ? product.category 
+        : [product.category];
+      
+      const categoryMatch = categories.some(cat =>
+        cat.toLowerCase().includes(searchQuery) || 
+        searchQuery.includes(cat.toLowerCase())
+      );
+      return nameMatch || categoryMatch;
+    })
+  : categoryFilteredProducts;
 
   // Filter by price
   const priceRanges = {
