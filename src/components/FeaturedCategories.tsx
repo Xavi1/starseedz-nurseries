@@ -1,25 +1,82 @@
 import { Link } from 'react-router-dom';
-import { allProducts } from '../data/products';
+import { useState, useEffect } from 'react';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebase';
+
+interface Category {
+  name: string;
+  image: string;
+  description: string;
+}
 
 const FeaturedCategories: React.FC = () => {
-  // Dynamically generate unique categories from allProducts
-  const categoryMap: Record<string, { image: string; description?: string }> = {};
-  allProducts.forEach(product => {
-    product.category.forEach(cat => {
-      if (!categoryMap[cat]) {
-        categoryMap[cat] = {
-          image: product.image,
-          description: undefined // Optionally, you can add a description field to products and use it here
-        };
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const productsCollection = collection(db, 'products');
+        const snapshot = await getDocs(productsCollection);
+        
+        const categoryMap: Record<string, { image: string; description?: string }> = {};
+        
+        snapshot.forEach(doc => {
+          const product = doc.data();
+          // Handle category as array of strings
+          if (Array.isArray(product.category)) {
+            product.category.forEach((cat: string) => {
+              if (!categoryMap[cat]) {
+                categoryMap[cat] = {
+                  image: product.image,
+                  description: product.description || undefined
+                };
+              }
+            });
+          }
+        });
+
+        const formattedCategories = Object.entries(categoryMap).map(([name, { image, description }]) => ({
+          name,
+          image,
+          description: description || `Shop our selection of ${name.toLowerCase()}.`
+        }));
+
+        setCategories(formattedCategories);
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to load categories. Please try again later.');
+        setLoading(false);
+        console.error('Error fetching categories:', err);
       }
-    });
-  });
-  const categories = Object.entries(categoryMap).map(([name, { image, description }]) => ({
-    name,
-    image,
-    description: description || `Shop our selection of ${name.toLowerCase()}.`
-  }));
-  return <section className="py-12 bg-gray-50">
+    };
+
+    fetchCategories();
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="py-12 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p>Loading categories...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="py-12 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-red-500">{error}</p>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="py-12 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
@@ -33,7 +90,10 @@ const FeaturedCategories: React.FC = () => {
           {categories.map(category => (
             <div key={category.name} className="group relative">
               <div className="relative w-full h-80 bg-white rounded-lg overflow-hidden shadow-md">
-                <Link to={`/shop?category=${encodeURIComponent(category.name)}`} className="block w-full h-full">
+                <Link 
+                  to={`/shop?category=${encodeURIComponent(category.name)}`} 
+                  className="block w-full h-full"
+                >
                   <img 
                     src={category.image} 
                     alt={category.name} 
@@ -48,7 +108,10 @@ const FeaturedCategories: React.FC = () => {
                 <p className="mt-1 text-sm text-gray-500">
                   {category.description}
                 </p>
-                <Link to={`/shop?category=${encodeURIComponent(category.name)}`} className="mt-2 inline-block text-green-700 hover:text-green-800 text-sm font-medium">
+                <Link 
+                  to={`/shop?category=${encodeURIComponent(category.name)}`} 
+                  className="mt-2 inline-block text-green-700 hover:text-green-800 text-sm font-medium"
+                >
                   Shop Now →
                 </Link>
               </div>
@@ -56,7 +119,8 @@ const FeaturedCategories: React.FC = () => {
           ))}
         </div>
       </div>
-    </section>;
+    </section>
+  );
 };
 
 export default FeaturedCategories;
