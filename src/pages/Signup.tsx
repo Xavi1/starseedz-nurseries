@@ -281,16 +281,15 @@ export const SignUp = () => {
                 <div>
                   <a href="#" className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
                     <span className="sr-only">Sign up with Google</span>
-                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                      <path fillRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 5.523 4.477 10 10 10 5.523 0 10-4.477 10-10 0-5.523-4.477-10-10-10zm-.22 14.39l-3.75-3.75 1.06-1.06 2.69 2.69 5.69-5.69 1.06 1.06-6.75 6.75z" clipRule="evenodd" />
-                    </svg>
+                      
+  <svg viewBox="0 0 150 150" width="24" height="24"><path fill="#4285F4" d="M120 76.1c0-3.1-.3-6.3-.8-9.3H75.9v17.7h24.8c-1 5.7-4.3 10.7-9.2 13.9l14.8 11.5C115 101.8 120 90 120 76.1z"/><path fill="#34A853" d="M75.9 120.9c12.4 0 22.8-4.1 30.4-11.1L91.5 98.4c-4.1 2.8-9.4 4.4-15.6 4.4-12 0-22.1-8.1-25.8-18.9L34.9 95.6C42.7 111.1 58.5 120.9 75.9 120.9z"/><path fill="#FBBC05" d="M50.1 83.8c-1.9-5.7-1.9-11.9 0-17.6L34.9 54.4c-6.5 13-6.5 28.3 0 41.2L50.1 83.8z"/><path fill="#EA4335" d="M75.9 47.3c6.5-.1 12.9 2.4 17.6 6.9L106.6 41C98.3 33.2 87.3 29 75.9 29.1c-17.4 0-33.2 9.8-41 25.3l15.2 11.8C53.8 55.3 63.9 47.3 75.9 47.3z"/></svg>
                     <span className="ml-2">Google</span>
                   </a>
                 </div>
                 <div>
                   <a href="#" className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
                     <span className="sr-only">Sign up with Facebook</span>
-                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-5 w-5" fill="#4267B2" viewBox="0 0 24 24">
                       <path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd" />
                     </svg>
                     <span className="ml-2">Facebook</span>
