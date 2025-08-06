@@ -225,7 +225,7 @@ export const SignUp = () => {
                         Terms of Service
                       </Link>{' '}
                       and{' '}
-                      <Link to="/privacy" className="text-green-700 hover:text-green-800">
+                      <Link to="/privacy-policy" className="text-green-700 hover:text-green-800">
                         Privacy Policy
                       </Link>
                     </label>
