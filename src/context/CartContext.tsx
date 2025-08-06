@@ -1,19 +1,22 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../firebase';
+import { doc, setDoc, getDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { auth, db } from '../firebase';
 import { Product } from '../components/ProductCard';
 
-export interface CartItem {
+interface CartItem {
   product: Product;
   quantity: number;
+  addedAt?: Date;
 }
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (product: Product, quantity: number) => void;
-  removeFromCart: (productId: number) => void;
-  clearCart: () => void;
+  addToCart: (product: Product, quantity: number) => Promise<void>;
+  removeFromCart: (productId: number) => Promise<void>;
+  clearCart: () => Promise<void>;
   cartCount: number;
+  isSyncing: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -27,140 +30,208 @@ export const useCart = () => {
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [hasTransferred, setHasTransferred] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [isOnline, setIsOnline] = useState(typeof window !== 'undefined' ? navigator.onLine : true);
 
-  // Listen for auth state changes
+  // Track online status
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user && !hasTransferred) {
-        // User logged in - transfer anonymous cart to user cart
-        transferAnonymousCartToUser(user.uid);
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Get storage key based on auth state
+  const getStorageKey = useCallback(() => {
+    return currentUserId ? `cart_${currentUserId}` : 'cart_anonymous';
+  }, [currentUserId]);
+
+  // Save cart to both localStorage and Firestore
+  const persistCart = useCallback(async (cartData: CartItem[]) => {
+    const storageKey = getStorageKey();
+    
+    try {
+      // Always save to localStorage first for instant UI updates
+      localStorage.setItem(storageKey, JSON.stringify(cartData));
+      
+      // Sync to Firestore if authenticated and online
+      if (isOnline && currentUserId) {
+        setIsSyncing(true);
+        const userCartRef = doc(db, 'users', currentUserId, 'cart', 'active');
+        await setDoc(userCartRef, {
+          items: cartData,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      }
+    } catch (error) {
+      console.error('Failed to persist cart:', error);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [currentUserId, isOnline, getStorageKey]);
+
+  // Load cart with Firestore fallback
+  const loadCart = useCallback(async () => {
+    const storageKey = getStorageKey();
+    
+    try {
+      let loadedCart: CartItem[] = [];
+      
+      // 1. Try Firestore first (if authenticated and online)
+      if (isOnline && currentUserId) {
+        const userCartRef = doc(db, 'users', currentUserId, 'cart', 'active');
+        const docSnap = await getDoc(userCartRef);
+        
+        if (docSnap.exists()) {
+          loadedCart = docSnap.data().items || [];
+        }
+      }
+      
+      // 2. Fall back to localStorage if Firestore empty or offline
+      if (loadedCart.length === 0) {
+        const stored = localStorage.getItem(storageKey);
+        loadedCart = stored ? JSON.parse(stored) : [];
+      }
+      
+      setCart(loadedCart);
+    } catch (error) {
+      console.error('Failed to load cart:', error);
+      const stored = localStorage.getItem(storageKey);
+      setCart(stored ? JSON.parse(stored) : []);
+    }
+  }, [currentUserId, isOnline, getStorageKey]);
+
+  // Real-time Firestore sync for logged-in users
+  useEffect(() => {
+    if (!isOnline || !currentUserId) return;
+    
+    const userCartRef = doc(db, 'users', currentUserId, 'cart', 'active');
+    const unsubscribe = onSnapshot(userCartRef, (doc) => {
+      if (doc.exists()) {
+        const firestoreCart = doc.data().items || [];
+        setCart(firestoreCart);
+        localStorage.setItem(getStorageKey(), JSON.stringify(firestoreCart));
+      }
+    });
+    
+    return () => unsubscribe();
+  }, [currentUserId, isOnline, getStorageKey]);
+
+  // Handle auth state changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // User logged in - merge anonymous cart if exists
+        const anonymousKey = 'cart_anonymous';
+        const userKey = `cart_${user.uid}`;
+        
+        const anonymousCart = localStorage.getItem(anonymousKey);
+        const userCart = localStorage.getItem(userKey);
+        
+        let mergedCart: CartItem[] = [];
+        
+        if (anonymousCart) {
+          mergedCart = JSON.parse(anonymousCart);
+          localStorage.removeItem(anonymousKey);
+        }
+        
+        if (userCart) {
+          const existingUserCart: CartItem[] = JSON.parse(userCart);
+          mergedCart = mergeCarts(existingUserCart, mergedCart);
+        }
+        
+        localStorage.setItem(userKey, JSON.stringify(mergedCart));
         setCurrentUserId(user.uid);
-        setHasTransferred(true);
-      } else if (user) {
-        // User already logged in, just load their cart
-        setCurrentUserId(user.uid);
-        loadUserCart(user.uid);
+        await persistCart(mergedCart);
       } else {
         // User logged out
         setCurrentUserId(null);
-        setHasTransferred(false);
-        loadUserCart('anonymous');
+        loadCart();
       }
     });
-
+    
     return () => unsubscribe();
-  }, [hasTransferred]);
+  }, [persistCart, loadCart]);
 
-  const loadUserCart = (userId: string) => {
-    try {
-      const stored = localStorage.getItem(`cart_${userId}`);
-      if (stored) {
-        setCart(JSON.parse(stored));
+  // Initial load
+  useEffect(() => {
+    loadCart();
+  }, [loadCart]);
+
+  // Helper to merge carts while combining quantities
+  const mergeCarts = (primary: CartItem[], secondary: CartItem[]): CartItem[] => {
+    const merged = [...primary];
+    
+    secondary.forEach(item => {
+      const existingIndex = merged.findIndex(
+        i => i.product.id === item.product.id
+      );
+      
+      if (existingIndex >= 0) {
+        merged[existingIndex].quantity += item.quantity;
       } else {
-        setCart([]);
+        merged.push(item);
       }
-    } catch {
-      setCart([]);
-    }
+    });
+    
+    return merged;
   };
 
-  const transferAnonymousCartToUser = (userId: string) => {
-    try {
-      // Get anonymous cart
-      const anonymousCart = localStorage.getItem('cart_anonymous');
-      const userCart = localStorage.getItem(`cart_${userId}`);
-      
-      let finalCart: CartItem[] = [];
-      
-      if (anonymousCart) {
-        const anonymousItems: CartItem[] = JSON.parse(anonymousCart);
-        
-        if (userCart) {
-          // Merge with existing user cart
-          const userItems: CartItem[] = JSON.parse(userCart);
-          const mergedCart = [...userItems];
-          
-          // Add anonymous items, combining quantities if product already exists
-          anonymousItems.forEach(anonymousItem => {
-            const existingIndex = mergedCart.findIndex(
-              item => item.product.id === anonymousItem.product.id
-            );
-            
-            if (existingIndex >= 0) {
-              mergedCart[existingIndex].quantity += anonymousItem.quantity;
-            } else {
-              mergedCart.push(anonymousItem);
-            }
-          });
-          
-          finalCart = mergedCart;
-        } else {
-          // No existing user cart, use anonymous cart
-          finalCart = anonymousItems;
-        }
-        
-        // Clear anonymous cart
-        localStorage.removeItem('cart_anonymous');
-      } else if (userCart) {
-        // No anonymous cart, use existing user cart
-        finalCart = JSON.parse(userCart);
-      }
-      
-      // Save and set the final cart
-      localStorage.setItem(`cart_${userId}`, JSON.stringify(finalCart));
-      setCart(finalCart);
-    } catch {
-      // If anything fails, just load the user's existing cart
-      loadUserCart(userId);
-    }
-  };
-
-  const saveCart = (cartData: CartItem[]) => {
-    try {
-      const key = currentUserId ? `cart_${currentUserId}` : 'cart_anonymous';
-      localStorage.setItem(key, JSON.stringify(cartData));
-    } catch {}
-  };
-
-  // Save cart whenever it changes
-  useEffect(() => {
-    saveCart(cart);
-  }, [cart, currentUserId]);
-
-  // Initial load for anonymous users
-  useEffect(() => {
-    if (currentUserId === null) {
-      loadUserCart('anonymous');
-    }
-  }, []);
-
-  const addToCart = (product: Product, quantity: number) => {
+  const addToCart = async (product: Product, quantity = 1) => {
     setCart(prev => {
-      const existing = prev.find(item => item.product.id === product.id);
-      if (existing) {
-        return prev.map(item =>
-          item.product.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
+      const existingIndex = prev.findIndex(item => item.product.id === product.id);
+      let newCart: CartItem[];
+      
+      if (existingIndex >= 0) {
+        newCart = [...prev];
+        newCart[existingIndex] = {
+          ...newCart[existingIndex],
+          quantity: newCart[existingIndex].quantity + quantity
+        };
+      } else {
+        newCart = [
+          ...prev,
+          { product, quantity, addedAt: new Date() }
+        ];
       }
-      return [...prev, { product, quantity }];
+      
+      persistCart(newCart);
+      return newCart;
     });
   };
 
-  const removeFromCart = (productId: number) => {
-    setCart(prev => prev.filter(item => item.product.id !== productId));
+  const removeFromCart = async (productId: number) => {
+    setCart(prev => {
+      const newCart = prev.filter(item => item.product.id !== productId);
+      persistCart(newCart);
+      return newCart;
+    });
   };
 
-  const clearCart = () => {
+  const clearCart = async () => {
     setCart([]);
+    await persistCart([]);
   };
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, clearCart, cartCount }}>
+    <CartContext.Provider 
+      value={{ 
+        cart, 
+        addToCart, 
+        removeFromCart, 
+        clearCart, 
+        cartCount,
+        isSyncing 
+      }}
+    >
       {children}
     </CartContext.Provider>
   );
