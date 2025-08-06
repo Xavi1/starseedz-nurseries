@@ -221,7 +221,7 @@ export const SignUp = () => {
                   <div className="ml-3 text-sm">
                     <label htmlFor="agreeToTerms" className="font-medium text-gray-700">
                       I agree to the{' '}
-                      <Link to="/terms" className="text-green-700 hover:text-green-800">
+                      <Link to="/terms-of-service" className="text-green-700 hover:text-green-800">
                         Terms of Service
                       </Link>{' '}
                       and{' '}
