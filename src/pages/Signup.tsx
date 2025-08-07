@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { EyeIcon, EyeOffIcon, CheckIcon, XIcon } from 'lucide-react';
+import { db } from '../firebase';
+import { collection, setDoc, doc } from 'firebase/firestore';
+import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 export const SignUp = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -95,23 +98,39 @@ export const SignUp = () => {
       return;
     }
     setIsSubmitting(true);
+    setErrors({});
     try {
-      // In a real app, this would be an API call to create a user account
-      // For this mock implementation, we'll simulate a successful signup
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      // Store user data in localStorage (for demo purposes only - not secure)
-      localStorage.setItem('user', JSON.stringify({
+      const auth = getAuth();
+      // Create user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+      const user = userCredential.user;
+      // Optionally update display name
+      await updateProfile(user, {
+        displayName: `${formData.firstName} ${formData.lastName}`
+      });
+      // Store user profile in Firestore
+      await setDoc(doc(collection(db, 'users'), user.uid), {
+        uid: user.uid,
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
-        phone: formData.phone
-      }));
-      // Redirect to account page or login
+        phone: formData.phone,
+        createdAt: new Date().toISOString(),
+        receiveEmails: formData.receiveEmails
+      });
+      // Redirect to account page
       navigate('/account');
-    } catch (error) {
-      console.error('Signup error:', error);
+    } catch (error: any) {
+      let errorMsg = 'There was an error creating your account. Please try again.';
+      if (error.code === 'auth/email-already-in-use') {
+        errorMsg = 'This email is already in use.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMsg = 'Invalid email address.';
+      } else if (error.code === 'auth/weak-password') {
+        errorMsg = 'Password is too weak.';
+      }
       setErrors({
-        form: 'There was an error creating your account. Please try again.'
+        form: errorMsg
       });
     } finally {
       setIsSubmitting(false);
