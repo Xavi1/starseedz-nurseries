@@ -4,7 +4,8 @@ import { EyeIcon, EyeOffIcon, CheckIcon, XIcon } from 'lucide-react';
 import { db } from '../firebase';
 import { collection, setDoc, doc } from 'firebase/firestore';
 import { getAuth, createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-  // Google signup handler
+export const SignUp = () => {
+  // Google signup handler (now inside component for access to hooks)
   const handleGoogleSignup = async () => {
     setIsSubmitting(true);
     setErrors({});
@@ -24,17 +25,19 @@ import { getAuth, createUserWithEmailAndPassword, updateProfile, GoogleAuthProvi
         receiveEmails: true
       }, { merge: true });
       navigate('/account');
-    } catch (error: any) {
+    } catch (error) {
       let errorMsg = 'Google signup failed. Please try again.';
-      if (error.code === 'auth/popup-closed-by-user') {
-        errorMsg = 'Google sign-in was cancelled.';
+      if (typeof error === 'object' && error && 'code' in error) {
+        // @ts-ignore
+        if (error.code === 'auth/popup-closed-by-user') {
+          errorMsg = 'Google sign-in was cancelled.';
+        }
       }
       setErrors({ form: errorMsg });
     } finally {
       setIsSubmitting(false);
     }
   };
-export const SignUp = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: '',
