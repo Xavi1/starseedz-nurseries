@@ -3,7 +3,37 @@ import { Link, useNavigate } from 'react-router-dom';
 import { EyeIcon, EyeOffIcon, CheckIcon, XIcon } from 'lucide-react';
 import { db } from '../firebase';
 import { collection, setDoc, doc } from 'firebase/firestore';
-import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+  // Google signup handler
+  const handleGoogleSignup = async () => {
+    setIsSubmitting(true);
+    setErrors({});
+    try {
+      const auth = getAuth();
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      // Check if user doc exists, if not, create it
+      await setDoc(doc(collection(db, 'users'), user.uid), {
+        uid: user.uid,
+        firstName: user.displayName?.split(' ')[0] || '',
+        lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
+        email: user.email,
+        phone: user.phoneNumber || '',
+        createdAt: new Date().toISOString(),
+        receiveEmails: true
+      }, { merge: true });
+      navigate('/account');
+    } catch (error: any) {
+      let errorMsg = 'Google signup failed. Please try again.';
+      if (error.code === 'auth/popup-closed-by-user') {
+        errorMsg = 'Google sign-in was cancelled.';
+      }
+      setErrors({ form: errorMsg });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 export const SignUp = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -298,12 +328,16 @@ export const SignUp = () => {
               </div>
               <div className="mt-6 grid grid-cols-2 gap-3">
                 <div>
-                  <a href="#" className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                  <button
+                    type="button"
+                    onClick={handleGoogleSignup}
+                    disabled={isSubmitting}
+                    className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  >
                     <span className="sr-only">Sign up with Google</span>
-                      
-              <svg className="h-5 w-5" viewBox="0 0 150 150" width="24" height="24"><path fill="#4285F4" d="M120 76.1c0-3.1-.3-6.3-.8-9.3H75.9v17.7h24.8c-1 5.7-4.3 10.7-9.2 13.9l14.8 11.5C115 101.8 120 90 120 76.1z"/><path fill="#34A853" d="M75.9 120.9c12.4 0 22.8-4.1 30.4-11.1L91.5 98.4c-4.1 2.8-9.4 4.4-15.6 4.4-12 0-22.1-8.1-25.8-18.9L34.9 95.6C42.7 111.1 58.5 120.9 75.9 120.9z"/><path fill="#FBBC05" d="M50.1 83.8c-1.9-5.7-1.9-11.9 0-17.6L34.9 54.4c-6.5 13-6.5 28.3 0 41.2L50.1 83.8z"/><path fill="#EA4335" d="M75.9 47.3c6.5-.1 12.9 2.4 17.6 6.9L106.6 41C98.3 33.2 87.3 29 75.9 29.1c-17.4 0-33.2 9.8-41 25.3l15.2 11.8C53.8 55.3 63.9 47.3 75.9 47.3z"/></svg>
+                    <svg className="h-5 w-5" viewBox="0 0 150 150" width="24" height="24"><path fill="#4285F4" d="M120 76.1c0-3.1-.3-6.3-.8-9.3H75.9v17.7h24.8c-1 5.7-4.3 10.7-9.2 13.9l14.8 11.5C115 101.8 120 90 120 76.1z"/><path fill="#34A853" d="M75.9 120.9c12.4 0 22.8-4.1 30.4-11.1L91.5 98.4c-4.1 2.8-9.4 4.4-15.6 4.4-12 0-22.1-8.1-25.8-18.9L34.9 95.6C42.7 111.1 58.5 120.9 75.9 120.9z"/><path fill="#FBBC05" d="M50.1 83.8c-1.9-5.7-1.9-11.9 0-17.6L34.9 54.4c-6.5 13-6.5 28.3 0 41.2L50.1 83.8z"/><path fill="#EA4335" d="M75.9 47.3c6.5-.1 12.9 2.4 17.6 6.9L106.6 41C98.3 33.2 87.3 29 75.9 29.1c-17.4 0-33.2 9.8-41 25.3l15.2 11.8C53.8 55.3 63.9 47.3 75.9 47.3z"/></svg>
                     <span className="ml-2">Google</span>
-                  </a>
+                  </button>
                 </div>
                 <div>
                   <a href="#" className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
