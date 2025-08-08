@@ -60,7 +60,7 @@ const mockOrders = [{
     price: 29.99
   }]
 }];
-// Mock address data
+// Mock address data (Trinidad and Tobago format)
 const mockAddresses = [{
   id: 1,
   name: 'Home',
@@ -69,11 +69,9 @@ const mockAddresses = [{
   lastName: 'Doe',
   address: '123 Green Street',
   apartment: 'Apt 4B',
-  city: 'Portland',
-  state: 'OR',
-  zipCode: '97201',
-  country: 'United States',
-  phone: '(555) 123-4567'
+  city: 'Port of Spain',
+  administrativeUnit: 'Port of Spain',
+  phone: '(868) 123-4567'
 }, {
   id: 2,
   name: 'Work',
@@ -82,11 +80,9 @@ const mockAddresses = [{
   lastName: 'Doe',
   address: '456 Office Avenue',
   apartment: 'Suite 300',
-  city: 'Portland',
-  state: 'OR',
-  zipCode: '97204',
-  country: 'United States',
-  phone: '(555) 987-6543'
+  city: 'San Fernando',
+  administrativeUnit: 'San Fernando',
+  phone: '(868) 987-6543'
 }];
 // Mock payment methods
 const mockPaymentMethods = [{
@@ -526,6 +522,12 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
 
   // Address modal state
   const [showAddressModal, setShowAddressModal] = useState(false);
+  // Trinidad and Tobago administrative units
+  const ttAdministrativeUnits = [
+    'Arima', 'Chaguanas', 'Couva–Tabaquite–Talparo', 'Diego Martin', 'Eastern Tobago',
+    'Penal–Debe', 'Point Fortin', 'Port of Spain', 'Princes Town', 'San Fernando',
+    'San Juan–Laventille', 'Sangre Grande', 'Siparia', 'Tunapuna–Piarco', 'Western Tobago'
+  ];
   const [addressForm, setAddressForm] = useState({
     id: 0,
     name: '',
@@ -535,9 +537,7 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
     address: '',
     apartment: '',
     city: '',
-    state: '',
-    zipCode: '',
-    country: 'United States',
+    administrativeUnit: '',
     phone: '(555) 123-4567'
   });
   const [addresses, setAddresses] = useState(mockAddresses);
@@ -1072,9 +1072,7 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
                           address: '',
                           apartment: '',
                           city: '',
-                          state: '',
-                          zipCode: '',
-                          country: 'United States',
+                          administrativeUnit: '',
                           phone: userData.phone
                         });
                         setShowAddressModal(true);
@@ -1100,8 +1098,7 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
                           <p>{address.firstName} {address.lastName}</p>
                           <p>{address.address}</p>
                           {address.apartment && <p>{address.apartment}</p>}
-                          <p>{address.city}, {address.state} {address.zipCode}</p>
-                          <p>{address.country}</p>
+                          <p>{address.city}{address.administrativeUnit ? `, ${address.administrativeUnit}` : ''}</p>
                           <p className="pt-1">{address.phone}</p>
                         </div>
                         <div className="mt-4 flex space-x-4">
@@ -1585,7 +1582,7 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
               </div>
               <div>
                 <label htmlFor="city" className="block text-sm font-medium text-gray-700">
-                  City
+                  City/Town
                 </label>
                 <input
                   type="text"
@@ -1598,48 +1595,21 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
                 />
               </div>
               <div>
-                <label htmlFor="state" className="block text-sm font-medium text-gray-700">
-                  State
-                </label>
-                <input
-                  type="text"
-                  id="state"
-                  name="state"
-                  value={addressForm.state}
-                  onChange={(e) => setAddressForm({...addressForm, state: e.target.value})}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700">
-                  ZIP code
-                </label>
-                <input
-                  type="text"
-                  id="zipCode"
-                  name="zipCode"
-                  value={addressForm.zipCode}
-                  onChange={(e) => setAddressForm({...addressForm, zipCode: e.target.value})}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="country" className="block text-sm font-medium text-gray-700">
-                  Country
+                <label htmlFor="administrativeUnit" className="block text-sm font-medium text-gray-700">
+                  Administrative Unit
                 </label>
                 <select
-                  id="country"
-                  name="country"
-                  value={addressForm.country}
-                  onChange={(e) => setAddressForm({...addressForm, country: e.target.value})}
+                  id="administrativeUnit"
+                  name="administrativeUnit"
+                  value={addressForm.administrativeUnit}
+                  onChange={(e) => setAddressForm({...addressForm, administrativeUnit: e.target.value})}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                   required
                 >
-                  <option>United States</option>
-                  <option>Canada</option>
-                  <option>United Kingdom</option>
+                  <option value="">Select...</option>
+                  {ttAdministrativeUnits.map(unit => (
+                    <option key={unit} value={unit}>{unit}</option>
+                  ))}
                 </select>
               </div>
               <div>
