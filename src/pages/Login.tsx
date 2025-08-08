@@ -4,7 +4,7 @@ import { DevErrorBoundary } from './ProductDetail';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth, db } from '../firebase';
-import { doc, setDoc, collection } from 'firebase/firestore';
+import { doc, setDoc, getDoc, collection } from 'firebase/firestore';
 import { FcGoogle } from 'react-icons/fc';
 
 const Login: React.FC = () => {
@@ -15,7 +15,8 @@ const Login: React.FC = () => {
   const [fadeOut, setFadeOut] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from || '/'; 
+  const from = location.state?.from || '/';
+   
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,8 +54,12 @@ const Login: React.FC = () => {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-      // Optionally create user doc in Firestore if not exists
-      await setDoc(doc(collection(db, 'users'), user.uid), {
+
+      const userRef = doc(collection(db, 'users'), user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+      await setDoc(userRef, {
         uid: user.uid,
         firstName: user.displayName?.split(' ')[0] || '',
         lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
@@ -62,7 +67,8 @@ const Login: React.FC = () => {
         phone: user.phoneNumber || '',
         createdAt: new Date().toISOString(),
         receiveEmails: true
-      }, { merge: true });
+      });
+      }
       setShowSuccess(true);
       setFadeOut(false);
       setTimeout(() => {
