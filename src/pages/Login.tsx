@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 // Import DevErrorBoundary from ProductDetail or move to a shared location if needed
 import { DevErrorBoundary } from './ProductDetail';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, EmailAuthProvider, linkWithCredential } from 'firebase/auth';
 import { auth, db } from '../firebase';
 import { doc, setDoc, getDoc, collection } from 'firebase/firestore';
 import { FcGoogle } from 'react-icons/fc';
@@ -81,6 +81,27 @@ const Login: React.FC = () => {
 } else {
   navigate('/', { replace: true });
 }
+const linkEmailPasswordToGoogle = async (password: string) => {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error("No user is signed in");
+  }
+
+  const credential = EmailAuthProvider.credential(user.email!, password);
+
+  try {
+    const linkedUser = await linkWithCredential(user, credential);
+    console.log("Successfully linked email/password:", linkedUser);
+  } catch (error: any) {
+    if (error.code === "auth/provider-already-linked") {
+      console.log("Email/password already linked to this account.");
+    } else if (error.code === "auth/email-already-in-use") {
+      console.error("That email is already used by another account.");
+    } else {
+      console.error("Error linking account:", error);
+    }
+  }
+};
         }, 400);
       }, 900);
     } catch (error: any) {
