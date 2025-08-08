@@ -1525,6 +1525,11 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
           <h2 className="text-lg font-semibold mb-4 text-gray-900">
             {addressForm.id ? 'Edit Address' : 'Add New Address'}
           </h2>
+          {addressSaveSuccess && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md text-green-800 text-sm">
+              Address saved successfully!
+            </div>
+          )}
           <form onSubmit={handleAddressSubmit} className="space-y-4">
             <div className="grid grid-cols-1 gap-y-4 sm:grid-cols-2 sm:gap-x-4">
               <div className="sm:col-span-2">
