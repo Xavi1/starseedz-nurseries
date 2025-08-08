@@ -639,10 +639,21 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
     setShowAddressModal(true);
   };
 
-  const handleDeleteAddress = async (id: string) => {
-    if (!currentUser) return;
-    const docRef = doc(db, 'users', currentUser.uid, 'addresses', id);
+  // Address delete confirmation modal state
+  const [deleteAddressId, setDeleteAddressId] = useState<string | null>(null);
+  const [deleteAddressConfirmOpen, setDeleteAddressConfirmOpen] = useState(false);
+
+  const handleDeleteAddress = (id: string) => {
+    setDeleteAddressId(id);
+    setDeleteAddressConfirmOpen(true);
+  };
+
+  const confirmDeleteAddress = async () => {
+    if (!currentUser || !deleteAddressId) return;
+    const docRef = doc(db, 'users', currentUser.uid, 'addresses', deleteAddressId);
     await deleteDoc(docRef);
+    setDeleteAddressId(null);
+    setDeleteAddressConfirmOpen(false);
   };
 
   const handleSetDefaultAddress = async (id: string) => {
@@ -1138,6 +1149,37 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
                           >
                             Delete
                           </button>
+        {/* Delete Address Confirmation Modal */}
+        <Modal open={deleteAddressConfirmOpen} onClose={() => {
+          setDeleteAddressId(null);
+          setDeleteAddressConfirmOpen(false);
+        }}>
+          <h2 className="text-lg font-semibold mb-4 text-gray-900">
+            Confirm Delete Address
+          </h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Are you sure you want to delete this address? This action cannot be undone.
+          </p>
+          <div className="flex items-center justify-end space-x-3">
+            <button
+              type="button"
+              onClick={() => {
+                setDeleteAddressId(null);
+                setDeleteAddressConfirmOpen(false);
+              }}
+              className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={confirmDeleteAddress}
+              className="bg-red-600 border border-transparent rounded-md shadow-sm py-2 px-4 text-sm font-medium text-white hover:bg-red-700"
+            >
+              Delete Address
+            </button>
+          </div>
+        </Modal>
                         </div>
                       </div>
                     ))}
