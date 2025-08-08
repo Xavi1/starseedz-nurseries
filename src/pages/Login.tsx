@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 // Import DevErrorBoundary from ProductDetail or move to a shared location if needed
 import { DevErrorBoundary } from './ProductDetail';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { auth, db } from '../firebase';
+import { doc, setDoc, collection } from 'firebase/firestore';
+import { FcGoogle } from 'react-icons/fc';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -41,6 +43,47 @@ const Login: React.FC = () => {
       } else {
         setError('An unexpected error occurred.');
       }
+    }
+  };
+
+    // Google login handler
+  const handleGoogleLogin = async () => {
+    setError('');
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      // Optionally create user doc in Firestore if not exists
+      await setDoc(doc(collection(db, 'users'), user.uid), {
+        uid: user.uid,
+        firstName: user.displayName?.split(' ')[0] || '',
+        lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
+        email: user.email,
+        phone: user.phoneNumber || '',
+        createdAt: new Date().toISOString(),
+        receiveEmails: true
+      }, { merge: true });
+      setShowSuccess(true);
+      setFadeOut(false);
+      setTimeout(() => {
+        setFadeOut(true);
+        setTimeout(() => {
+          setShowSuccess(false);
+          if (location.state?.from) {
+            navigate(-1);
+          } else {
+            navigate('/', { replace: true });
+          }
+        }, 400);
+      }, 900);
+    } catch (error: any) {
+      let errorMsg = 'Google login failed. Please try again.';
+      if (typeof error === 'object' && error && 'code' in error) {
+        if (error.code === 'auth/popup-closed-by-user') {
+          errorMsg = 'Google sign-in was cancelled.';
+        }
+      }
+      setError(errorMsg);
     }
   };
 
@@ -84,6 +127,28 @@ const Login: React.FC = () => {
             <span className="text-sm text-gray-600">Don't have an account?</span>
             <button type="button" className="ml-2 text-green-700 hover:underline" onClick={() => navigate('/signup')}>Sign Up</button>
           </div>
+           <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+            <div className="mt-6">
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                className="w-full inline-flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                <FcGoogle className="h-5 w-5 mr-2" />
+                <span>Google</span>
+              </button>
+            </div>
+            </div>
         </form>
       </div>
     </DevErrorBoundary>
