@@ -499,6 +499,7 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
 
   // Address modal state
   const [showAddressModal, setShowAddressModal] = useState(false);
+  const [addressSaveSuccess, setAddressSaveSuccess] = useState(false);
   // Trinidad and Tobago administrative units
   const ttAdministrativeUnits = [
     'Arima', 'Chaguanas', 'Couva–Tabaquite–Talparo', 'Diego Martin', 'Eastern Tobago',
@@ -629,6 +630,8 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
       await addDoc(addressesRef, addressData);
     }
     setShowAddressModal(false);
+    setAddressSaveSuccess(true);
+    setTimeout(() => setAddressSaveSuccess(false), 1800);
   };
 
   const handleEditAddress = (address: Address) => {
@@ -1065,6 +1068,11 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
                {/* Addresses Tab */}
               {activeTab === 'addresses' && (
                 <div className="p-6">
+                  {addressSaveSuccess && (
+                    <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md text-green-800 text-sm">
+                      Address saved successfully!
+                    </div>
+                  )}
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-medium text-gray-900">
                       My Addresses
