@@ -18,7 +18,7 @@ import { useCart } from '../context/CartContext';
 import { auth } from '../firebase';
 import { updateUserProfile, getUserById } from '../firebaseHelpers';
 import { db } from '../firebase';
-import { doc, setDoc } from 'firebase/firestore';
+// Remove duplicate import of doc, setDoc
 import { signOut, onAuthStateChanged, User } from 'firebase/auth';
 
 // Mock order data
@@ -60,30 +60,7 @@ const mockOrders = [{
     price: 29.99
   }]
 }];
-// Mock address data (Trinidad and Tobago format)
-const mockAddresses = [{
-  id: 1,
-  name: 'Home',
-  isDefault: true,
-  firstName: 'John',
-  lastName: 'Doe',
-  address: '123 Green Street',
-  apartment: 'Apt 4B',
-  city: 'Port of Spain',
-  administrativeUnit: 'Port of Spain',
-  phone: '(868) 123-4567'
-}, {
-  id: 2,
-  name: 'Work',
-  isDefault: false,
-  firstName: 'John',
-  lastName: 'Doe',
-  address: '456 Office Avenue',
-  apartment: 'Suite 300',
-  city: 'San Fernando',
-  administrativeUnit: 'San Fernando',
-  phone: '(868) 987-6543'
-}];
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, onSnapshot, setDoc } from 'firebase/firestore';
 // Mock payment methods
 const mockPaymentMethods = [{
   id: 1,
@@ -528,7 +505,21 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
     'Penal–Debe', 'Point Fortin', 'Port of Spain', 'Princes Town', 'San Fernando',
     'San Juan–Laventille', 'Sangre Grande', 'Siparia', 'Tunapuna–Piarco', 'Western Tobago'
   ];
-  const [addressForm, setAddressForm] = useState({
+  // (Removed duplicate addressForm/setAddressForm state)
+  type Address = {
+    id: string;
+    name: string;
+    isDefault: boolean;
+    firstName: string;
+    lastName: string;
+    address: string;
+    apartment: string;
+    city: string;
+    administrativeUnit: string;
+    phone: string;
+  };
+  // id can be string (from Firestore) or number (for initial empty form)
+  const [addressForm, setAddressForm] = useState<Omit<Address, 'id'> & { id: string | number }>({
     id: 0,
     name: '',
     isDefault: false,
@@ -540,7 +531,17 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
     administrativeUnit: '',
     phone: '(555) 123-4567'
   });
-  const [addresses, setAddresses] = useState(mockAddresses);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  // Fetch addresses from Firestore subcollection
+  useEffect(() => {
+    if (!currentUser) return;
+    const q = collection(db, 'users', currentUser.uid, 'addresses');
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map(docSnap => ({ ...docSnap.data(), id: docSnap.id })) as Address[];
+      setAddresses(data);
+    });
+    return () => unsubscribe();
+  }, [currentUser]);
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPasswordForm({ ...passwordForm, [e.target.name]: e.target.value });
     setPasswordError('');
@@ -613,35 +614,42 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
     setEditMode(false);
   };
 
-  const handleAddressSubmit = (e: React.FormEvent) => {
+  const handleAddressSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (addressForm.id) {
+    if (!currentUser) return;
+    const addressesRef = collection(db, 'users', currentUser.uid, 'addresses');
+    // Don't send id to Firestore
+    const { id, ...addressData } = addressForm;
+    if (addressForm.id && addressForm.id !== 0) {
       // Update existing address
-      setAddresses(addresses.map(addr => 
-        addr.id === addressForm.id ? addressForm : addr
-      ));
+      const docRef = doc(db, 'users', currentUser.uid, 'addresses', String(addressForm.id));
+      await updateDoc(docRef, addressData);
     } else {
       // Add new address
-      const newId = Math.max(...addresses.map(a => a.id), 0) + 1;
-      setAddresses([...addresses, { ...addressForm, id: newId }]);
+      await addDoc(addressesRef, addressData);
     }
     setShowAddressModal(false);
   };
 
-  const handleEditAddress = (address: typeof mockAddresses[0]) => {
-    setAddressForm(address);
+  const handleEditAddress = (address: Address) => {
+    setAddressForm({ ...address });
     setShowAddressModal(true);
   };
 
-  const handleDeleteAddress = (id: number) => {
-    setAddresses(addresses.filter(addr => addr.id !== id));
+  const handleDeleteAddress = async (id: string) => {
+    if (!currentUser) return;
+    const docRef = doc(db, 'users', currentUser.uid, 'addresses', id);
+    await deleteDoc(docRef);
   };
 
-  const handleSetDefaultAddress = (id: number) => {
-    setAddresses(addresses.map(addr => ({
-      ...addr,
-      isDefault: addr.id === id
-    })));
+  const handleSetDefaultAddress = async (id: string) => {
+    if (!currentUser) return;
+    // Unset all, then set selected as default
+    const addressesRef = collection(db, 'users', currentUser.uid, 'addresses');
+    const snapshot = await getDocs(addressesRef);
+    await Promise.all(snapshot.docs.map(async (docSnap) => {
+      await updateDoc(docSnap.ref, { isDefault: docSnap.id === id });
+    }));
   };
 
   const toggleOrderDetails = (orderId: string) => {
