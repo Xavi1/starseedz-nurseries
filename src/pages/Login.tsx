@@ -69,7 +69,8 @@ const Login: React.FC = () => {
         setFadeOut(true);
         setTimeout(() => {
           setShowSuccess(false);
-          if (location.state?.from && location.state.from !== '/login') {
+          // Always redirect to /account unless coming from another page (not /login)
+          if (location.state?.from && location.state.from !== '/login' && location.state.from !== '/account') {
   navigate(location.state.from, { replace: true });
 } else {
   navigate('/', { replace: true });

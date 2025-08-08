@@ -2,6 +2,8 @@ import { ShoppingCartIcon, SearchIcon, MenuIcon, XIcon, UserIcon } from 'lucide-
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../firebase'; 
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -9,8 +11,16 @@ const Header = () => {
   const [searchValue, setSearchValue] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
-  const location = useLocation(); // ✅ Now declared
+  const location = useLocation();
   const { cartCount } = useCart();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, (user) => {
+    setIsLoggedIn(!!user);
+  });
+  return () => unsubscribe();
+}, []);
 
   useEffect(() => {
     if (showSearch && searchInputRef.current) {
@@ -18,9 +28,13 @@ const Header = () => {
     }
   }, [showSearch]);
 
-  const goToLogin = () => {
+ const handleUserClick = () => {
+  if (isLoggedIn) {
+    navigate('/account');
+  } else {
     navigate('/login', { state: { from: location.pathname } });
-  };
+  }
+};
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -79,12 +93,12 @@ const Header = () => {
             </button>
 
             <button
-              className="p-1 rounded-full text-gray-500 hover:text-green-700"
-              onClick={goToLogin} // ✅ Always passes from
-              aria-label="Account"
-            >
-              <UserIcon className="h-6 w-6" />
-            </button>
+  className="p-1 rounded-full text-gray-500 hover:text-green-700"
+  onClick={handleUserClick}
+  aria-label="Account"
+>
+  <UserIcon className="h-6 w-6" />
+</button>
           </div>
 
           {/* Mobile icons and menu */}
@@ -107,12 +121,12 @@ const Header = () => {
             </button>
 
             <button
-              className="p-1 rounded-full text-gray-500 hover:text-green-700"
-              onClick={goToLogin} // ✅ Mobile also passes from
-              aria-label="Account"
-            >
-              <UserIcon className="h-6 w-6" />
-            </button>
+  className="p-1 rounded-full text-gray-500 hover:text-green-700"
+  onClick={handleUserClick}
+  aria-label="Account"
+>
+  <UserIcon className="h-6 w-6" />
+</button>
 
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 rounded-md text-gray-500 hover:text-green-700">
               {isMenuOpen ? <XIcon className="h-6 w-6" /> : <MenuIcon className="h-6 w-6" />}
