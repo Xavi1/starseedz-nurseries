@@ -30,11 +30,11 @@ const Login: React.FC = () => {
           setShowSuccess(false);
            //const from = location.state?.from || '/';
            //navigate(from, { replace: true }); // Redirect to home or dashboard
-             if (location.state?.from) {
-             navigate(-1); // Go back to previous page
-           } else {
-             navigate('/', { replace: true }); // Go to home if no previous page
-           }
+            if (location.state?.from && location.state.from !== '/login') {
+  navigate(location.state.from, { replace: true });
+} else {
+  navigate('/', { replace: true });
+}
         }, 400); // match fade duration
       }, 900); // show for 900ms, then fade for 400ms
     } catch (err: unknown) {
@@ -69,11 +69,11 @@ const Login: React.FC = () => {
         setFadeOut(true);
         setTimeout(() => {
           setShowSuccess(false);
-          if (location.state?.from) {
-            navigate(-1);
-          } else {
-            navigate('/', { replace: true });
-          }
+          if (location.state?.from && location.state.from !== '/login') {
+  navigate(location.state.from, { replace: true });
+} else {
+  navigate('/', { replace: true });
+}
         }, 400);
       }, 900);
     } catch (error: any) {
