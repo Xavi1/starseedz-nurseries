@@ -3,24 +3,25 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../firebase'; 
+import { auth } from '../firebase';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
+  const [searchValue, setSearchValue] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { cartCount } = useCart();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  // ✅ Track auth state
   useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, (user) => {
-    setIsLoggedIn(!!user);
-  });
-  return () => unsubscribe();
-}, []);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsLoggedIn(!!user);
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (showSearch && searchInputRef.current) {
@@ -28,13 +29,14 @@ const Header = () => {
     }
   }, [showSearch]);
 
- const handleUserClick = () => {
-  if (isLoggedIn) {
-    navigate('/account');
-  } else {
-    navigate('/login', { state: { from: location.pathname } });
-  }
-};
+  // ✅ Decide where to go when user icon clicked
+  const handleUserClick = () => {
+    if (isLoggedIn) {
+      navigate('/account');
+    } else {
+      navigate('/login', { state: { from: location.pathname } });
+    }
+  };
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -93,15 +95,15 @@ const Header = () => {
             </button>
 
             <button
-  className="p-1 rounded-full text-gray-500 hover:text-green-700"
-  onClick={handleUserClick}
-  aria-label="Account"
->
-  <UserIcon className="h-6 w-6" />
-</button>
+              className="p-1 rounded-full text-gray-500 hover:text-green-700"
+              onClick={handleUserClick}
+              aria-label="Account"
+            >
+              <UserIcon className="h-6 w-6" />
+            </button>
           </div>
 
-          {/* Mobile icons and menu */}
+          {/* Mobile Icons */}
           <div className="flex md:hidden items-center space-x-2">
             <button className="p-1 rounded-full text-gray-500 hover:text-green-700" onClick={() => setShowSearch(!showSearch)}>
               <SearchIcon className="h-6 w-6" />
@@ -121,12 +123,12 @@ const Header = () => {
             </button>
 
             <button
-  className="p-1 rounded-full text-gray-500 hover:text-green-700"
-  onClick={handleUserClick}
-  aria-label="Account"
->
-  <UserIcon className="h-6 w-6" />
-</button>
+              className="p-1 rounded-full text-gray-500 hover:text-green-700"
+              onClick={handleUserClick}
+              aria-label="Account"
+            >
+              <UserIcon className="h-6 w-6" />
+            </button>
 
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 rounded-md text-gray-500 hover:text-green-700">
               {isMenuOpen ? <XIcon className="h-6 w-6" /> : <MenuIcon className="h-6 w-6" />}
