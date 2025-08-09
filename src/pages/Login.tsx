@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
-// Import DevErrorBoundary from ProductDetail or move to a shared location if needed
 import { DevErrorBoundary } from './ProductDetail';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, EmailAuthProvider, linkWithCredential } from 'firebase/auth';
+import {
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+  EmailAuthProvider,
+  linkWithCredential
+} from 'firebase/auth';
 import { auth, db } from '../firebase';
-import { doc, setDoc, getDoc, collection } from 'firebase/firestore';
+import { doc, setDoc, collection, getDoc } from 'firebase/firestore';
 import { FcGoogle } from 'react-icons/fc';
 
 const Login: React.FC = () => {
@@ -15,50 +20,22 @@ const Login: React.FC = () => {
   const [fadeOut, setFadeOut] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from || '/';
-   
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      setShowSuccess(true);
-      setFadeOut(false);
-      setTimeout(() => {
-        setFadeOut(true);
-        setTimeout(() => {
-          setShowSuccess(false);
-           //const from = location.state?.from || '/';
-           //navigate(from, { replace: true }); // Redirect to home or dashboard
-            if (location.state?.from && location.state.from !== '/login') {
-  navigate(location.state.from, { replace: true });
-} else {
-  navigate('/', { replace: true });
-}
-        }, 400); // match fade duration
-      }, 900); // show for 900ms, then fade for 400ms
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('An unexpected error occurred.');
-      }
+  // 🔹 Common redirect function for both login types
+  const redirectAfterLogin = () => {
+    if (location.state?.from && location.state.from !== '/login' && location.state.from !== '/account') {
+      navigate(location.state.from, { replace: true });
+    } else {
+      navigate('/account', { replace: true });
     }
   };
 
-    // Google login handler
-  const handleGoogleLogin = async () => {
-    setError('');
-    try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
+  // 🔹 Create Firestore user doc if it doesn't exist
+  const createUserDocIfMissing = async (user: any) => {
+    const userRef = doc(collection(db, 'users'), user.uid);
+    const userSnap = await getDoc(userRef);
 
-      const userRef = doc(collection(db, 'users'), user.uid);
-      const userSnap = await getDoc(userRef);
-
-      if (!userSnap.exists()) {
+    if (!userSnap.exists()) {
       await setDoc(userRef, {
         uid: user.uid,
         firstName: user.displayName?.split(' ')[0] || '',
@@ -68,48 +45,81 @@ const Login: React.FC = () => {
         createdAt: new Date().toISOString(),
         receiveEmails: true
       });
+    }
+  };
+
+  // 🔹 Link Google account with email/password if user wants
+  const linkEmailPasswordToGoogle = async (password: string) => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+
+    const credential = EmailAuthProvider.credential(currentUser.email!, password);
+
+    try {
+      await linkWithCredential(currentUser, credential);
+      console.log('Email/password linked to Google account');
+    } catch (error: any) {
+      if (error.code === 'auth/provider-already-linked') {
+        console.log('Email/password already linked.');
+      } else if (error.code === 'auth/email-already-in-use') {
+        console.error('That email is already in use by another account.');
+      } else {
+        console.error('Error linking account:', error);
       }
+    }
+  };
+
+  // 🔹 Email/password login
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      await createUserDocIfMissing(userCredential.user);
+
       setShowSuccess(true);
       setFadeOut(false);
       setTimeout(() => {
         setFadeOut(true);
         setTimeout(() => {
           setShowSuccess(false);
-          // Always redirect to /account unless coming from another page (not /login)
-          if (location.state?.from && location.state.from !== '/login' && location.state.from !== '/account') {
-  navigate(location.state.from, { replace: true });
-} else {
-  navigate('/', { replace: true });
-}
-const linkEmailPasswordToGoogle = async (password: string) => {
-  const user = auth.currentUser;
-  if (!user) {
-    throw new Error("No user is signed in");
-  }
-
-  const credential = EmailAuthProvider.credential(user.email!, password);
-
-  try {
-    const linkedUser = await linkWithCredential(user, credential);
-    console.log("Successfully linked email/password:", linkedUser);
-  } catch (error: any) {
-    if (error.code === "auth/provider-already-linked") {
-      console.log("Email/password already linked to this account.");
-    } else if (error.code === "auth/email-already-in-use") {
-      console.error("That email is already used by another account.");
-    } else {
-      console.error("Error linking account:", error);
+          redirectAfterLogin();
+        }, 400);
+      }, 900);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred.');
     }
-  }
-};
+  };
+
+  // 🔹 Google login
+  const handleGoogleLogin = async () => {
+    setError('');
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      await createUserDocIfMissing(user);
+
+      // ✅ Ask to link email/password login
+      const newPassword = prompt('Set a password so you can also log in with email/password (leave blank to skip):');
+      if (newPassword && newPassword.length >= 6) {
+        await linkEmailPasswordToGoogle(newPassword);
+      }
+
+      setShowSuccess(true);
+      setFadeOut(false);
+      setTimeout(() => {
+        setFadeOut(true);
+        setTimeout(() => {
+          setShowSuccess(false);
+          redirectAfterLogin();
         }, 400);
       }, 900);
     } catch (error: any) {
       let errorMsg = 'Google login failed. Please try again.';
-      if (typeof error === 'object' && error && 'code' in error) {
-        if (error.code === 'auth/popup-closed-by-user') {
-          errorMsg = 'Google sign-in was cancelled.';
-        }
+      if (error?.code === 'auth/popup-closed-by-user') {
+        errorMsg = 'Google sign-in was cancelled.';
       }
       setError(errorMsg);
     }
@@ -125,9 +135,11 @@ const linkEmailPasswordToGoogle = async (password: string) => {
             </div>
           </div>
         )}
+
         <form onSubmit={handleLogin} className="bg-white p-8 rounded shadow-md w-full max-w-md">
           <h2 className="text-2xl font-bold mb-6 text-center">Log In</h2>
           {error && <div className="mb-4 text-red-600">{error}</div>}
+
           <div className="mb-4">
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
             <input
@@ -139,6 +151,7 @@ const linkEmailPasswordToGoogle = async (password: string) => {
               required
             />
           </div>
+
           <div className="mb-6">
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
             <input
@@ -150,20 +163,21 @@ const linkEmailPasswordToGoogle = async (password: string) => {
               required
             />
           </div>
+
           <button type="submit" className="w-full bg-green-700 text-white py-2 px-4 rounded hover:bg-green-800 font-medium">Log In</button>
+
           <div className="mt-4 text-center">
             <span className="text-sm text-gray-600">Don't have an account?</span>
             <button type="button" className="ml-2 text-green-700 hover:underline" onClick={() => navigate('/signup')}>Sign Up</button>
           </div>
-           <div className="mt-6">
+
+          <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">
-                  Or continue with
-                </span>
+                <span className="px-2 bg-white text-gray-500">Or continue with</span>
               </div>
             </div>
             <div className="mt-6">
@@ -176,7 +190,7 @@ const linkEmailPasswordToGoogle = async (password: string) => {
                 <span>Google</span>
               </button>
             </div>
-            </div>
+          </div>
         </form>
       </div>
     </DevErrorBoundary>
