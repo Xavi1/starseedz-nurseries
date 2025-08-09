@@ -593,8 +593,10 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
   };
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileSaveSuccess, setProfileSaveSuccess] = useState(false);
-  const handleProfileSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Profile save confirmation modal state
+  const [showProfileConfirm, setShowProfileConfirm] = useState(false);
+  // Actual save logic
+  const doProfileSave = async () => {
     if (currentUser && currentUser.uid) {
       setProfileSaving(true);
       try {
@@ -613,6 +615,11 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
       setProfileSaving(false);
     }
     setEditMode(false);
+  };
+
+  const handleProfileSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setShowProfileConfirm(true);
   };
 
   const handleAddressSubmit = async (e: React.FormEvent) => {
@@ -814,6 +821,28 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
                         <button type="submit" className="bg-green-700 border border-transparent rounded-md shadow-sm py-2 px-4 text-sm font-medium text-white hover:bg-green-800 disabled:opacity-60" disabled={profileSaving}>
                           {profileSaving ? 'Saving...' : 'Save Changes'}
                         </button>
+        {/* Profile Save Confirmation Modal */}
+        <Modal open={showProfileConfirm} onClose={() => setShowProfileConfirm(false)}>
+          <h2 className="text-lg font-semibold mb-4 text-gray-900">Confirm Save</h2>
+          <p className="text-gray-700 mb-6">Are you sure you want to save these profile changes?</p>
+          <div className="flex justify-end gap-3">
+            <button
+              className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50"
+              onClick={() => setShowProfileConfirm(false)}
+            >
+              Cancel
+            </button>
+            <button
+              className="bg-green-700 text-white py-2 px-4 rounded-md shadow-sm text-sm font-medium hover:bg-green-800"
+              onClick={() => {
+                setShowProfileConfirm(false);
+                doProfileSave();
+              }}
+            >
+              Yes, Save
+            </button>
+          </div>
+        </Modal>
                         {profileSaveSuccess && (
                           <span className="ml-3 text-green-700 text-sm font-medium">Profile saved!</span>
                         )}
