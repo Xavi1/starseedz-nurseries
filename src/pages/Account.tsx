@@ -597,25 +597,30 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
   const [showProfileConfirm, setShowProfileConfirm] = useState(false);
   // Actual save logic
   const doProfileSave = async () => {
-    if (currentUser && currentUser.uid) {
-      setProfileSaving(true);
-      try {
-        await updateUserProfile(currentUser.uid, {
-          firstname: userData.firstName,
-          lastname: userData.lastName,
-          email: userData.email,
-          phone: userData.phone,
-          birthdate: userData.birthdate
-        });
-        setProfileSaveSuccess(true);
-        setTimeout(() => setProfileSaveSuccess(false), 1500);
-      } catch (err) {
-        // Optionally show an error message here
-      }
+  if (currentUser && currentUser.uid) {
+    setProfileSaving(true);
+    try {
+      await updateUserProfile(currentUser.uid, {
+        firstname: userData.firstName,
+        lastname: userData.lastName,
+        email: userData.email,
+        phone: userData.phone,
+        birthdate: userData.birthdate
+      });
+      setProfileSaveSuccess(true);
+setTimeout(() => {
+  setProfileSaveSuccess(false);
+  setEditMode(false);
+}, 2000);
+
+    } catch (err) {
+      // Optionally show an error message here
+    } finally {
       setProfileSaving(false);
+      setEditMode(false);
     }
-    setEditMode(false);
-  };
+  }
+};
 
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -705,17 +710,28 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
     return null; // Or a loading spinner
   }
 
-  return <div className="min-h-screen bg-gray-50">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Breadcrumbs */}
-        <nav className="flex items-center text-sm mb-8">
-          <Link to="/" className="text-gray-500 hover:text-gray-700 flex items-center">
-            <HomeIcon className="h-4 w-4 mr-1" />
-            Home
-          </Link>
-          <ChevronRightIcon className="h-4 w-4 text-gray-400 mx-2" />
-          <span className="text-green-700 font-medium">My Account</span>
-        </nav>
+   return (
+  <div className="min-h-screen bg-gray-50">
+    {/* Global Profile Save Feedback Notification */}
+    {profileSaveSuccess && (
+      <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50">
+        <div className="bg-green-600 text-white px-6 py-3 rounded shadow-lg font-medium">
+          Profile updated successfully!
+        </div>
+      </div>
+    )}
+
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Breadcrumbs */}
+      <nav className="flex items-center text-sm mb-8">
+        <Link to="/" className="text-gray-500 hover:text-gray-700 flex items-center">
+          <HomeIcon className="h-4 w-4 mr-1" />
+          Home
+        </Link>
+        <ChevronRightIcon className="h-4 w-4 text-gray-400 mx-2" />
+        <span className="text-green-700 font-medium">My Account</span>
+      </nav>
+
         <div className="lg:grid lg:grid-cols-12 lg:gap-x-8">
           {/* Sidebar Navigation */}
           <div className="lg:col-span-3">
@@ -833,19 +849,25 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
               Cancel
             </button>
             <button
-              className="bg-green-700 text-white py-2 px-4 rounded-md shadow-sm text-sm font-medium hover:bg-green-800"
-              onClick={() => {
-                setShowProfileConfirm(false);
-                doProfileSave();
-              }}
-            >
-              Yes, Save
-            </button>
+  className="bg-green-700 text-white py-2 px-4 rounded-md shadow-sm text-sm font-medium hover:bg-green-800"
+  onClick={() => {
+    setShowProfileConfirm(false);
+    doProfileSave();
+  }}
+>
+  Yes, Save
+</button>
           </div>
         </Modal>
-                        {profileSaveSuccess && (
-                          <span className="ml-3 text-green-700 text-sm font-medium">Profile saved!</span>
-                        )}
+
+        {/* Profile Save Feedback Notification */}
+        {profileSaveSuccess && (
+          <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50">
+            <div className="bg-green-600 text-white px-6 py-3 rounded shadow-lg font-medium">
+              Profile updated successfully!
+            </div>
+          </div>
+        )}
                       </div>
                     </form> : <div className="bg-white border border-gray-200 rounded-md overflow-hidden">
                       <dl className="divide-y divide-gray-200">
@@ -1752,5 +1774,6 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
           </form>
         </Modal>
       </main>
-    </div>;
-};
+  </div>
+   );
+  };
