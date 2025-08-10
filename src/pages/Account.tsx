@@ -146,7 +146,7 @@ const getCardType = (cardNumber: string): string => {
 };
 
 // Format card number for display
-const formatCardNumber = (value: string): string => {
+  const formatCardNumber = (value: string): string => {
   const cleanValue = value.replace(/\D/g, '');
   const cardType = getCardType(cleanValue);
   
@@ -683,16 +683,20 @@ setTimeout(() => {
   };
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
-    try {
-      clearCart();
-      clearWishlist();
-      await signOut(auth);
-      navigate('/'); // Redirect to homepage
-    } catch (error) {
-      alert('Logout failed. Please try again.');
-    }
-  };
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+const handleLogout = async () => {
+  try {
+    clearCart();
+    clearWishlist();
+    await signOut(auth);
+    navigate('/');
+  } catch (error) {
+    alert('Logout failed. Please try again.');
+  } finally {
+    setShowLogoutConfirm(false);
+  }
+};
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -776,10 +780,13 @@ setTimeout(() => {
                 </button>
               </nav>
               <div className="px-6 py-4 border-t border-gray-200">
-                <button className="flex items-center text-sm font-medium text-red-600 hover:text-red-700" onClick={handleLogout}>
-                  <LogOutIcon className="h-5 w-5 mr-3" />
-                  Log Out
-                </button>
+                <button 
+  className="flex items-center text-sm font-medium text-red-600 hover:text-red-700" 
+  onClick={() => setShowLogoutConfirm(true)}
+>
+  <LogOutIcon className="h-5 w-5 mr-3" />
+  Log Out
+</button>
               </div>
             </div>
           </div>
@@ -977,6 +984,29 @@ setTimeout(() => {
                     </form>
                   </Modal>
                 </div>}
+                {/* Logout Confirmation Modal */}
+<Modal open={showLogoutConfirm} onClose={() => setShowLogoutConfirm(false)}>
+  <h2 className="text-lg font-semibold mb-4 text-gray-900">
+    Confirm Logout
+  </h2>
+  <p className="text-sm text-gray-600 mb-6">
+    Are you sure you want to log out of your account?
+  </p>
+  <div className="flex justify-end gap-3">
+    <button
+      className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50"
+      onClick={() => setShowLogoutConfirm(false)}
+    >
+      Cancel
+    </button>
+    <button
+      className="bg-red-600 text-white py-2 px-4 rounded-md shadow-sm text-sm font-medium hover:bg-red-700"
+      onClick={handleLogout}
+    >
+      Log Out
+    </button>
+  </div>
+</Modal>
               {/* Orders Tab */}
               {activeTab === 'orders' && <div className="p-6">
                   <div className="flex items-center justify-between mb-6">
