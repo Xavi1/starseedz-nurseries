@@ -415,7 +415,7 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
   const [editMode, setEditMode] = useState(false);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const { wishlist, removeFromWishlist, clearWishlist } = useWishlist();
-  const { clearCart, setCart } = useCart();
+  const { clearCart } = useCart();
   // User data (email will sync with logged-in user)
   const [userData, setUserData] = useState({
     firstName: 'John',
@@ -691,7 +691,7 @@ const handleLogout = async () => {
     localStorage.removeItem('cart_anonymous');
 
     // Clear the in-memory cart so the UI resets
-    setCart([]); // You can get this from useCart() context
+    clearCart();
 
     // Clear wishlist while still logged in (optional if you want it gone locally)
     await clearWishlist();
