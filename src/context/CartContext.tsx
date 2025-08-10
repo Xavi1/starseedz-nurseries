@@ -122,36 +122,51 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // Auth state change handler
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-  const anonymousKey = 'cart_anonymous';
-  let mergedCart: CartItem[] = [];
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      const anonymousKey = 'cart_anonymous';
+      let mergedCart: CartItem[] = [];
 
-  try {
-    const userCartRef = doc(db, 'users', user.uid, 'cart', 'active');
-    const docSnap = await getDoc(userCartRef);
-    if (docSnap.exists()) {
-      mergedCart = docSnap.data().items || [];
+      try {
+        // Get cart from Firestore first
+        const userCartRef = doc(db, 'users', user.uid, 'cart', 'active');
+        const docSnap = await getDoc(userCartRef);
+        if (docSnap.exists()) {
+          mergedCart = docSnap.data().items || [];
+        }
+      } catch (err) {
+        console.error("Failed to load Firestore cart:", err);
+      }
+
+      // If guest cart exists, merge it in
+      const anonymousCartStr = localStorage.getItem(anonymousKey);
+      if (anonymousCartStr) {
+        const anonymousCart: CartItem[] = JSON.parse(anonymousCartStr);
+        mergedCart = mergeCarts(mergedCart, anonymousCart);
+        localStorage.removeItem(anonymousKey);
+
+        // Save merged result to Firestore
+        await persistCart(mergedCart);
+      } else {
+        // No guest cart — just save Firestore cart locally
+        localStorage.setItem(`cart_${user.uid}`, JSON.stringify(mergedCart));
+      }
+
+      setCurrentUserId(user.uid);
+      setCart(mergedCart);
+
+    } else {
+      // User logged out → Clear in-memory cart
+      setCurrentUserId(null);
+      setCart([]);
     }
-  } catch (err) {
-    console.error("Failed to load Firestore cart:", err);
-  }
+  });
 
-  // Merge only if guest cart exists AND we're just coming from a guest session
-  const anonymousCartStr = localStorage.getItem(anonymousKey);
-  if (anonymousCartStr) {
-    const anonymousCart: CartItem[] = JSON.parse(anonymousCartStr);
-    mergedCart = mergeCarts(mergedCart, anonymousCart);
-    localStorage.removeItem(anonymousKey); // delete so it can't run again on refresh
-    await persistCart(mergedCart); // sync merged result
-  }
+  return () => unsubscribe();
+}, [persistCart]);
 
-  // Store for offline use
-  localStorage.setItem(`cart_${user.uid}`, JSON.stringify(mergedCart));
-  setCurrentUserId(user.uid);
-  setCart(mergedCart);
-}})})
+
 
   // Initial load
   useEffect(() => {
