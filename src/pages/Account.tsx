@@ -685,21 +685,14 @@ setTimeout(() => {
 
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
+const { resetCartState } = useCart();
+
 const handleLogout = async () => {
   try {
-    // Remove only guest cart from localStorage
     localStorage.removeItem('cart_anonymous');
-
-    // Clear the in-memory cart so the UI resets
-    clearCart();
-
-    // Clear wishlist while still logged in (optional if you want it gone locally)
+    resetCartState(); // instead of clearCart()
     await clearWishlist();
-
-    // Sign the user out
     await signOut(auth);
-
-    // Redirect
     navigate('/');
   } catch (error) {
     console.error('Logout failed:', error);

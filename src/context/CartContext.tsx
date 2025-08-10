@@ -15,6 +15,7 @@ interface CartContextType {
   addToCart: (product: Product, quantity?: number) => Promise<void>;
   removeFromCart: (productId: number | string) => Promise<void>;
   clearCart: () => Promise<void>;
+  resetCartState: () => void;
   cartCount: number;
   isSyncing: boolean;
 }
@@ -33,7 +34,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isOnline, setIsOnline] = useState(typeof window !== 'undefined' ? navigator.onLine : true);
-
   const lastSyncedCartRef = useRef<CartItem[]>([]);
 
   // Track online status
@@ -106,7 +106,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   }, [currentUserId, isOnline, getStorageKey]);
 
   // Merge carts (string-safe ID comparison)
-  const mergeCarts = (primary: CartItem[], secondary: CartItem[]): CartItem[] => {
+    const mergeCarts = (primary: CartItem[], secondary: CartItem[]): CartItem[] => {
     const merged = [...primary];
     secondary.forEach(item => {
       const existingIndex = merged.findIndex(
@@ -129,7 +129,7 @@ useEffect(() => {
       let mergedCart: CartItem[] = [];
 
       try {
-        // Get cart from Firestore first
+        // Load current Firestore cart
         const userCartRef = doc(db, 'users', user.uid, 'cart', 'active');
         const docSnap = await getDoc(userCartRef);
         if (docSnap.exists()) {
@@ -139,25 +139,26 @@ useEffect(() => {
         console.error("Failed to load Firestore cart:", err);
       }
 
-      // If guest cart exists, merge it in
+      // Always merge guest cart if present
       const anonymousCartStr = localStorage.getItem(anonymousKey);
       if (anonymousCartStr) {
         const anonymousCart: CartItem[] = JSON.parse(anonymousCartStr);
         mergedCart = mergeCarts(mergedCart, anonymousCart);
         localStorage.removeItem(anonymousKey);
 
-        // Save merged result to Firestore
+        // Persist merged cart to Firestore
         await persistCart(mergedCart);
       } else {
-        // No guest cart — just save Firestore cart locally
+        // No guest cart — still update local storage for offline use
         localStorage.setItem(`cart_${user.uid}`, JSON.stringify(mergedCart));
       }
 
+      // Update context state
       setCurrentUserId(user.uid);
       setCart(mergedCart);
 
     } else {
-      // User logged out → Clear in-memory cart
+      // User logged out → clear cart for guest
       setCurrentUserId(null);
       setCart([]);
     }
@@ -208,18 +209,20 @@ useEffect(() => {
   };
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const resetCartState = () => setCart([]);
 
   return (
-    <CartContext.Provider
-      value={{
-        cart,
-        addToCart,
-        removeFromCart,
-        clearCart,
-        cartCount,
-        isSyncing
-      }}
-    >
+  <CartContext.Provider
+    value={{
+      cart,
+      addToCart,
+      removeFromCart,
+      clearCart,
+      resetCartState,  // 👈 new method
+      cartCount,
+      isSyncing
+    }}
+  >
       {children}
     </CartContext.Provider>
   );
