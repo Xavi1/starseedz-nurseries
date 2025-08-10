@@ -19,7 +19,12 @@ interface CartContextType {
   isSyncing: boolean;
 }
 
-const CartContext = createContext<CartContextType | undefined>(undefined);
+
+// Also export setCart for direct use in special cases (e.g., logout)
+interface CartContextInternalType extends CartContextType {
+  setCart: React.Dispatch<React.SetStateAction<CartItem[]>>;
+}
+const CartContext = createContext<CartContextInternalType | undefined>(undefined);
 
 export const useCart = () => {
   const context = useContext(CartContext);
@@ -123,46 +128,44 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     return () => unsubscribe();
   }, [currentUserId, isOnline, getStorageKey]);
 
-  // Handle auth state changes
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        // User logged in - merge anonymous cart if exists
-        const anonymousKey = 'cart_anonymous';
-        const userKey = `cart_${user.uid}`;
-        
-        const anonymousCart = localStorage.getItem(anonymousKey);
-        const userCart = localStorage.getItem(userKey);
-        
-        let mergedCart: CartItem[] = [];
-        
-        if (anonymousCart) {
-          mergedCart = JSON.parse(anonymousCart);
-          localStorage.removeItem(anonymousKey);
-        }
-        
-        if (userCart) {
-          const existingUserCart: CartItem[] = JSON.parse(userCart);
-          mergedCart = mergeCarts(existingUserCart, mergedCart);
-        }
-        
-        localStorage.setItem(userKey, JSON.stringify(mergedCart));
-        setCurrentUserId(user.uid);
-        await persistCart(mergedCart);
-      } else {
-        // User logged out
-        setCurrentUserId(null);
-        loadCart();
-      }
-    });
-    
-    return () => unsubscribe();
-  }, [persistCart, loadCart]);
+// Handle auth state changes
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      const anonymousKey = 'cart_anonymous';
+      let mergedCart: CartItem[] = [];
 
-  // Initial load
-  useEffect(() => {
-    loadCart();
-  }, [loadCart]);
+      try {
+        // Get cart from Firestore first
+        const userCartRef = doc(db, 'users', user.uid, 'cart', 'active');
+        const docSnap = await getDoc(userCartRef);
+
+        if (docSnap.exists()) {
+          mergedCart = docSnap.data().items || [];
+        }
+      } catch (err) {
+        console.error("Failed to load Firestore cart:", err);
+      }
+
+      // Merge in guest cart only if it exists
+      const anonymousCart = localStorage.getItem(anonymousKey);
+      if (anonymousCart) {
+        mergedCart = mergeCarts(mergedCart, JSON.parse(anonymousCart));
+        localStorage.removeItem(anonymousKey);
+      }
+
+      // Save merged cart locally (for offline use)
+      localStorage.setItem(`cart_${user.uid}`, JSON.stringify(mergedCart));
+
+      setCurrentUserId(user.uid);
+      setCart(mergedCart); // directly update state
+      await persistCart(mergedCart); // sync to Firestore if merged
+    }
+  });
+
+  return () => unsubscribe();
+}, [persistCart]);
+
 
   // Helper to merge carts while combining quantities
   const mergeCarts = (primary: CartItem[], secondary: CartItem[]): CartItem[] => {
@@ -216,6 +219,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const clearCart = async () => {
     setCart([]);
+    const storageKey = getStorageKey();
+    localStorage.removeItem(storageKey);
     await persistCart([]);
   };
 
@@ -229,7 +234,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         removeFromCart, 
         clearCart, 
         cartCount,
-        isSyncing 
+        isSyncing,
+        setCart // expose setCart for direct use
       }}
     >
       {children}

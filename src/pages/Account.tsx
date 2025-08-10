@@ -415,7 +415,7 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
   const [editMode, setEditMode] = useState(false);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const { wishlist, removeFromWishlist, clearWishlist } = useWishlist();
-  const { clearCart } = useCart();
+  const { clearCart, setCart } = useCart();
   // User data (email will sync with logged-in user)
   const [userData, setUserData] = useState({
     firstName: 'John',
@@ -687,16 +687,28 @@ setTimeout(() => {
 
 const handleLogout = async () => {
   try {
-    clearCart();
-    clearWishlist();
+    // Remove only guest cart from localStorage
+    localStorage.removeItem('cart_anonymous');
+
+    // Clear the in-memory cart so the UI resets
+    setCart([]); // You can get this from useCart() context
+
+    // Clear wishlist while still logged in (optional if you want it gone locally)
+    await clearWishlist();
+
+    // Sign the user out
     await signOut(auth);
+
+    // Redirect
     navigate('/');
   } catch (error) {
+    console.error('Logout failed:', error);
     alert('Logout failed. Please try again.');
   } finally {
     setShowLogoutConfirm(false);
   }
 };
+
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
