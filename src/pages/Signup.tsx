@@ -5,39 +5,66 @@ import { db } from '../firebase';
 import { collection, setDoc, doc } from 'firebase/firestore';
 import { getAuth, createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 export const SignUp = () => {
+
   // Google signup handler (now inside component for access to hooks)
   const handleGoogleSignup = async () => {
-    setIsSubmitting(true);
-    setErrors({});
-    try {
-      const auth = getAuth();
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      // Check if user doc exists, if not, create it
-      await setDoc(doc(collection(db, 'users'), user.uid), {
-        uid: user.uid,
-        firstName: user.displayName?.split(' ')[0] || '',
-        lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
-        email: user.email,
-        phone: user.phoneNumber || '',
-        createdAt: new Date().toISOString(),
-        receiveEmails: true
-      }, { merge: true });
-      navigate('/account');
-    } catch (error) {
-      let errorMsg = 'Google signup failed. Please try again.';
-      if (typeof error === 'object' && error && 'code' in error) {
-        // @ts-ignore
-        if (error.code === 'auth/popup-closed-by-user') {
+  setIsSubmitting(true);
+  setErrors({});
+  
+  try {
+    const auth = getAuth();
+    const provider = new GoogleAuthProvider();
+    
+    // Force account selection every time
+    provider.setCustomParameters({
+      prompt: 'select_account',
+      login_hint: '' // This ensures no email is pre-filled
+    });
+
+    // Add this to request additional scopes if needed
+    provider.addScope('profile');
+    provider.addScope('email');
+
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+
+    // Create user document in Firestore
+    await setDoc(doc(db, 'users', user.uid), {
+      uid: user.uid,
+      firstName: user.displayName?.split(' ')[0] || '',
+      lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
+      email: user.email,
+      phone: user.phoneNumber || '',
+      createdAt: new Date().toISOString(),
+      receiveEmails: true,
+      provider: 'google' // Track auth provider
+    }, { merge: true });
+
+    navigate('/account');
+  } catch (error: any) {
+    let errorMsg = 'Google signup failed. Please try again.';
+    
+    if (error.code) {
+      switch (error.code) {
+        case 'auth/popup-closed-by-user':
           errorMsg = 'Google sign-in was cancelled.';
-        }
+          break;
+        case 'auth/account-exists-with-different-credential':
+          errorMsg = 'An account already exists with this email. Please sign in differently.';
+          break;
+        case 'auth/cancelled-popup-request':
+          errorMsg = 'Only one sign-in request can be made at a time.';
+          break;
       }
-      setErrors({ form: errorMsg });
-    } finally {
-      setIsSubmitting(false);
     }
-  };
+    
+    setErrors({ form: errorMsg });
+    console.error('Google signup error:', error);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: '',
