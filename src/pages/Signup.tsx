@@ -267,14 +267,27 @@ export const SignUp = () => {
                 </div>
               </div>}
               {showExistingUserModal && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white p-6 rounded-lg max-w-md">
-      <h3 className="text-lg font-bold mb-4">Account Exists</h3>
-      <p>An account already exists with email: {existingUserEmail}</p>
-      <p className="mt-2">Redirecting to login page...</p>
-    </div>
-  </div>
-)}
+                <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                  <div className="bg-white border-2 border-green-600 shadow-2xl rounded-2xl max-w-md w-full p-8 text-center relative animate-fade-in">
+                    <div className="flex flex-col items-center">
+                      <svg className="h-12 w-12 text-green-600 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4" />
+                      </svg>
+                      <h3 className="text-xl font-bold text-green-700 mb-2">Account Already Exists</h3>
+                      <p className="text-gray-700">An account already exists with email:</p>
+                      <p className="font-semibold text-green-700 mt-1">{existingUserEmail}</p>
+                      <p className="mt-4 text-gray-500">Redirecting to login page...</p>
+                      <button
+                        type="button"
+                        className="mt-6 px-6 py-2 bg-green-700 text-white rounded-md shadow hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        onClick={() => window.location.replace('/login')}
+                      >
+                        Go to Login Now
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             <form className="mt-6 space-y-6" onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4">
                 <div>
