@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { EyeIcon, EyeOffIcon, CheckIcon, XIcon } from 'lucide-react';
 import { db } from '../firebase';
-import { collection, setDoc, doc } from 'firebase/firestore';
+import { collection, setDoc, doc, getDoc } from 'firebase/firestore';
 import { getAuth, createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 export const SignUp = () => {
 
@@ -26,9 +26,12 @@ const handleGoogleSignup = async () => {
     const userDocRef = doc(db, 'users', user.uid);
     const userDoc = await getDoc(userDocRef);
 
-    if (userDoc.exists()) {
-      // User already exists in Firestore
-      throw new Error('auth/account-exists');
+   if (userDoc.exists()) {
+      // If document exists, throw specific error
+      throw {
+        code: 'auth/account-exists-with-different-credential',
+        message: 'An account already exists with this email. Please sign in instead.'
+      };
     }
 
     // Create new user document if doesn't exist
@@ -45,28 +48,18 @@ const handleGoogleSignup = async () => {
 
     navigate('/account');
   } catch (error: any) {
-    let errorMsg = 'Google signup failed. Please try again.';
+    let errorMsg = error.message || 'Google signup failed. Please try again.';
     
-    if (error.code || error.message) {
-      switch (error.code || error.message) {
-        case 'auth/popup-closed-by-user':
-          errorMsg = ''; // No message needed for intentional popup close
-          break;
-        case 'auth/account-exists-with-different-credential':
-        case 'auth/account-exists':
-          errorMsg = 'An account already exists with this email. Please sign in instead.';
-          navigate('/login'); // Redirect to login page
-          break;
-        case 'auth/cancelled-popup-request':
-          errorMsg = 'Only one sign-in request can be made at a time.';
-          break;
-      }
+    if (error.code === 'auth/popup-closed-by-user') {
+      errorMsg = ''; // No message for intentional popup close
+    } else if (error.code === 'auth/account-exists-with-different-credential') {
+      errorMsg = 'An account already exists with this email. Please sign in instead.';
+      navigate('/login');
     }
     
     if (errorMsg) {
       setErrors({ form: errorMsg });
     }
-    console.error('Google signup error:', error);
   } finally {
     setIsSubmitting(false);
   }
