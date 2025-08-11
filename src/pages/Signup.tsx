@@ -3,16 +3,21 @@ import { Link, useNavigate } from 'react-router-dom';
 import { EyeIcon, EyeOffIcon, CheckIcon, XIcon } from 'lucide-react';
 import { db } from '../firebase';
 import { collection, setDoc, doc, getDoc } from 'firebase/firestore';
-import { getAuth, createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup, signOut, getAdditionalUserInfo } from 'firebase/auth';
 export const SignUp = () => {
 
-  // Google signup handler (now inside component for access to hooks)
-const handleGoogleSignup = async () => {
+  const handleGoogleSignup = async () => {
   setIsSubmitting(true);
   setErrors({});
   
   try {
     const auth = getAuth();
+    
+    // First, check if user is already signed in
+    if (auth.currentUser) {
+      await signOut(auth);
+    }
+
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({
       prompt: 'select_account',
@@ -22,19 +27,57 @@ const handleGoogleSignup = async () => {
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
 
-    // Check if user document already exists
+    // Debug logging
+    const additionalUserInfo = getAdditionalUserInfo(result);
+    console.log('Google signup attempt:', {
+      isNewUser: additionalUserInfo?.isNewUser,
+      userCreationTime: user.metadata.creationTime,
+      userLastSignInTime: user.metadata.lastSignInTime,
+      userId: user.uid
+    });
+
+    // Check multiple conditions to determine if this is an existing user
     const userDocRef = doc(db, 'users', user.uid);
     const userDoc = await getDoc(userDocRef);
+    
+    const creationTime = new Date(user.metadata.creationTime!).getTime();
+    const lastSignInTime = new Date(user.metadata.lastSignInTime!).getTime();
+    const timeDifference = Math.abs(lastSignInTime - creationTime);
+    
+    const isExistingUser = userDoc.exists() || 
+                          !additionalUserInfo?.isNewUser || 
+                          timeDifference > 10000;
 
-   if (userDoc.exists()) {
-      // If document exists, throw specific error
-      throw {
-        code: 'auth/account-exists-with-different-credential',
-        message: 'An account already exists with this email. Please sign in instead.'
-      };
+    if (isExistingUser) {
+      console.log('Existing user detected, signing out...');
+      
+      // Sign out the user immediately and wait for it to complete
+      await signOut(auth);
+      
+      // Double-check that user is signed out
+      if (auth.currentUser) {
+        console.log('User still signed in, forcing sign out...');
+        // Force reload to ensure clean state
+        setErrors({ 
+          form: 'An account already exists with this email. Redirecting to sign in...' 
+        });
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 1000);
+        return;
+      }
+      
+      console.log('User signed out successfully');
+      setErrors({ 
+        form: 'An account already exists with this email. Please sign in instead.' 
+      });
+      
+      // Navigate to login after a short delay
+      setTimeout(() => navigate('/login'), 1500);
+      return;
     }
 
-    // Create new user document if doesn't exist
+    // Create new user document
     await setDoc(userDocRef, {
       uid: user.uid,
       firstName: user.displayName?.split(' ')[0] || '',
@@ -44,17 +87,18 @@ const handleGoogleSignup = async () => {
       createdAt: new Date().toISOString(),
       receiveEmails: true,
       provider: 'google'
-    }, { merge: true });
+    });
 
+    console.log('New user created successfully');
     navigate('/account');
   } catch (error: any) {
+    console.error('Google signup error:', error);
     let errorMsg = error.message || 'Google signup failed. Please try again.';
     
     if (error.code === 'auth/popup-closed-by-user') {
       errorMsg = ''; // No message for intentional popup close
     } else if (error.code === 'auth/account-exists-with-different-credential') {
       errorMsg = 'An account already exists with this email. Please sign in instead.';
-      navigate('/login');
     }
     
     if (errorMsg) {
