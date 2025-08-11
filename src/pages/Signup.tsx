@@ -7,29 +7,32 @@ import { getAuth, createUserWithEmailAndPassword, updateProfile, GoogleAuthProvi
 export const SignUp = () => {
 
   // Google signup handler (now inside component for access to hooks)
-  const handleGoogleSignup = async () => {
+const handleGoogleSignup = async () => {
   setIsSubmitting(true);
   setErrors({});
   
   try {
     const auth = getAuth();
     const provider = new GoogleAuthProvider();
-    
-    // Force account selection every time
     provider.setCustomParameters({
       prompt: 'select_account',
-      login_hint: '' // This ensures no email is pre-filled
+      login_hint: ''
     });
-
-    // Add this to request additional scopes if needed
-    provider.addScope('profile');
-    provider.addScope('email');
 
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
 
-    // Create user document in Firestore
-    await setDoc(doc(db, 'users', user.uid), {
+    // Check if user document already exists
+    const userDocRef = doc(db, 'users', user.uid);
+    const userDoc = await getDoc(userDocRef);
+
+    if (userDoc.exists()) {
+      // User already exists in Firestore
+      throw new Error('auth/account-exists');
+    }
+
+    // Create new user document if doesn't exist
+    await setDoc(userDocRef, {
       uid: user.uid,
       firstName: user.displayName?.split(' ')[0] || '',
       lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
@@ -37,20 +40,22 @@ export const SignUp = () => {
       phone: user.phoneNumber || '',
       createdAt: new Date().toISOString(),
       receiveEmails: true,
-      provider: 'google' // Track auth provider
+      provider: 'google'
     }, { merge: true });
 
     navigate('/account');
   } catch (error: any) {
     let errorMsg = 'Google signup failed. Please try again.';
     
-    if (error.code) {
-      switch (error.code) {
+    if (error.code || error.message) {
+      switch (error.code || error.message) {
         case 'auth/popup-closed-by-user':
-          errorMsg = 'Google sign-in was cancelled.';
+          errorMsg = ''; // No message needed for intentional popup close
           break;
         case 'auth/account-exists-with-different-credential':
-          errorMsg = 'An account already exists with this email. Please sign in differently.';
+        case 'auth/account-exists':
+          errorMsg = 'An account already exists with this email. Please sign in instead.';
+          navigate('/login'); // Redirect to login page
           break;
         case 'auth/cancelled-popup-request':
           errorMsg = 'Only one sign-in request can be made at a time.';
@@ -58,7 +63,9 @@ export const SignUp = () => {
       }
     }
     
-    setErrors({ form: errorMsg });
+    if (errorMsg) {
+      setErrors({ form: errorMsg });
+    }
     console.error('Google signup error:', error);
   } finally {
     setIsSubmitting(false);
