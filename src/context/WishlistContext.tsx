@@ -71,12 +71,13 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
 
   const addToWishlist = async (product: Product) => {
     if (!user) {
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login?message=login_required_wishlist';
+      }
       setError(new Error('User not authenticated'));
       return;
     }
-    
     if (isInWishlist(product.id)) return;
-
     try {
       // Add to Firebase
       await addDoc(collection(db, 'wishlists'), {
@@ -90,7 +91,6 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
         },
         addedAt: serverTimestamp()
       });
-
       // Update local state
       setWishlist(prev => [...prev, product]);
     } catch (err) {
@@ -102,10 +102,12 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
 
   const removeFromWishlist = async (productId: number) => {
     if (!user) {
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login?message=login_required_wishlist';
+      }
       setError(new Error('User not authenticated'));
       return;
     }
-
     try {
       // Find the wishlist document to delete
       const q = query(
@@ -114,11 +116,9 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
         where('productId', '==', productId)
       );
       const querySnapshot = await getDocs(q);
-      
       // Delete all matching documents (should typically be just one)
       const deletions = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
       await Promise.all(deletions);
-
       // Update local state
       setWishlist(prev => prev.filter(item => item.id !== productId));
     } catch (err) {

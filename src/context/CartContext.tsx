@@ -35,6 +35,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [isOnline, setIsOnline] = useState(typeof window !== 'undefined' ? navigator.onLine : true);
   const lastSyncedCartRef = useRef<CartItem[]>([]);
+  // Removed unused navigate
 
   // Track online status
   useEffect(() => {
@@ -176,6 +177,13 @@ useEffect(() => {
 
   // Actions
   const addToCart = async (product: Product, quantity = 1) => {
+    // Require login to add to cart
+    if (!currentUserId) {
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login?message=login_required_cart';
+      }
+      return;
+    }
     setCart(prev => {
       const existingIndex = prev.findIndex(item => String(item.product.id) === String(product.id));
       let newCart: CartItem[];
