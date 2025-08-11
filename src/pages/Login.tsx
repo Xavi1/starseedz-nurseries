@@ -96,12 +96,15 @@ const Login: React.FC = () => {
     setError('');
     try {
       const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({
+      prompt: 'select_account'
+    });
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
       await createUserDocIfMissing(user);
 
-      // ✅ Ask to link email/password login
+      // Ask to link email/password login
       const newPassword = prompt('Set a password so you can also log in with email/password (leave blank to skip):');
       if (newPassword && newPassword.length >= 6) {
         await linkEmailPasswordToGoogle(newPassword);
