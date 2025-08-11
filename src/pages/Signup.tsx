@@ -4,111 +4,8 @@ import { EyeIcon, EyeOffIcon, CheckIcon, XIcon } from 'lucide-react';
 import { db } from '../firebase';
 import { collection, setDoc, doc, getDoc } from 'firebase/firestore';
 import { getAuth, createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup, signOut, getAdditionalUserInfo } from 'firebase/auth';
+
 export const SignUp = () => {
-
-  const handleGoogleSignup = async () => {
-  setIsSubmitting(true);
-  setErrors({});
-  
-  try {
-    const auth = getAuth();
-    
-    // First, check if user is already signed in
-    if (auth.currentUser) {
-      await signOut(auth);
-    }
-
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({
-      prompt: 'select_account',
-      login_hint: ''
-    });
-
-    const result = await signInWithPopup(auth, provider);
-    const user = result.user;
-
-    // Debug logging
-    const additionalUserInfo = getAdditionalUserInfo(result);
-    console.log('Google signup attempt:', {
-      isNewUser: additionalUserInfo?.isNewUser,
-      userCreationTime: user.metadata.creationTime,
-      userLastSignInTime: user.metadata.lastSignInTime,
-      userId: user.uid
-    });
-
-    // Check multiple conditions to determine if this is an existing user
-    const userDocRef = doc(db, 'users', user.uid);
-    const userDoc = await getDoc(userDocRef);
-    
-    const creationTime = new Date(user.metadata.creationTime!).getTime();
-    const lastSignInTime = new Date(user.metadata.lastSignInTime!).getTime();
-    const timeDifference = Math.abs(lastSignInTime - creationTime);
-    
-    const isExistingUser = userDoc.exists() || 
-                          !additionalUserInfo?.isNewUser || 
-                          timeDifference > 10000;
-
-    if (isExistingUser) {
-      console.log('Existing user detected, signing out...');
-      
-      // Sign out the user immediately and wait for it to complete
-      await signOut(auth);
-      
-      // Double-check that user is signed out
-      if (auth.currentUser) {
-        console.log('User still signed in, forcing sign out...');
-        // Force reload to ensure clean state
-        setErrors({ 
-          form: 'An account already exists with this email. Redirecting to sign in...' 
-        });
-        setTimeout(() => {
-          window.location.href = '/login';
-        }, 1000);
-        return;
-      }
-      
-      console.log('User signed out successfully');
-      setErrors({ 
-        form: 'An account already exists with this email. Please sign in instead.' 
-      });
-      
-      // Navigate to login after a short delay
-      setTimeout(() => navigate('/login'), 1500);
-      return;
-    }
-
-    // Create new user document
-    await setDoc(userDocRef, {
-      uid: user.uid,
-      firstName: user.displayName?.split(' ')[0] || '',
-      lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
-      email: user.email,
-      phone: user.phoneNumber || '',
-      createdAt: new Date().toISOString(),
-      receiveEmails: true,
-      provider: 'google'
-    });
-
-    console.log('New user created successfully');
-    navigate('/account');
-  } catch (error: any) {
-    console.error('Google signup error:', error);
-    let errorMsg = error.message || 'Google signup failed. Please try again.';
-    
-    if (error.code === 'auth/popup-closed-by-user') {
-      errorMsg = ''; // No message for intentional popup close
-    } else if (error.code === 'auth/account-exists-with-different-credential') {
-      errorMsg = 'An account already exists with this email. Please sign in instead.';
-    }
-    
-    if (errorMsg) {
-      setErrors({ form: errorMsg });
-    }
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: '',
@@ -124,6 +21,10 @@ export const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Fix: Move these states to component scope
+  const [existingUserEmail, setExistingUserEmail] = useState('');
+  const [showExistingUserModal, setShowExistingUserModal] = useState(false);
+
   // Password strength criteria
   const passwordCriteria = [{
     label: 'At least 8 characters',
@@ -141,6 +42,101 @@ export const SignUp = () => {
     label: 'At least one special character',
     test: (pass: string) => /[^A-Za-z0-9]/.test(pass)
   }];
+
+  const handleGoogleSignup = async () => {
+    setIsSubmitting(true);
+    setErrors({});
+    try {
+      const auth = getAuth();
+      // First, check if user is already signed in
+      if (auth.currentUser) {
+        await signOut(auth);
+      }
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({
+        prompt: 'select_account',
+        login_hint: ''
+      });
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      // Debug logging
+      const additionalUserInfo = getAdditionalUserInfo(result);
+      console.log('Google signup attempt:', {
+        isNewUser: additionalUserInfo?.isNewUser,
+        userCreationTime: user.metadata.creationTime,
+        userLastSignInTime: user.metadata.lastSignInTime,
+        userId: user.uid
+      });
+      // Check multiple conditions to determine if this is an existing user
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+      // Fix: Remove non-null assertion, fallback to 0 if undefined
+      const creationTime = new Date(user.metadata.creationTime ?? 0).getTime();
+      const lastSignInTime = new Date(user.metadata.lastSignInTime ?? 0).getTime();
+      const timeDifference = Math.abs(lastSignInTime - creationTime);
+      const isExistingUser = userDoc.exists() ||
+        !additionalUserInfo?.isNewUser ||
+        timeDifference > 10000;
+      if (isExistingUser) {
+        console.log('Existing user detected, signing out...');
+        // Sign out the user immediately
+        await signOut(auth);
+        console.log('User signed out successfully');
+        // Show popup modal instead of inline error
+        setExistingUserEmail(user.email || '');
+        setShowExistingUserModal(true);
+        // Redirect after modal is shown
+        setTimeout(() => {
+          window.location.replace('/login');
+        }, 3000);
+        return;
+      }
+      // Create new user document
+      await setDoc(userDocRef, {
+        uid: user.uid,
+        firstName: user.displayName?.split(' ')[0] || '',
+        lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
+        email: user.email,
+        phone: user.phoneNumber || '',
+        createdAt: new Date().toISOString(),
+        receiveEmails: true,
+        provider: 'google'
+      });
+      console.log('New user created successfully');
+      navigate('/account');
+    } catch (error: unknown) {
+      console.error('Google signup error:', error);
+      let errorMsg = 'Google signup failed. Please try again.';
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'message' in error &&
+        typeof (error as { message?: unknown }).message === 'string'
+      ) {
+        errorMsg = (error as { message: string }).message || errorMsg;
+      }
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        typeof (error as { code?: unknown }).code === 'string'
+      ) {
+        const code = (error as { code: string }).code;
+        if (code === 'auth/popup-closed-by-user') {
+          errorMsg = '';
+        } else if (code === 'auth/account-exists-with-different-credential') {
+          errorMsg = 'An account already exists with this email. Please sign in instead.';
+        }
+      }
+      if (errorMsg) {
+        setErrors({ form: errorMsg });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // ...existing code...
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const {
       name,
@@ -224,14 +220,22 @@ export const SignUp = () => {
       });
       // Redirect to account page
       navigate('/account');
-    } catch (error: any) {
+    } catch (error: unknown) {
       let errorMsg = 'There was an error creating your account. Please try again.';
-      if (error.code === 'auth/email-already-in-use') {
-        errorMsg = 'This email is already in use.';
-      } else if (error.code === 'auth/invalid-email') {
-        errorMsg = 'Invalid email address.';
-      } else if (error.code === 'auth/weak-password') {
-        errorMsg = 'Password is too weak.';
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        typeof (error as { code?: unknown }).code === 'string'
+      ) {
+        const code = (error as { code: string }).code;
+        if (code === 'auth/email-already-in-use') {
+          errorMsg = 'This email is already in use.';
+        } else if (code === 'auth/invalid-email') {
+          errorMsg = 'Invalid email address.';
+        } else if (code === 'auth/weak-password') {
+          errorMsg = 'Password is too weak.';
+        }
       }
       setErrors({
         form: errorMsg
@@ -262,6 +266,15 @@ export const SignUp = () => {
                   </div>
                 </div>
               </div>}
+              {showExistingUserModal && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white p-6 rounded-lg max-w-md">
+      <h3 className="text-lg font-bold mb-4">Account Exists</h3>
+      <p>An account already exists with email: {existingUserEmail}</p>
+      <p className="mt-2">Redirecting to login page...</p>
+    </div>
+  </div>
+)}
             <form className="mt-6 space-y-6" onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4">
                 <div>
