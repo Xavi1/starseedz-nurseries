@@ -6,7 +6,8 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   EmailAuthProvider,
-  linkWithCredential
+  linkWithCredential,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 import { auth, db } from '../firebase';
 import { doc, setDoc, collection, getDoc } from 'firebase/firestore';
@@ -16,6 +17,11 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  // Forgot password modal state
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotStatus, setForgotStatus] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [fadeOut, setFadeOut] = useState(false);
   // Popup for linking email/password
@@ -219,7 +225,7 @@ const Login: React.FC = () => {
             />
           </div>
 
-          <div className="mb-6">
+          <div className="mb-2">
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
             <input
               type="password"
@@ -229,6 +235,19 @@ const Login: React.FC = () => {
               className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
               required
             />
+          </div>
+          <div className="mb-6 flex justify-end">
+            <button
+              type="button"
+              className="text-sm text-green-700 hover:underline focus:outline-none"
+              onClick={() => {
+                setShowForgotPassword(true);
+                setForgotEmail(email);
+                setForgotStatus('');
+              }}
+            >
+              Forgot password?
+            </button>
           </div>
 
           <button type="submit" className="w-full bg-green-700 text-white py-2 px-4 rounded hover:bg-green-800 font-medium">Log In</button>
@@ -259,6 +278,57 @@ const Login: React.FC = () => {
             </div>
           </div>
         </form>
+
+        {/* Forgot Password Modal */}
+        {showForgotPassword && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+              <h3 className="text-lg font-semibold mb-2 text-gray-900">Reset your password</h3>
+              <p className="text-gray-600 mb-4 text-sm">Enter your email address and we'll send you a password reset link.</p>
+              <input
+                type="email"
+                className="w-full border border-gray-300 rounded px-3 py-2 mb-2"
+                placeholder="Email address"
+                value={forgotEmail}
+                onChange={e => setForgotEmail(e.target.value)}
+                disabled={forgotLoading}
+              />
+              {forgotStatus && <div className={`mb-2 text-sm ${forgotStatus.startsWith('Password reset') ? 'text-green-700' : 'text-red-600'}`}>{forgotStatus}</div>}
+              <div className="flex justify-end space-x-2 mt-2">
+                <button
+                  type="button"
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  onClick={() => {
+                    setShowForgotPassword(false);
+                    setForgotStatus('');
+                  }}
+                  disabled={forgotLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-green-700 hover:bg-green-800"
+                  disabled={forgotLoading || !forgotEmail}
+                  onClick={async () => {
+                    setForgotStatus('');
+                    setForgotLoading(true);
+                    try {
+                      await sendPasswordResetEmail(auth, forgotEmail);
+                      setForgotStatus('Password reset email sent! Check your inbox.');
+                    } catch (err) {
+                      setForgotStatus('Failed to send reset email. Please check the address and try again.');
+                    } finally {
+                      setForgotLoading(false);
+                    }
+                  }}
+                >
+                  Send reset link
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </DevErrorBoundary>
   );
