@@ -18,6 +18,11 @@ const Login: React.FC = () => {
   const [error, setError] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [fadeOut, setFadeOut] = useState(false);
+  // Popup for linking email/password
+  const [showLinkPopup, setShowLinkPopup] = useState(false);
+  const [linkPassword, setLinkPassword] = useState('');
+  const [linkError, setLinkError] = useState('');
+  const [linking, setLinking] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -97,28 +102,15 @@ const Login: React.FC = () => {
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({
-      prompt: 'select_account'
-    });
+        prompt: 'select_account'
+      });
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
       await createUserDocIfMissing(user);
 
-      // Ask to link email/password login
-      const newPassword = prompt('Set a password so you can also log in with email/password (leave blank to skip):');
-      if (newPassword && newPassword.length >= 6) {
-        await linkEmailPasswordToGoogle(newPassword);
-      }
-
-      setShowSuccess(true);
-      setFadeOut(false);
-      setTimeout(() => {
-        setFadeOut(true);
-        setTimeout(() => {
-          setShowSuccess(false);
-          redirectAfterLogin();
-        }, 400);
-      }, 900);
+      // Show popup to link email/password login
+      setShowLinkPopup(true);
     } catch (error: any) {
       let errorMsg = 'Google login failed. Please try again.';
       if (error?.code === 'auth/popup-closed-by-user') {
@@ -135,6 +127,78 @@ const Login: React.FC = () => {
           <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 transition-opacity duration-400 ${fadeOut ? 'opacity-0' : 'opacity-100'}`}>
             <div className={`bg-white rounded-lg shadow-lg p-6 text-center transition-all duration-400 ${fadeOut ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
               <p className="text-green-700 text-lg font-semibold">Login successful</p>
+            </div>
+          </div>
+        )}
+
+        {/* Link email/password popup */}
+        {showLinkPopup && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+              <h3 className="text-lg font-semibold mb-2 text-gray-900">Set a password for email login</h3>
+              <p className="text-gray-600 mb-4 text-sm">Set a password so you can also log in with email/password. Leave blank to skip.</p>
+              <input
+                type="password"
+                className="w-full border border-gray-300 rounded px-3 py-2 mb-2"
+                placeholder="Password (min 6 characters)"
+                value={linkPassword}
+                onChange={e => setLinkPassword(e.target.value)}
+                minLength={6}
+                disabled={linking}
+              />
+              {linkError && <div className="text-red-600 text-sm mb-2">{linkError}</div>}
+              <div className="flex justify-end space-x-2 mt-2">
+                <button
+                  type="button"
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  onClick={() => {
+                    setShowLinkPopup(false);
+                    setLinkPassword('');
+                    setLinkError('');
+                    setShowSuccess(true);
+                    setFadeOut(false);
+                    setTimeout(() => {
+                      setFadeOut(true);
+                      setTimeout(() => {
+                        setShowSuccess(false);
+                        redirectAfterLogin();
+                      }, 400);
+                    }, 900);
+                  }}
+                  disabled={linking}
+                >
+                  Skip
+                </button>
+                <button
+                  type="button"
+                  className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-green-700 hover:bg-green-800"
+                  disabled={linking || linkPassword.length < 6}
+                  onClick={async () => {
+                    setLinkError('');
+                    setLinking(true);
+                    try {
+                      await linkEmailPasswordToGoogle(linkPassword);
+                      setShowLinkPopup(false);
+                      setLinkPassword('');
+                      setShowSuccess(true);
+                      setFadeOut(false);
+                      setTimeout(() => {
+                        setFadeOut(true);
+                        setTimeout(() => {
+                          setShowSuccess(false);
+                          redirectAfterLogin();
+                        }, 400);
+                      }, 900);
+                    } catch (err: any) {
+                      setLinkError(err?.message || 'Failed to link password.');
+                    } finally {
+                      setLinking(false);
+                    }
+                  }}
+                >
+                  Link
+                </button>
+              </div>
             </div>
           </div>
         )}
