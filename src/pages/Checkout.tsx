@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { collection, onSnapshot } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
+import { onAuthStateChanged, User } from 'firebase/auth';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronRightIcon, HomeIcon, ShoppingCartIcon, CreditCardIcon, ShieldCheckIcon, TruckIcon, CheckIcon, ChevronLeftIcon, ChevronDownIcon, AlertCircleIcon } from 'lucide-react';
 import { useCart } from '../context/CartContext';
@@ -56,12 +57,17 @@ export const Checkout = () => {
   const [selectedAddressId, setSelectedAddressId] = useState<string>('');
   const [addressesLoading, setAddressesLoading] = useState(true);
 
-  // Get current user from localStorage (since we don't have context here)
+  // Get current user from Firebase Auth
   const [userId, setUserId] = useState<string | null>(null);
   useEffect(() => {
-    // Try to get Firebase user from localStorage (if using Firebase Auth)
-    const user = JSON.parse(localStorage.getItem('firebase:authUser') || 'null');
-    if (user && user.uid) setUserId(user.uid);
+    const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
+      if (user && user.uid) {
+        setUserId(user.uid);
+      } else {
+        setUserId(null);
+      }
+    });
+    return () => unsubscribe();
   }, []);
 
   // Fetch addresses from Firestore
