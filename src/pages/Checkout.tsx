@@ -40,6 +40,9 @@ export const Checkout = () => {
   const [orderPlaced, setOrderPlaced] = useState(false);
   // Form states
   const [shippingInfo, setShippingInfo] = useState({
+    id: '',
+    name: '',
+    isDefault: false,
     firstName: '',
     lastName: '',
     email: '',
@@ -83,14 +86,19 @@ export const Checkout = () => {
     return () => unsubscribe();
   }, [userId]);
   const [billingInfo, setBillingInfo] = useState({
+    id: '',
+    name: '',
+    isDefault: false,
     firstName: '',
     lastName: '',
+    phone: '',
     address: '',
     apartment: '',
     city: '',
+    administrativeUnit: '',
     state: '',
     zipCode: '',
-    country: 'United States'
+    country: 'Trinidad and Tobago'
   });
   const [paymentInfo, setPaymentInfo] = useState({
     cardNumber: '',
@@ -150,11 +158,16 @@ export const Checkout = () => {
     if (validateShippingInfo()) {
       if (useShippingForBilling) {
         setBillingInfo({
+          id: shippingInfo.id || '',
+          name: shippingInfo.name || '',
+          isDefault: shippingInfo.isDefault || false,
           firstName: shippingInfo.firstName,
           lastName: shippingInfo.lastName,
+          phone: shippingInfo.phone || '',
           address: shippingInfo.address,
           apartment: shippingInfo.apartment,
           city: shippingInfo.city,
+          administrativeUnit: shippingInfo.administrativeUnit || '',
           state: shippingInfo.state,
           zipCode: shippingInfo.zipCode,
           country: shippingInfo.country
@@ -279,6 +292,9 @@ export const Checkout = () => {
                         if (addr) {
                           setShippingInfo(prev => ({
                             ...prev,
+                            id: addr.id,
+                            name: addr.name,
+                            isDefault: addr.isDefault,
                             firstName: addr.firstName,
                             lastName: addr.lastName,
                             phone: addr.phone,
