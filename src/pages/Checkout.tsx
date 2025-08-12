@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronRightIcon, HomeIcon, ShoppingCartIcon, CreditCardIcon, ShieldCheckIcon, TruckIcon, CheckIcon, ChevronLeftIcon, ChevronDownIcon, AlertCircleIcon } from 'lucide-react';
 import { useCart } from '../context/CartContext';
@@ -14,6 +16,20 @@ interface CartItem {
 }
 // Checkout steps
 type CheckoutStep = 'shipping' | 'payment' | 'review';
+// Address type (from Account.tsx)
+type Address = {
+  id: string;
+  name: string;
+  isDefault: boolean;
+  firstName: string;
+  lastName: string;
+  address: string;
+  apartment: string;
+  city: string;
+  administrativeUnit: string;
+  phone: string;
+};
+
 export const Checkout = () => {
   const { cart } = useCart();
   const navigate = useNavigate();
@@ -30,10 +46,36 @@ export const Checkout = () => {
     address: '',
     apartment: '',
     city: '',
+    administrativeUnit: '',
     state: '',
     zipCode: '',
-    country: 'United States'
+    country: 'Trinidad and Tobago'
   });
+  // Saved addresses
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string>('');
+  const [addressesLoading, setAddressesLoading] = useState(true);
+
+  // Get current user from localStorage (since we don't have context here)
+  const [userId, setUserId] = useState<string | null>(null);
+  useEffect(() => {
+    // Try to get Firebase user from localStorage (if using Firebase Auth)
+    const user = JSON.parse(localStorage.getItem('firebase:authUser') || 'null');
+    if (user && user.uid) setUserId(user.uid);
+  }, []);
+
+  // Fetch addresses from Firestore
+  useEffect(() => {
+    if (!userId) return;
+    setAddressesLoading(true);
+    const q = collection(db, 'users', userId, 'addresses');
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map(docSnap => ({ ...docSnap.data(), id: docSnap.id })) as Address[];
+      setAddresses(data);
+      setAddressesLoading(false);
+    });
+    return () => unsubscribe();
+  }, [userId]);
   const [billingInfo, setBillingInfo] = useState({
     firstName: '',
     lastName: '',
@@ -213,6 +255,45 @@ export const Checkout = () => {
                 <h2 className="text-lg font-medium text-gray-900 mb-4">
                   Shipping Information
                 </h2>
+                {/* Saved Address Selector */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Use a saved address</label>
+                  {addressesLoading ? (
+                    <div className="text-gray-500 text-sm">Loading addresses...</div>
+                  ) : addresses.length === 0 ? (
+                    <div className="text-gray-500 text-sm">No saved addresses found. Add one in your <Link to="/account" className="text-green-700 underline">Account</Link>.</div>
+                  ) : (
+                    <select
+                      className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                      value={selectedAddressId}
+                      onChange={e => {
+                        const id = e.target.value;
+                        setSelectedAddressId(id);
+                        const addr = addresses.find(a => a.id === id);
+                        if (addr) {
+                          setShippingInfo(prev => ({
+                            ...prev,
+                            firstName: addr.firstName,
+                            lastName: addr.lastName,
+                            phone: addr.phone,
+                            address: addr.address,
+                            apartment: addr.apartment,
+                            city: addr.city,
+                            administrativeUnit: addr.administrativeUnit,
+                            // Keep email, state, zipCode, country as is (user may want to edit)
+                          }));
+                        }
+                      }}
+                    >
+                      <option value="">Select a saved address...</option>
+                      {addresses.map(addr => (
+                        <option key={addr.id} value={addr.id}>
+                          {addr.name} ({addr.address}, {addr.city}{addr.administrativeUnit ? ', ' + addr.administrativeUnit : ''})
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
                 <form onSubmit={handleShippingSubmit}>
                   <div className="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4">
                     <div>
@@ -259,6 +340,27 @@ export const Checkout = () => {
                       {shippingErrors.address && <p className="mt-1 text-sm text-red-600">
                           {shippingErrors.address}
                         </p>}
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label htmlFor="apartment" className="block text-sm font-medium text-gray-700">
+                        Apartment, suite, etc. (optional)
+                      </label>
+                      <input type="text" id="apartment" name="apartment" value={shippingInfo.apartment} onChange={e => handleInputChange(e, setShippingInfo)} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" />
+                    </div>
+                    <div>
+                      <label htmlFor="city" className="block text-sm font-medium text-gray-700">
+                        City
+                      </label>
+                      <input type="text" id="city" name="city" value={shippingInfo.city} onChange={e => handleInputChange(e, setShippingInfo)} className={`mt-1 block w-full border ${shippingErrors.city ? 'border-red-300' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm`} />
+                      {shippingErrors.city && <p className="mt-1 text-sm text-red-600">
+                          {shippingErrors.city}
+                        </p>}
+                    </div>
+                    <div>
+                      <label htmlFor="administrativeUnit" className="block text-sm font-medium text-gray-700">
+                        Administrative Unit
+                      </label>
+                      <input type="text" id="administrativeUnit" name="administrativeUnit" value={shippingInfo.administrativeUnit} onChange={e => handleInputChange(e, setShippingInfo)} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" />
                     </div>
                     <div className="sm:col-span-2">
                       <label htmlFor="apartment" className="block text-sm font-medium text-gray-700">
