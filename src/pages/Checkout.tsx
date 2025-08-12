@@ -51,7 +51,6 @@ export const Checkout = () => {
     apartment: '',
     city: '',
     administrativeUnit: '',
-    state: '',
     zipCode: '',
     country: 'Trinidad and Tobago'
   });
@@ -96,7 +95,6 @@ export const Checkout = () => {
     apartment: '',
     city: '',
     administrativeUnit: '',
-    state: '',
     zipCode: '',
     country: 'Trinidad and Tobago'
   });
@@ -127,7 +125,7 @@ export const Checkout = () => {
     if (!shippingInfo.phone) errors.phone = 'Phone number is required';
     if (!shippingInfo.address) errors.address = 'Address is required';
     if (!shippingInfo.city) errors.city = 'City is required';
-    if (!shippingInfo.state) errors.state = 'State is required';
+  // removed state/province validation
     if (!shippingInfo.zipCode) errors.zipCode = 'ZIP code is required';
     setShippingErrors(errors);
     return Object.keys(errors).length === 0;
@@ -168,7 +166,6 @@ export const Checkout = () => {
           apartment: shippingInfo.apartment,
           city: shippingInfo.city,
           administrativeUnit: shippingInfo.administrativeUnit || '',
-          state: shippingInfo.state,
           zipCode: shippingInfo.zipCode,
           country: shippingInfo.country
         });
@@ -399,15 +396,7 @@ export const Checkout = () => {
                           {shippingErrors.city}
                         </p>}
                     </div>
-                    <div>
-                      <label htmlFor="state" className="block text-sm font-medium text-gray-700">
-                        State / Province
-                      </label>
-                      <input type="text" id="state" name="state" value={shippingInfo.state} onChange={e => handleInputChange(e, setShippingInfo)} className={`mt-1 block w-full border ${shippingErrors.state ? 'border-red-300' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm`} />
-                      {shippingErrors.state && <p className="mt-1 text-sm text-red-600">
-                          {shippingErrors.state}
-                        </p>}
-                    </div>
+                    {/* State/Province removed */}
                     <div>
                       <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700">
                         ZIP / Postal code
@@ -539,19 +528,7 @@ export const Checkout = () => {
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" 
           />
         </div>
-        <div>
-          <label htmlFor="billingState" className="block text-sm font-medium text-gray-700">
-            State / Province
-          </label>
-          <input 
-            type="text" 
-            id="billingState" 
-            name="state" 
-            value={billingInfo.state} 
-            onChange={e => handleInputChange(e, setBillingInfo)} 
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" 
-          />
-        </div>
+  {/* State/Province removed */}
         <div>
           <label htmlFor="billingZipCode" className="block text-sm font-medium text-gray-700">
             ZIP / Postal code
@@ -748,8 +725,7 @@ export const Checkout = () => {
                     <p>{shippingInfo.address}</p>
                     {shippingInfo.apartment && <p>{shippingInfo.apartment}</p>}
                     <p>
-                      {shippingInfo.city}, {shippingInfo.state}{' '}
-                      {shippingInfo.zipCode}
+                      {shippingInfo.city}{shippingInfo.administrativeUnit ? ', ' + shippingInfo.administrativeUnit : ''} {shippingInfo.zipCode}
                     </p>
                     <p>{shippingInfo.country}</p>
                     <p className="mt-2">{shippingInfo.email}</p>
