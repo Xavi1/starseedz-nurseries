@@ -407,11 +407,12 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
   useEffect(() => {
     if (!currentUser) return;
     const ordersRef = collection(db, 'orders');
-    const q = query(
-      ordersRef,
-      where('userId', '==', `/users/${currentUser.uid}`),
-      orderBy('total', 'desc') // You can change to orderBy('createdAt', 'desc') if you add timestamps
-    );
+      // Fix: userId should be just currentUser.uid, not /users/uid
+      const q = query(
+        ordersRef,
+        where('userId', '==', currentUser.uid),
+        orderBy('createdAt', 'desc') // Prefer ordering by createdAt if available
+      );
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(docSnap => ({ ...docSnap.data(), id: docSnap.id })) as Order[];
       setOrders(data);

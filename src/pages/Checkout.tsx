@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { collection, onSnapshot, addDoc, doc } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronRightIcon, HomeIcon, ShoppingCartIcon, CreditCardIcon, ShieldCheckIcon, TruckIcon, CheckIcon, ChevronLeftIcon, ChevronDownIcon, AlertCircleIcon } from 'lucide-react';
-import { useCart } from '../context/CartContext';
+import { useCart  } from '../context/CartContext';
 import { CheckoutSteps } from '../components/CheckoutSteps';
 // Define cart item type (same as in Cart.tsx)
 interface CartItem {
@@ -32,7 +32,7 @@ type Address = {
 };
 
 export const Checkout = () => {
-  const { cart } = useCart();
+  const { cart, resetCartState } = useCart();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState<CheckoutStep>('shipping');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -181,32 +181,39 @@ export const Checkout = () => {
       window.scrollTo(0, 0);
     }
   };
-  const handlePlaceOrder = async () => {
-    setLoading(true);
-    try {
-      // Build order data
-      const orderItems = cart.map(item => ({
-        productRef: `/products/${item.product.id}`,
-        name: item.product.name,
-        price: item.product.price,
-        quantity: item.quantity
-      }));
-      const orderData = {
-        items: orderItems,
-        status: 'pending',
-        total: total,
-        userId: `/users/${userId}`
-      };
-      // Save to Firestore
-      await addDoc(collection(db, 'orders'), orderData);
-      setOrderPlaced(true);
-    } catch (err) {
-      // Optionally show error to user
-      alert('Failed to place order. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+ const handlePlaceOrder = async () => {
+  if (!auth.currentUser) {
+    throw new Error("You must be logged in to place an order.");
+  }
+
+  try {
+    await addDoc(collection(db, "orders"), {
+      userId: auth.currentUser.uid, // ✅ matches Account.tsx query
+      createdAt: serverTimestamp(), // ✅ needed for orderBy
+      items: cartItems.map(item => ({
+        productId: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+      })),
+      status: "pending", // start order status
+      total: cartItems.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
+      ),
+    });
+
+    // Optional: clear cart or navigate to confirmation
+    // Fix: Use correct cart clearing function from context
+  // Use correct cart clearing function from context
+  resetCartState();
+    navigate("/account"); // or wherever your order history is
+
+  } catch (error) {
+    console.error("Error placing order: ", error);
+    alert("There was an issue placing your order. Please try again.");
+  }
+};
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>, setter: React.Dispatch<React.SetStateAction<any>>) => {
     const {
       name,

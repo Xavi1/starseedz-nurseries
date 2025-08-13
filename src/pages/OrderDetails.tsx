@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 import { Link, useParams } from 'react-router-dom';
 import { ChevronRightIcon, HomeIcon, PackageIcon, TruckIcon, CreditCardIcon, CheckCircleIcon, ArrowLeftIcon, PrinterIcon, ShoppingCartIcon } from 'lucide-react';
 // Define types
@@ -50,145 +52,6 @@ interface Order {
   shipping: number;
   tax: number;
 }
-// Mock order data
-const mockOrders: Record<string, Order> = {
-  '2023-1542': {
-    id: '2023-1542',
-    date: 'June 15, 2023',
-    total: 124.97,
-    status: 'Delivered',
-    items: [{
-      id: 1,
-      name: 'Monstera Deliciosa',
-      quantity: 1,
-      price: 39.99,
-      image: 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'
-    }, {
-      id: 3,
-      name: 'Fiddle Leaf Fig',
-      quantity: 1,
-      price: 49.99,
-      image: 'https://images.unsplash.com/photo-1616500163246-0ffbb872f4de?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'
-    }, {
-      id: 8,
-      name: 'Gardening Tool Set',
-      quantity: 1,
-      price: 34.99,
-      image: 'https://images.unsplash.com/photo-1585513553738-84971d9c2f8d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'
-    }],
-    shippingAddress: {
-      firstName: 'John',
-      lastName: 'Doe',
-      address: '123 Green Street',
-      apartment: 'Apt 4B',
-      city: 'Portland',
-      state: 'OR',
-      zipCode: '97201',
-      country: 'United States'
-    },
-    billingAddress: {
-      firstName: 'John',
-      lastName: 'Doe',
-      address: '123 Green Street',
-      apartment: 'Apt 4B',
-      city: 'Portland',
-      state: 'OR',
-      zipCode: '97201',
-      country: 'United States'
-    },
-    paymentMethod: {
-      type: 'Visa',
-      last4: '4242'
-    },
-    shippingMethod: 'Standard Shipping (3-5 business days)',
-    trackingNumber: 'USP12345678901234',
-    timeline: [{
-      status: 'Ordered',
-      date: 'June 15, 2023, 10:30 AM',
-      description: 'Order placed and payment confirmed'
-    }, {
-      status: 'Processing',
-      date: 'June 15, 2023, 2:45 PM',
-      description: 'Order is being prepared for shipping'
-    }, {
-      status: 'Shipped',
-      date: 'June 16, 2023, 11:20 AM',
-      description: 'Order has been shipped via USPS'
-    }, {
-      status: 'Delivered',
-      date: 'June 18, 2023, 3:15 PM',
-      description: 'Package was delivered'
-    }],
-    subtotal: 124.97,
-    shipping: 0,
-    tax: 8.75
-  },
-  '2023-0978': {
-    id: '2023-0978',
-    date: 'April 23, 2023',
-    total: 89.98,
-    status: 'Delivered',
-    items: [{
-      id: 2,
-      name: 'Snake Plant',
-      quantity: 2,
-      price: 29.99,
-      image: 'https://images.unsplash.com/photo-1572969057162-d4ef8e6e3c5a?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'
-    }, {
-      id: 7,
-      name: 'Organic Plant Food',
-      quantity: 1,
-      price: 29.99,
-      image: 'https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'
-    }],
-    shippingAddress: {
-      firstName: 'John',
-      lastName: 'Doe',
-      address: '123 Green Street',
-      apartment: 'Apt 4B',
-      city: 'Portland',
-      state: 'OR',
-      zipCode: '97201',
-      country: 'United States'
-    },
-    billingAddress: {
-      firstName: 'John',
-      lastName: 'Doe',
-      address: '123 Green Street',
-      apartment: 'Apt 4B',
-      city: 'Portland',
-      state: 'OR',
-      zipCode: '97201',
-      country: 'United States'
-    },
-    paymentMethod: {
-      type: 'Mastercard',
-      last4: '8888'
-    },
-    shippingMethod: 'Express Shipping (1-2 business days)',
-    trackingNumber: 'FDX98765432109876',
-    timeline: [{
-      status: 'Ordered',
-      date: 'April 23, 2023, 9:15 AM',
-      description: 'Order placed and payment confirmed'
-    }, {
-      status: 'Processing',
-      date: 'April 23, 2023, 11:30 AM',
-      description: 'Order is being prepared for shipping'
-    }, {
-      status: 'Shipped',
-      date: 'April 24, 2023, 8:45 AM',
-      description: 'Order has been shipped via FedEx'
-    }, {
-      status: 'Delivered',
-      date: 'April 25, 2023, 2:20 PM',
-      description: 'Package was delivered'
-    }],
-    subtotal: 89.97,
-    shipping: 14.99,
-    tax: 6.3
-  }
-};
 export const OrderDetails = () => {
   const {
     orderId
@@ -198,15 +61,52 @@ export const OrderDetails = () => {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
-    // Simulate API call to get order details
-    const fetchOrderDetails = () => {
+    const fetchOrderDetails = async () => {
       setLoading(true);
-      setTimeout(() => {
-        if (orderId && mockOrders[orderId]) {
-          setOrder(mockOrders[orderId]);
-        }
+      if (!orderId) {
+        setOrder(null);
         setLoading(false);
-      }, 500);
+        return;
+      }
+      try {
+        const orderRef = doc(db, 'orders', orderId);
+        const orderSnap = await getDoc(orderRef);
+        if (orderSnap.exists()) {
+          const data = orderSnap.data();
+          // Map Firestore fields to UI fields
+          setOrder({
+            id: orderId,
+            date: data.date || '',
+            total: data.total || 0,
+            status: data.status || '',
+            items: (data.items || []).map((item: any, idx: number) => ({
+              id: idx,
+              name: item.name,
+              quantity: item.quantity,
+              price: item.price,
+              image: item.image || ''
+            })),
+            shippingAddress: data.shippingAddress || {
+              firstName: '', lastName: '', address: '', apartment: '', city: '', zipCode: '', country: ''
+            },
+            billingAddress: data.billingAddress || {
+              firstName: '', lastName: '', address: '', apartment: '', city: '', zipCode: '', country: ''
+            },
+            paymentMethod: data.paymentMethod || { type: '', last4: '' },
+            shippingMethod: data.shippingMethod || '',
+            trackingNumber: data.trackingNumber || '',
+            timeline: data.timeline || [],
+            subtotal: data.subtotal || 0,
+            shipping: data.shipping || 0,
+            tax: data.tax || 0
+          });
+        } else {
+          setOrder(null);
+        }
+      } catch (err) {
+        setOrder(null);
+      }
+      setLoading(false);
     };
     fetchOrderDetails();
   }, [orderId]);
