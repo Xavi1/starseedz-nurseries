@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, doc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { Link, useNavigate } from 'react-router-dom';
@@ -181,13 +181,31 @@ export const Checkout = () => {
       window.scrollTo(0, 0);
     }
   };
-  const handlePlaceOrder = () => {
-    // In a real app, this would submit the order to a backend API
+  const handlePlaceOrder = async () => {
     setLoading(true);
-    setTimeout(() => {
+    try {
+      // Build order data
+      const orderItems = cart.map(item => ({
+        productRef: `/products/${item.product.id}`,
+        name: item.product.name,
+        price: item.product.price,
+        quantity: item.quantity
+      }));
+      const orderData = {
+        items: orderItems,
+        status: 'pending',
+        total: total,
+        userId: `/users/${userId}`
+      };
+      // Save to Firestore
+      await addDoc(collection(db, 'orders'), orderData);
       setOrderPlaced(true);
+    } catch (err) {
+      // Optionally show error to user
+      alert('Failed to place order. Please try again.');
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
   };
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>, setter: React.Dispatch<React.SetStateAction<any>>) => {
     const {
