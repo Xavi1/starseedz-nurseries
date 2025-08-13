@@ -11,6 +11,7 @@ function Modal({ open, onClose, children }: { open: boolean; onClose: () => void
   );
 }
 import React, { useState, useEffect } from 'react';
+import { query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserIcon, PackageIcon, CreditCardIcon, HomeIcon, BellIcon, LogOutIcon, ChevronRightIcon, PencilIcon, PlusIcon, EyeIcon, MapPinIcon, ShieldIcon, ChevronDownIcon, HeartIcon } from 'lucide-react';
 import { useWishlist } from '../context/WishlistContext';
@@ -21,46 +22,21 @@ import { db } from '../firebase';
 // Remove duplicate import of doc, setDoc
 import { signOut, onAuthStateChanged, User } from 'firebase/auth';
 
-// Mock order data
-const mockOrders = [{
-  id: '2023-1542',
-  date: 'June 15, 2023',
-  total: 124.97,
-  status: 'Delivered',
-  items: [{
-    id: 1,
-    name: 'Monstera Deliciosa',
-    quantity: 1,
-    price: 39.99
-  }, {
-    id: 3,
-    name: 'Fiddle Leaf Fig',
-    quantity: 1,
-    price: 49.99
-  }, {
-    id: 8,
-    name: 'Gardening Tool Set',
-    quantity: 1,
-    price: 34.99
-  }]
-}, {
-  id: '2023-0978',
-  date: 'April 23, 2023',
-  total: 89.98,
-  status: 'Delivered',
-  items: [{
-    id: 2,
-    name: 'Snake Plant',
-    quantity: 2,
-    price: 29.99
-  }, {
-    id: 7,
-    name: 'Organic Plant Food',
-    quantity: 1,
-    price: 29.99
-  }]
-}];
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, onSnapshot, setDoc } from 'firebase/firestore';
+// Orders state
+type Order = {
+  id: string;
+  items: Array<{
+    productRef: string;
+    name: string;
+    price: number;
+    quantity: number;
+  }>;
+  status: string;
+  total: number;
+  userId: string;
+  createdAt?: any;
+};
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, setDoc } from 'firebase/firestore';
 // Mock payment methods
 const mockPaymentMethods = [{
   id: 1,
@@ -88,11 +64,12 @@ type PaymentMethod = {
   expiry: string;
   name: string;
 };
+
 export const Account = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(mockPaymentMethods);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-
   // Payment form validation state
 const [paymentErrors, setPaymentErrors] = useState({
   cardNumber: '',
@@ -426,6 +403,21 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
   });
 
   // Fetch user profile from Firestore on login, or create if not found
+  // Fetch user's orders from Firestore
+  useEffect(() => {
+    if (!currentUser) return;
+    const ordersRef = collection(db, 'orders');
+    const q = query(
+      ordersRef,
+      where('userId', '==', `/users/${currentUser.uid}`),
+      orderBy('total', 'desc') // You can change to orderBy('createdAt', 'desc') if you add timestamps
+    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map(docSnap => ({ ...docSnap.data(), id: docSnap.id })) as Order[];
+      setOrders(data);
+    });
+    return () => unsubscribe();
+  }, [currentUser]);
   useEffect(() => {
     // Only run on mount or when currentUser changes
     const fetchOrCreateUserProfile = async () => {
@@ -1019,7 +1011,7 @@ const handleLogout = async () => {
                       Order History
                     </h2>
                   </div>
-                  {mockOrders.length === 0 ? <div className="text-center py-12 bg-gray-50 rounded-md">
+                  {orders.length === 0 ? <div className="text-center py-12 bg-gray-50 rounded-md">
                       <PackageIcon className="mx-auto h-12 w-12 text-gray-400" />
                       <h3 className="mt-2 text-lg font-medium text-gray-900">
                         No orders yet
@@ -1035,7 +1027,7 @@ const handleLogout = async () => {
                       </div>
                     </div> : <div className="bg-white border border-gray-200 rounded-md overflow-hidden">
                       <ul className="divide-y divide-gray-200">
-                        {mockOrders.map(order => <li key={order.id}>
+                        {orders.map(order => <li key={order.id}>
                             <div className="px-4 py-4 sm:px-6">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center">
@@ -1060,7 +1052,7 @@ const handleLogout = async () => {
                               <div className="mt-2 sm:flex sm:justify-between">
                                 <div className="sm:flex">
                                   <p className="flex items-center text-sm text-gray-500">
-                                    Placed on {order.date}
+                                    {/* If you add createdAt, format date here */}
                                   </p>
                                 </div>
                                 <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
@@ -1080,7 +1072,7 @@ const handleLogout = async () => {
                                   Order Items
                                 </h4>
                                 <ul className="divide-y divide-gray-200">
-                                  {order.items.map(item => <li key={item.id} className="py-3 flex justify-between">
+                                  {order.items.map((item, idx) => <li key={idx} className="py-3 flex justify-between">
                                       <div className="flex items-center">
                                         <p className="text-sm font-medium text-gray-900">
                                           {item.name}
