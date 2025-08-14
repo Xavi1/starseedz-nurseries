@@ -217,7 +217,19 @@ useEffect(() => {
   };
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const resetCartState = () => setCart([]);
+  const resetCartState = useCallback(async () => {
+    setCart([]);
+    const storageKey = getStorageKey();
+    localStorage.setItem(storageKey, JSON.stringify([]));
+    if (isOnline && currentUserId) {
+      const userCartRef = doc(db, 'users', currentUserId, 'cart', 'active');
+      await setDoc(userCartRef, {
+        items: [],
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      lastSyncedCartRef.current = [];
+    }
+  }, [currentUserId, isOnline, getStorageKey]);
 
   return (
   <CartContext.Provider

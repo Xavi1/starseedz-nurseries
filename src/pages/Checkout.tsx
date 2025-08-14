@@ -258,6 +258,9 @@ const handlePlaceOrder = async () => {
       id: orderRef.id
     });
 
+    // Clear the cart after successful order placement
+    resetCartState();
+
     // Clear cart and navigate to confirmation
     resetCartState();
     setOrderPlaced(true);
