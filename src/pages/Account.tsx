@@ -25,16 +25,50 @@ import { signOut, onAuthStateChanged, User } from 'firebase/auth';
 // Orders state
 type Order = {
   id: string;
+  date: string;
+  total: number;
+  status: string;
   items: Array<{
-    productRef: string;
+    id: number;
     name: string;
     price: number;
     quantity: number;
+    image?: string;
   }>;
-  status: string;
-  total: number;
-  userId: string;
-  createdAt?: any;
+  shippingAddress: {
+    firstName: string;
+    lastName: string;
+    address: string;
+    apartment?: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+  billingAddress: {
+    firstName: string;
+    lastName: string;
+    address: string;
+    apartment?: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+  paymentMethod: {
+    type: string;
+    last4: string;
+  };
+  shippingMethod: string;
+  trackingNumber?: string;
+  timeline: Array<{
+    status: string;
+    date: string;
+    description: string;
+  }>;
+  subtotal: number;
+  shipping: number;
+  tax: number;
 };
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, setDoc } from 'firebase/firestore';
 // Mock payment methods
@@ -404,21 +438,23 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
 
   // Fetch user profile from Firestore on login, or create if not found
   // Fetch user's orders from Firestore
-  useEffect(() => {
-    if (!currentUser) return;
-    const ordersRef = collection(db, 'orders');
-      // Fix: userId should be just currentUser.uid, not /users/uid
-      const q = query(
-        ordersRef,
-        where('userId', '==', currentUser.uid),
-        orderBy('createdAt', 'desc') // Prefer ordering by createdAt if available
-      );
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(docSnap => ({ ...docSnap.data(), id: docSnap.id })) as Order[];
-      setOrders(data);
-    });
-    return () => unsubscribe();
-  }, [currentUser]);
+useEffect(() => {
+  if (!currentUser) return;
+  const ordersRef = collection(db, 'orders');
+  const q = query(
+    ordersRef,
+    where('userId', '==', currentUser.uid),
+    orderBy('date', 'desc')
+  );
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const data = snapshot.docs.map(docSnap => ({ 
+      id: docSnap.id,
+      ...docSnap.data() 
+    })) as Order[];
+    setOrders(data);
+  });
+  return () => unsubscribe();
+}, [currentUser]);
   useEffect(() => {
     // Only run on mount or when currentUser changes
     const fetchOrCreateUserProfile = async () => {
@@ -1006,92 +1042,186 @@ const handleLogout = async () => {
   </div>
 </Modal>
               {/* Orders Tab */}
-              {activeTab === 'orders' && <div className="p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-medium text-gray-900">
-                      Order History
-                    </h2>
-                  </div>
-                  {orders.length === 0 ? <div className="text-center py-12 bg-gray-50 rounded-md">
-                      <PackageIcon className="mx-auto h-12 w-12 text-gray-400" />
-                      <h3 className="mt-2 text-lg font-medium text-gray-900">
-                        No orders yet
-                      </h3>
-                      <p className="mt-1 text-sm text-gray-500">
-                        Your order history will appear here once you make a
-                        purchase.
+              {activeTab === 'orders' && (
+  <div className="p-6">
+    <div className="flex items-center justify-between mb-6">
+      <h2 className="text-xl font-medium text-gray-900">Order History</h2>
+    </div>
+    {orders.length === 0 ? (
+      <div className="text-center py-12 bg-gray-50 rounded-md">
+        <PackageIcon className="mx-auto h-12 w-12 text-gray-400" />
+        <h3 className="mt-2 text-lg font-medium text-gray-900">No orders yet</h3>
+        <p className="mt-1 text-sm text-gray-500">
+          Your order history will appear here once you make a purchase.
+        </p>
+        <div className="mt-6">
+          <Link 
+            to="/shop" 
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-700 hover:bg-green-800"
+          >
+            Start Shopping
+          </Link>
+        </div>
+      </div>
+    ) : (
+      <div className="bg-white border border-gray-200 rounded-md overflow-hidden">
+        <ul className="divide-y divide-gray-200">
+          {orders.map(order => (
+            <li key={order.id}>
+              <div className="px-4 py-4 sm:px-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <p className="text-sm font-medium text-green-700 truncate">
+                      Order #{order.id}
+                    </p>
+                    <div className="ml-2 flex-shrink-0 flex">
+                      <p className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                        order.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {order.status}
                       </p>
-                      <div className="mt-6">
-                        <Link to="/shop" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-700 hover:bg-green-800">
-                          Start Shopping
-                        </Link>
-                      </div>
-                    </div> : <div className="bg-white border border-gray-200 rounded-md overflow-hidden">
-                      <ul className="divide-y divide-gray-200">
-                        {orders.map(order => <li key={order.id}>
-                            <div className="px-4 py-4 sm:px-6">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center">
-                                  <p className="text-sm font-medium text-green-700 truncate">
-                                    Order #{order.id}
-                                  </p>
-                                  <div className="ml-2 flex-shrink-0 flex">
-                                    <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                      {order.status}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="flex items-center">
-                                  <p className="text-sm font-medium text-gray-900">
-                                    ${order.total.toFixed(2)}
-                                  </p>
-                                  <button onClick={() => toggleOrderDetails(order.id)} className="ml-4 flex items-center text-sm text-gray-500 hover:text-gray-700">
-                                    {expandedOrder === order.id ? <ChevronDownIcon className="h-5 w-5" /> : <ChevronRightIcon className="h-5 w-5" />}
-                                  </button>
-                                </div>
-                              </div>
-                              <div className="mt-2 sm:flex sm:justify-between">
-                                <div className="sm:flex">
-                                  <p className="flex items-center text-sm text-gray-500">
-                                    {/* If you add createdAt, format date here */}
-                                  </p>
-                                </div>
-                                <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                                  <Link
-                                    to={`/order-details`}
-                                    className="flex items-center text-green-700 hover:text-green-800"
-                                  >
-                                    <EyeIcon className="h-4 w-4 mr-1" />
-                                    View Order Details
-                                  </Link>
-                                </div>
-                              </div>
-                            </div>
-                            {/* Expanded Order Details */}
-                            {expandedOrder === order.id && <div className="px-4 py-4 bg-gray-50 border-t border-gray-200 sm:px-6">
-                                <h4 className="text-sm font-medium text-gray-900 mb-3">
-                                  Order Items
-                                </h4>
-                                <ul className="divide-y divide-gray-200">
-                                  {order.items.map((item, idx) => <li key={idx} className="py-3 flex justify-between">
-                                      <div className="flex items-center">
-                                        <p className="text-sm font-medium text-gray-900">
-                                          {item.name}
-                                        </p>
-                                        <p className="ml-2 text-sm text-gray-500">
-                                          x{item.quantity}
-                                        </p>
-                                      </div>
-                                      <p className="text-sm font-medium text-gray-900">
-                                        ${item.price.toFixed(2)}
-                                      </p>
-                                    </li>)}
-                                </ul>
-                              </div>}
-                          </li>)}
-                      </ul>
-                    </div>}
-                </div>}
+                    </div>
+                  </div>
+                  <div className="flex items-center">
+                    <p className="text-sm font-medium text-gray-900">
+                      ${order.total.toFixed(2)}
+                    </p>
+                    <button 
+                      onClick={() => toggleOrderDetails(order.id)}
+                      className="ml-4 flex items-center text-sm text-gray-500 hover:text-gray-700"
+                    >
+                      {expandedOrder === order.id ? (
+                        <ChevronDownIcon className="h-5 w-5" />
+                      ) : (
+                        <ChevronRightIcon className="h-5 w-5" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+                <div className="mt-2 sm:flex sm:justify-between">
+                  <div className="sm:flex">
+                    <p className="flex items-center text-sm text-gray-500">
+                      Placed on {new Date(order.date).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                    <Link
+                      to={`/order-details/${order.id}`}
+                      className="flex items-center text-green-700 hover:text-green-800"
+                    >
+                      <EyeIcon className="h-4 w-4 mr-1" />
+                      View Order Details
+                    </Link>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Expanded Order Details */}
+              {expandedOrder === order.id && (
+                <div className="px-4 py-4 bg-gray-50 border-t border-gray-200 sm:px-6">
+                  <h4 className="text-sm font-medium text-gray-900 mb-3">
+                    Order Summary
+                  </h4>
+                  <ul className="divide-y divide-gray-200">
+                    {order.items.map((item, idx) => (
+                      <li key={idx} className="py-3 flex">
+                        <div className="flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border border-gray-200">
+                          {item.image && (
+                            <img 
+                              src={item.image} 
+                              alt={item.name} 
+                              className="w-full h-full object-center object-cover"
+                            />
+                          )}
+                        </div>
+                        <div className="ml-4 flex-1 flex flex-col">
+                          <div className="flex justify-between">
+                            <h4 className="text-sm font-medium text-gray-900">
+                              {item.name}
+                            </h4>
+                            <p className="text-sm font-medium text-gray-900">
+                              ${(item.price * item.quantity).toFixed(2)}
+                            </p>
+                          </div>
+                          <p className="text-sm text-gray-500">
+                            Qty: {item.quantity}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            ${item.price.toFixed(2)} each
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                  
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <div className="flex justify-between">
+                      <p className="text-sm text-gray-600">Subtotal</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        ${order.subtotal.toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="flex justify-between mt-2">
+                      <p className="text-sm text-gray-600">Shipping</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        ${order.shipping.toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="flex justify-between mt-2">
+                      <p className="text-sm text-gray-600">Tax</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        ${order.tax.toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="flex justify-between mt-2 pt-2 border-t border-gray-200">
+                      <p className="text-sm font-medium text-gray-900">Total</p>
+                      <p className="text-sm font-bold text-green-700">
+                        ${order.total.toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <h4 className="text-sm font-medium text-gray-900 mb-2">
+                      Shipping Information
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      {order.shippingAddress.firstName} {order.shippingAddress.lastName}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {order.shippingAddress.address}
+                    </p>
+                    {order.shippingAddress.apartment && (
+                      <p className="text-sm text-gray-600">
+                        {order.shippingAddress.apartment}
+                      </p>
+                    )}
+                    <p className="text-sm text-gray-600">
+                      {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zipCode}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {order.shippingAddress.country}
+                    </p>
+                    <p className="text-sm text-gray-600 mt-2">
+                      <span className="font-medium">Shipping Method:</span> {order.shippingMethod}
+                    </p>
+                    {order.trackingNumber && (
+                      <p className="text-sm text-gray-600">
+                        <span className="font-medium">Tracking #:</span> {order.trackingNumber}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+  </div>
+)}
               {/* My Wishlist Tab*/}
               {activeTab === 'wishlist' && <div className="p-6">
     <div className="flex items-center justify-between mb-6">
