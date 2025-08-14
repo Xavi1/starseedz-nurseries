@@ -58,7 +58,7 @@ export function App() {
                 <Route path="/account"  element={<Account />} />
                 <Route path="/signup"  element={<SignUp />} />
                 <Route path="/login" element={<Login />} />
-                <Route path="/order-details" element={<OrderDetails />} />
+                <Route path="/order-details/:orderId" element={<OrderDetails />} />
               </Routes>
             </main>
             <Footer />
