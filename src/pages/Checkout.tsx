@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, onSnapshot, addDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { Link, useNavigate } from 'react-router-dom';
@@ -181,34 +181,87 @@ export const Checkout = () => {
       window.scrollTo(0, 0);
     }
   };
- const handlePlaceOrder = async () => {
+const handlePlaceOrder = async () => {
   if (!auth.currentUser) {
     throw new Error("You must be logged in to place an order.");
   }
 
   try {
-    await addDoc(collection(db, "orders"), {
-      userId: auth.currentUser.uid, // ✅ matches Account.tsx query
-      createdAt: serverTimestamp(), // ✅ needed for orderBy
-      items: cartItems.map(item => ({
-        productId: item.id,
-        name: item.name,
-        price: item.price,
+    // Create the order document with the complete structure
+    const orderRef = await addDoc(collection(db, "orders"), {
+      id: "", // Will be filled with the document ID after creation
+      userId: auth.currentUser.uid,
+      date: new Date().toISOString(),
+      total: total,
+      status: "pending",
+      items: cart.map(item => ({
+        id: item.product.id,
+        name: item.product.name,
+        price: item.product.price,
         quantity: item.quantity,
+        image: item.product.image,
+        category: item.product.category
       })),
-      status: "pending", // start order status
-      total: cartItems.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0
-      ),
+      shippingAddress: {
+        firstName: shippingInfo.firstName,
+        lastName: shippingInfo.lastName,
+        address: shippingInfo.address,
+        apartment: shippingInfo.apartment || '',
+        city: shippingInfo.city,
+        state: shippingInfo.administrativeUnit || '',
+        zipCode: shippingInfo.zipCode,
+        country: shippingInfo.country
+      },
+      billingAddress: useShippingForBilling 
+        ? {
+            firstName: shippingInfo.firstName,
+            lastName: shippingInfo.lastName,
+            address: shippingInfo.address,
+            apartment: shippingInfo.apartment || '',
+            city: shippingInfo.city,
+            state: shippingInfo.administrativeUnit || '',
+            zipCode: shippingInfo.zipCode,
+            country: shippingInfo.country
+          }
+        : {
+            firstName: billingInfo.firstName,
+            lastName: billingInfo.lastName,
+            address: billingInfo.address,
+            apartment: billingInfo.apartment || '',
+            city: billingInfo.city,
+            state: billingInfo.administrativeUnit || '',
+            zipCode: billingInfo.zipCode,
+            country: billingInfo.country
+          },
+      paymentMethod: {
+        type: "Credit Card", // You could make this dynamic based on payment type
+        last4: paymentInfo.cardNumber.slice(-4)
+      },
+      shippingMethod: shippingMethod === 'express' 
+        ? 'Express Shipping (1-2 business days)' 
+        : 'Standard Shipping (3-5 business days)',
+      trackingNumber: "", // Will be added when shipped
+      timeline: [
+        {
+          status: "Order Placed",
+          date: new Date().toISOString(),
+          description: "Your order has been received"
+        }
+      ],
+      subtotal: subtotal,
+      shipping: shipping,
+      tax: tax
     });
 
-    // Optional: clear cart or navigate to confirmation
-    // Fix: Use correct cart clearing function from context
-  // Use correct cart clearing function from context
-  resetCartState();
-    navigate("/account"); // or wherever your order history is
+    // Update the order with its ID
+    await updateDoc(orderRef, {
+      id: orderRef.id
+    });
 
+    // Clear cart and navigate to confirmation
+    resetCartState();
+    setOrderPlaced(true);
+    
   } catch (error) {
     console.error("Error placing order: ", error);
     alert("There was an issue placing your order. Please try again.");
