@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { Product } from '../components/ProductCard';
 import { auth, db } from '../firebase';
 import { 
-  collection, addDoc, query, where, 
+  collection, addDoc, query, 
   getDocs, deleteDoc, doc, serverTimestamp 
 } from 'firebase/firestore';
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -31,6 +31,12 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
+  // Helper function to get user's wishlist ref
+  const getWishlistRef = () => {
+    if (!user) throw new Error('User not authenticated');
+    return collection(db, 'users', user.uid, 'wishlists');
+  };
+
   useEffect(() => {
     const fetchWishlist = async () => {
       if (!user) {
@@ -42,11 +48,8 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
       try {
         setLoading(true);
         setError(null);
-        const q = query(
-          collection(db, 'wishlists'),
-          where('userId', '==', user.uid)
-        );
-        const querySnapshot = await getDocs(q);
+        const wishlistRef = getWishlistRef();
+        const querySnapshot = await getDocs(wishlistRef);
         
         const products: Product[] = [];
         querySnapshot.forEach((doc) => {
@@ -60,7 +63,7 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
         setWishlist(products);
       } catch (err) {
         setError(err as Error);
-        console.error('Error fetching wishlist:', error);
+        console.error('Error fetching wishlist:', err);
       } finally {
         setLoading(false);
       }
@@ -78,10 +81,10 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
     if (isInWishlist(product.id)) return;
+    
     try {
-      // Add to Firebase
-      await addDoc(collection(db, 'wishlists'), {
-        userId: user.uid,
+      // Add to user's wishlist subcollection
+      await addDoc(getWishlistRef(), {
         productId: product.id,
         productSnapshot: {
           name: product.name,
@@ -91,6 +94,7 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
         },
         addedAt: serverTimestamp()
       });
+      
       // Update local state
       setWishlist(prev => [...prev, product]);
     } catch (err) {
@@ -108,17 +112,20 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
       setError(new Error('User not authenticated'));
       return;
     }
+    
     try {
       // Find the wishlist document to delete
+      const wishlistRef = getWishlistRef();
       const q = query(
-        collection(db, 'wishlists'),
-        where('userId', '==', user.uid),
+        wishlistRef,
         where('productId', '==', productId)
       );
       const querySnapshot = await getDocs(q);
-      // Delete all matching documents (should typically be just one)
+      
+      // Delete all matching documents (should be just one)
       const deletions = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
       await Promise.all(deletions);
+      
       // Update local state
       setWishlist(prev => prev.filter(item => item.id !== productId));
     } catch (err) {
@@ -136,14 +143,10 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       setError(null);
-      // Get all wishlist items for the user
-      const q = query(
-        collection(db, 'wishlists'),
-        where('userId', '==', user.uid)
-      );
-      const querySnapshot = await getDocs(q);
+      const wishlistRef = getWishlistRef();
+      const querySnapshot = await getDocs(wishlistRef);
       
-      // Delete all documents
+      // Delete all documents in the subcollection
       const deletions = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
       await Promise.all(deletions);
 
