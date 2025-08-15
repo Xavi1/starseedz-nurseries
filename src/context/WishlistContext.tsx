@@ -30,6 +30,7 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
   const [wishlist, setWishlist] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const guestKey = 'wishlist_anonymous';
 
   // Helper function to get user's wishlist ref
   const getWishlistRef = () => {
@@ -40,7 +41,8 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const fetchWishlist = async () => {
       if (!user) {
-        setWishlist([]);
+        const guestWishlistStr = localStorage.getItem(guestKey);
+        setWishlist(guestWishlistStr ? JSON.parse(guestWishlistStr) : []);
         setLoading(false);
         return;
       }
@@ -60,6 +62,27 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
           });
         });
 
+        // Merge guest wishlist if present
+        const guestWishlistStr = localStorage.getItem(guestKey);
+        if (guestWishlistStr) {
+          const guestWishlist: Product[] = JSON.parse(guestWishlistStr);
+          for (const item of guestWishlist) {
+            if (!products.some(p => p.id === item.id)) {
+              products.push(item);
+              await addDoc(getWishlistRef(), {
+                productId: item.id,
+                productSnapshot: {
+                  name: item.name,
+                  price: item.price,
+                  image: item.image,
+                },
+                addedAt: serverTimestamp()
+              });
+            }
+          }
+          localStorage.removeItem(guestKey);
+        }
+
         setWishlist(products);
       } catch (err) {
         setError(err as Error);
@@ -73,14 +96,15 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
   }, [user]);
 
   const addToWishlist = async (product: Product) => {
+    if (isInWishlist(product.id)) return;
+    
     if (!user) {
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login?message=login_required_wishlist';
-      }
-      setError(new Error('User not authenticated'));
+      // For guest users, store in localStorage
+      const updatedWishlist = [...wishlist, product];
+      setWishlist(updatedWishlist);
+      localStorage.setItem(guestKey, JSON.stringify(updatedWishlist));
       return;
     }
-    if (isInWishlist(product.id)) return;
     
     try {
       // Add to user's wishlist subcollection
@@ -90,7 +114,6 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
           name: product.name,
           price: product.price,
           image: product.image,
-          // Add other product fields you need
         },
         addedAt: serverTimestamp()
       });
@@ -106,10 +129,10 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
 
   const removeFromWishlist = async (productId: number) => {
     if (!user) {
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login?message=login_required_wishlist';
-      }
-      setError(new Error('User not authenticated'));
+      // For guest users, remove from localStorage
+      const updatedWishlist = wishlist.filter(item => item.id !== productId);
+      setWishlist(updatedWishlist);
+      localStorage.setItem(guestKey, JSON.stringify(updatedWishlist));
       return;
     }
     
@@ -137,7 +160,9 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
 
   const clearWishlist = async () => {
     if (!user) {
-      setError(new Error('User not authenticated'));
+      // For guest users, clear localStorage
+      setWishlist([]);
+      localStorage.setItem(guestKey, JSON.stringify([]));
       return;
     }
 
@@ -179,3 +204,7 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
     </WishlistContext.Provider>
   );
 };
+
+function where(arg0: string, arg1: string, productId: number): import("@firebase/firestore").QueryCompositeFilterConstraint {
+  throw new Error('Function not implemented.');
+}
