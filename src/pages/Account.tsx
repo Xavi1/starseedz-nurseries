@@ -14,7 +14,7 @@ import React, { useState, useEffect } from 'react';
 import { query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserIcon, PackageIcon, CreditCardIcon, HomeIcon, BellIcon, LogOutIcon, ChevronRightIcon, PencilIcon, PlusIcon, EyeIcon, MapPinIcon, ShieldIcon, ChevronDownIcon, HeartIcon } from 'lucide-react';
-import { useWishlist } from '../context/WishlistContext';
+import { useWishlist, WishlistProvider } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
 import { auth } from '../firebase';
 import { updateUserProfile, getUserById } from '../firebaseHelpers';
@@ -425,7 +425,7 @@ let handlePaymentSubmit = (e: React.FormEvent) => {
   const [activeTab, setActiveTab] = useState<AccountTab>('profile');
   const [editMode, setEditMode] = useState(false);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
-  const { wishlist, removeFromWishlist, clearWishlist } = useWishlist();
+  const { wishlist, removeFromWishlist, clearWishlistLocal } = useWishlist();
   const { clearCart } = useCart();
   // User data (email will sync with logged-in user)
   const [userData, setUserData] = useState({
@@ -720,7 +720,7 @@ const handleLogout = async () => {
   try {
     localStorage.removeItem('cart_anonymous');
     resetCartState(); // instead of clearCart()
-    await clearWishlist();
+    clearWishlistLocal();
     await signOut(auth);
     navigate('/');
   } catch (error) {

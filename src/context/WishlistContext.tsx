@@ -2,8 +2,8 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { Product } from '../components/ProductCard';
 import { auth, db } from '../firebase';
 import { 
-  collection, addDoc, query, where, 
-  getDocs, deleteDoc, doc, serverTimestamp 
+  collection, addDoc, query, where,
+  getDocs, deleteDoc, serverTimestamp 
 } from 'firebase/firestore';
 import { useAuthState } from 'react-firebase-hooks/auth';
 
@@ -12,7 +12,8 @@ interface WishlistContextType {
   addToWishlist: (product: Product) => Promise<void>;
   removeFromWishlist: (productId: number) => Promise<void>;
   isInWishlist: (productId: number) => boolean;
-  clearWishlist: () => Promise<void>;
+  clearWishlistLocal: () => void;           // ✅ local only
+  clearWishlistRemote: () => Promise<void>; // ✅ remote deletion
   loading: boolean;
   error: Error | null;
 }
@@ -32,7 +33,6 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
   const [error, setError] = useState<Error | null>(null);
   const guestKey = 'wishlist_anonymous';
 
-  // Helper function to get user's wishlist ref
   const getWishlistRef = () => {
     if (!user) throw new Error('User not authenticated');
     return collection(db, 'users', user.uid, 'wishlists');
@@ -99,7 +99,6 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
     if (isInWishlist(product.id)) return;
     
     if (!user) {
-      // For guest users, store in localStorage
       const updatedWishlist = [...wishlist, product];
       setWishlist(updatedWishlist);
       localStorage.setItem(guestKey, JSON.stringify(updatedWishlist));
@@ -107,7 +106,6 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
     }
     
     try {
-      // Add to user's wishlist subcollection
       await addDoc(getWishlistRef(), {
         productId: product.id,
         productSnapshot: {
@@ -117,8 +115,6 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
         },
         addedAt: serverTimestamp()
       });
-      
-      // Update local state
       setWishlist(prev => [...prev, product]);
     } catch (err) {
       setError(err as Error);
@@ -129,7 +125,6 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
 
   const removeFromWishlist = async (productId: number) => {
     if (!user) {
-      // For guest users, remove from localStorage
       const updatedWishlist = wishlist.filter(item => item.id !== productId);
       setWishlist(updatedWishlist);
       localStorage.setItem(guestKey, JSON.stringify(updatedWishlist));
@@ -137,19 +132,13 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
     }
     
     try {
-      // Find the wishlist document to delete
       const wishlistRef = getWishlistRef();
-      const q = query(
-        wishlistRef,
-        where('productId', '==', productId)
-      );
+      const q = query(wishlistRef, where('productId', '==', productId));
       const querySnapshot = await getDocs(q);
       
-      // Delete all matching documents (should be just one)
       const deletions = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
       await Promise.all(deletions);
       
-      // Update local state
       setWishlist(prev => prev.filter(item => item.id !== productId));
     } catch (err) {
       setError(err as Error);
@@ -158,11 +147,14 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const clearWishlist = async () => {
+  const clearWishlistLocal = () => {
+    setWishlist([]);
+    localStorage.setItem(guestKey, JSON.stringify([]));
+  };
+
+  const clearWishlistRemote = async () => {
     if (!user) {
-      // For guest users, clear localStorage
-      setWishlist([]);
-      localStorage.setItem(guestKey, JSON.stringify([]));
+      clearWishlistLocal();
       return;
     }
 
@@ -170,16 +162,12 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
       setError(null);
       const wishlistRef = getWishlistRef();
       const querySnapshot = await getDocs(wishlistRef);
-      
-      // Delete all documents in the subcollection
       const deletions = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
       await Promise.all(deletions);
-
-      // Update local state
-      setWishlist([]);
+      clearWishlistLocal();
     } catch (err) {
       setError(err as Error);
-      console.error('Error clearing wishlist:', err);
+      console.error('Error clearing wishlist remotely:', err);
       throw err;
     }
   };
@@ -195,7 +183,8 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
         addToWishlist, 
         removeFromWishlist, 
         isInWishlist, 
-        clearWishlist,
+        clearWishlistLocal, 
+        clearWishlistRemote,
         loading,
         error 
       }}
@@ -204,4 +193,3 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
     </WishlistContext.Provider>
   );
 };
-
