@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { Product } from '../components/ProductCard';
 import { auth, db } from '../firebase';
 import { 
-  collection, addDoc, query, 
+  collection, addDoc, query, where, 
   getDocs, deleteDoc, doc, serverTimestamp 
 } from 'firebase/firestore';
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -205,6 +205,3 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-function where(arg0: string, arg1: string, productId: number): import("@firebase/firestore").QueryCompositeFilterConstraint {
-  throw new Error('Function not implemented.');
-}
