@@ -755,33 +755,39 @@ const handleLogout = async () => {
   const unsubscribe = onAuthStateChanged(auth, async (user) => {
     if (user) {
       try {
-        // Get user's approximate location
-        const location = await fetch('https://ipapi.co/json/')
-          .then(res => res.json())
-          .then(data => `${data.city}, ${data.country_name}`)
-          .catch(() => 'Unknown location');
-        
-        // Update user document with login time and location
+        // Get coordinates (requires user permission)
+        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject);
+        });
+
+        // Reverse geocode to get city/country (using free OpenStreetMap Nominatim API)
+        const { latitude, longitude } = position.coords;
+        const locationResponse = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+        );
+        const locationData = await locationResponse.json();
+        const location = `${locationData.address?.city || locationData.address?.town}, ${locationData.address?.country}`;
+
+        // Update Firestore
         const now = new Date().toISOString();
         await updateUserProfile(user.uid, {
           lastLogin: now,
-          location: location
+          location: location || "Approximate location",
         });
-        
-        setCurrentUser(user);
+
         setLastLogin(now);
         setLastLoginLocation(location);
       } catch (error) {
-        console.error('Error getting location:', error);
-        setCurrentUser(user);
+        console.error("Could not fetch location:", error);
+        // Fallback to IP-based (less accurate) or just timestamp
+        const now = new Date().toISOString();
+        await updateUserProfile(user.uid, { lastLogin: now });
+        setLastLogin(now);
       }
-    } else {
-      setCurrentUser(null);
-      navigate('/login', { state: { from: window.location.pathname }, replace: false });
     }
   });
   return () => unsubscribe();
-}, [navigate]);
+}, []);
 
   if (!currentUser) {
     return null; // Or a loading spinner
