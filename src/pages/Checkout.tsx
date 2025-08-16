@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, onSnapshot, addDoc, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, doc, serverTimestamp, updateDoc, getDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { Link, useNavigate } from 'react-router-dom';
@@ -187,6 +187,22 @@ const handlePlaceOrder = async () => {
   }
 
   try {
+
+    // Deduct stock for each product in the cart
+    for (const item of cart) {
+      const productRef = doc(db, "products", String(item.product.id));
+      const productSnap = await getDoc(productRef);
+      if (productSnap.exists()) {
+        const currentStock = productSnap.data().stock || 0;
+        const newStock = Math.max(currentStock - item.quantity, 0);
+        const updateData = { stock: newStock };
+        if (newStock === 0) {
+          updateData.instock = false;
+        }
+        await updateDoc(productRef, updateData);
+      }
+    }
+
     // Create the order document with the complete structure
     const orderRef = await addDoc(collection(db, "orders"), {
       id: "", // Will be filled with the document ID after creation
@@ -212,7 +228,7 @@ const handlePlaceOrder = async () => {
         zipCode: shippingInfo.zipCode,
         country: shippingInfo.country
       },
-      billingAddress: useShippingForBilling 
+      billingAddress: useShippingForBilling
         ? {
             firstName: shippingInfo.firstName,
             lastName: shippingInfo.lastName,
