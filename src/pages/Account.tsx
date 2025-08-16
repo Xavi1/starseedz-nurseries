@@ -473,10 +473,10 @@ useEffect(() => {
               lastLogin?: string;
               location?: string;
             };
-            const profile = userProfile as FirestoreUserProfile;
-            setUserData({
-              firstName: profile.firstname || '',
-              lastName: profile.lastname || '',
+           const profile = userProfile as FirestoreUserProfile;
+setUserData({
+  firstName: profile.firstname || currentUser.displayName?.split(' ')[0] || '',
+  lastName: profile.lastname || currentUser.displayName?.split(' ').slice(1).join(' ') || '',
               email: profile.email || currentUser.email || '',
               phone: profile.phone || '',
               birthdate: profile.birthdate || ''

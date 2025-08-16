@@ -58,8 +58,8 @@ const Login: React.FC = () => {
     if (!userSnap.exists()) {
       await setDoc(userRef, {
         uid: user.uid,
-        firstName: user.displayName ? user.displayName.split(' ')[0] : '',
-        lastName: user.displayName ? user.displayName.split(' ').slice(1).join(' ') : '',
+        firstname: user.displayName?.split(' ')[0] || '',
+  lastname: user.displayName?.split(' ').slice(1).join(' ') || '',
         email: user.email,
         phone: user.phoneNumber || '',
         createdAt: new Date().toISOString(),
