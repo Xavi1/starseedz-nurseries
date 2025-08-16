@@ -14,6 +14,15 @@ import { doc, setDoc, collection, getDoc } from 'firebase/firestore';
 import { FcGoogle } from 'react-icons/fc';
 
 const Login: React.FC = () => {
+  // Helper to update last login info
+  const updateLastLogin = async (user: { uid: string }) => {
+    const lastLoginData = {
+      lastLogin: new Date().toISOString(),
+      location: 'Unknown', // Optionally use a geolocation API here
+    };
+    const userRef = doc(collection(db, 'users'), user.uid);
+    await setDoc(userRef, lastLoginData, { merge: true });
+  };
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -49,8 +58,8 @@ const Login: React.FC = () => {
     if (!userSnap.exists()) {
       await setDoc(userRef, {
         uid: user.uid,
-        firstName: user.displayName?.split(' ')[0] || '',
-        lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
+        firstName: user.displayName ? user.displayName.split(' ')[0] : '',
+        lastName: user.displayName ? user.displayName.split(' ').slice(1).join(' ') : '',
         email: user.email,
         phone: user.phoneNumber || '',
         createdAt: new Date().toISOString(),
@@ -61,19 +70,24 @@ const Login: React.FC = () => {
 
   // 🔹 Link Google account with email/password if user wants
   const linkEmailPasswordToGoogle = async (password: string) => {
-    const currentUser = auth.currentUser;
-    if (!currentUser) return;
+  const currentUser = auth.currentUser;
+  if (!currentUser || !currentUser.email) return;
 
-    const credential = EmailAuthProvider.credential(currentUser.email!, password);
+  const credential = EmailAuthProvider.credential(currentUser.email, password);
 
     try {
       await linkWithCredential(currentUser, credential);
       console.log('Email/password linked to Google account');
-    } catch (error: any) {
-      if (error.code === 'auth/provider-already-linked') {
-        console.log('Email/password already linked.');
-      } else if (error.code === 'auth/email-already-in-use') {
-        console.error('That email is already in use by another account.');
+    } catch (error) {
+      if (typeof error === 'object' && error && 'code' in error) {
+        const err = error as { code: string };
+        if (err.code === 'auth/provider-already-linked') {
+          console.log('Email/password already linked.');
+        } else if (err.code === 'auth/email-already-in-use') {
+          console.error('That email is already in use by another account.');
+        } else {
+          console.error('Error linking account:', error);
+        }
       } else {
         console.error('Error linking account:', error);
       }
@@ -87,6 +101,7 @@ const Login: React.FC = () => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       await createUserDocIfMissing(userCredential.user);
+      await updateLastLogin(userCredential.user);
 
       setShowSuccess(true);
       setFadeOut(false);
@@ -113,13 +128,14 @@ const Login: React.FC = () => {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      await createUserDocIfMissing(user);
+  await createUserDocIfMissing(user);
+  await updateLastLogin(user);
 
-      // Show popup to link email/password login
-      setShowLinkPopup(true);
-    } catch (error: any) {
+  // Show popup to link email/password login
+  setShowLinkPopup(true);
+    } catch (error) {
       let errorMsg = 'Google login failed. Please try again.';
-      if (error?.code === 'auth/popup-closed-by-user') {
+      if (typeof error === 'object' && error && 'code' in error && (error as { code: string }).code === 'auth/popup-closed-by-user') {
         errorMsg = 'Google sign-in was cancelled.';
       }
       setError(errorMsg);
@@ -195,8 +211,8 @@ const Login: React.FC = () => {
                           redirectAfterLogin();
                         }, 400);
                       }, 900);
-                    } catch (err: any) {
-                      setLinkError(err?.message || 'Failed to link password.');
+                    } catch (err) {
+                      setLinkError(err instanceof Error ? err.message : 'Failed to link password.');
                     } finally {
                       setLinking(false);
                     }
