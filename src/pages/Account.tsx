@@ -754,6 +754,7 @@ const handleLogout = async () => {
  useEffect(() => {
   const unsubscribe = onAuthStateChanged(auth, async (user) => {
     if (user) {
+      setCurrentUser(user);
       try {
         // Get coordinates (requires user permission)
         const position = await new Promise<GeolocationPosition>((resolve, reject) => {
