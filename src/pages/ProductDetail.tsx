@@ -1,6 +1,6 @@
 // ProductDetail.tsx
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ProductCard, Product } from '../components/ProductCard';
 import {
   ChevronRightIcon, HomeIcon, StarIcon, ShoppingCartIcon,
@@ -111,6 +111,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
 
 export const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [user] = useAuthState(auth);
   const [product, setProduct] = useState<DetailedProduct | null>(null);
   const [loading, setLoading] = useState(true);
@@ -474,7 +475,7 @@ setRelatedProducts(relatedDocs.filter(Boolean));
       </button>
       <button 
         type="button" 
-        onClick={() => window.location.href = 'mailto:sales@example.com?subject=Inquiry about out of stock product: ' + encodeURIComponent(product.name)}
+       onClick={() => navigate(`/contact?product=${product.id}`)}
         className="w-full flex items-center justify-center px-8 py-3 border border-gray-300 rounded-md shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50"
       >
         Contact Sales
