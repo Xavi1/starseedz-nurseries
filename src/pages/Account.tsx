@@ -101,6 +101,8 @@ type PaymentMethod = {
 
 export const Account = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [lastLogin, setLastLogin] = useState<string | null>(null);
+  const [lastLoginLocation, setLastLoginLocation] = useState<string | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(mockPaymentMethods);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -462,13 +464,30 @@ useEffect(() => {
         try {
           const userProfile = await getUserById(currentUser.uid);
           if (userProfile) {
+            type FirestoreUserProfile = {
+              firstname?: string;
+              lastname?: string;
+              email?: string;
+              phone?: string;
+              birthdate?: string;
+              lastLogin?: string;
+              location?: string;
+            };
+            const profile = userProfile as FirestoreUserProfile;
             setUserData({
-              firstName: userProfile.firstname || '',
-              lastName: userProfile.lastname || '',
-              email: userProfile.email || currentUser.email || '',
-              phone: userProfile.phone || '',
-              birthdate: userProfile.birthdate || ''
+              firstName: profile.firstname || '',
+              lastName: profile.lastname || '',
+              email: profile.email || currentUser.email || '',
+              phone: profile.phone || '',
+              birthdate: profile.birthdate || ''
             });
+            // Fetch last login info from Firestore user doc
+            if (profile.lastLogin) {
+              setLastLogin(profile.lastLogin);
+            }
+            if (profile.location) {
+              setLastLoginLocation(profile.location);
+            }
           } else {
             // If no profile exists, create one with available info (from auth only, not userData), using uid as doc id
             const newUser = {
@@ -964,7 +983,8 @@ const handleLogout = async () => {
                       </button>
                       <div>
                         <p className="text-sm text-gray-500">
-                          Last login: June 15, 2023 at 10:34 AM from Portland, OR
+                          Last login: {lastLogin ? `${new Date(lastLogin).toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}` : 'N/A'}
+                          {lastLoginLocation ? ` from ${lastLoginLocation}` : ''}
                         </p>
                       </div>
                     </div>

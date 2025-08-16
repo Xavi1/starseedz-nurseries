@@ -11,6 +11,8 @@ interface User {
   email: string;
   address: string;
   phone: string;
+  lastLogin?: string;
+  location?: string;
   // Add other user fields as needed
 }
 
