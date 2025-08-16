@@ -751,17 +751,37 @@ const handleLogout = async () => {
 };
 
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
+ useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      try {
+        // Get user's approximate location
+        const location = await fetch('https://ipapi.co/json/')
+          .then(res => res.json())
+          .then(data => `${data.city}, ${data.country_name}`)
+          .catch(() => 'Unknown location');
+        
+        // Update user document with login time and location
+        const now = new Date().toISOString();
+        await updateUserProfile(user.uid, {
+          lastLogin: now,
+          location: location
+        });
+        
         setCurrentUser(user);
-      } else {
-        setCurrentUser(null);
-        navigate('/login', { state: { from: window.location.pathname }, replace: false  });
+        setLastLogin(now);
+        setLastLoginLocation(location);
+      } catch (error) {
+        console.error('Error getting location:', error);
+        setCurrentUser(user);
       }
-    });
-    return () => unsubscribe();
-  }, [navigate]);
+    } else {
+      setCurrentUser(null);
+      navigate('/login', { state: { from: window.location.pathname }, replace: false });
+    }
+  });
+  return () => unsubscribe();
+}, [navigate]);
 
   if (!currentUser) {
     return null; // Or a loading spinner
