@@ -453,13 +453,35 @@ setRelatedProducts(relatedDocs.filter(Boolean));
                       </div>
                     </div>
                   </div>
-                  {/* Add to cart */}
                   <div className="mt-6">
-                    <button type="button" onClick={addToCart} disabled={!product.inStock} className={`w-full flex items-center justify-center px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white ${product.inStock ? 'bg-green-700 hover:bg-green-800' : 'bg-gray-400 cursor-not-allowed'}`}>
-                      <ShoppingCartIcon className="h-5 w-5 mr-2" />
-                      {product.inStock ? 'Add to Cart' : 'Out of Stock'}
-                    </button>
-                  </div>
+  {product.inStock ? (
+    <button 
+      type="button" 
+      onClick={addToCart} 
+      className="w-full flex items-center justify-center px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-green-700 hover:bg-green-800"
+    >
+      <ShoppingCartIcon className="h-5 w-5 mr-2" />
+      Add to Cart
+    </button>
+  ) : (
+    <div className="space-y-3">
+      <button 
+        type="button" 
+        disabled 
+        className="w-full flex items-center justify-center px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-gray-400 cursor-not-allowed"
+      >
+        Out of Stock
+      </button>
+      <button 
+        type="button" 
+        onClick={() => window.location.href = 'mailto:sales@example.com?subject=Inquiry about out of stock product: ' + encodeURIComponent(product.name)}
+        className="w-full flex items-center justify-center px-8 py-3 border border-gray-300 rounded-md shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50"
+      >
+        Contact Sales
+      </button>
+    </div>
+  )}
+</div>
                   {/* Wishlist */}
                   <div className="mt-4">
                     <button
