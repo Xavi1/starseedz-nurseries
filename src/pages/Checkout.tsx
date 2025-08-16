@@ -187,7 +187,6 @@ const handlePlaceOrder = async () => {
   }
 
   try {
-
     // Deduct stock for each product in the cart
     for (const item of cart) {
       const productRef = doc(db, "products", String(item.product.id));
@@ -195,14 +194,13 @@ const handlePlaceOrder = async () => {
       if (productSnap.exists()) {
         const currentStock = productSnap.data().stock || 0;
         const newStock = Math.max(currentStock - item.quantity, 0);
-        const updateData = { stock: newStock };
+        const updateData: { stock: number; inStock?: boolean } = { stock: newStock };
         if (newStock === 0) {
-          updateData.instock = false;
+          updateData.inStock = false;
         }
         await updateDoc(productRef, updateData);
       }
     }
-
     // Create the order document with the complete structure
     const orderRef = await addDoc(collection(db, "orders"), {
       id: "", // Will be filled with the document ID after creation
