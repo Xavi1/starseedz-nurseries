@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Link, useParams } from 'react-router-dom';
 import { ChevronRightIcon, HomeIcon, PackageIcon, TruckIcon, CreditCardIcon, CheckCircleIcon, ArrowLeftIcon, PrinterIcon, ShoppingCartIcon, XCircleIcon, ClockIcon } from 'lucide-react';
@@ -56,85 +56,106 @@ interface Order {
 }
 
 export const OrderDetails = () => {
+  // Status flow for orders
+  const ORDER_FLOW: Order["status"][] = [
+    "Pending",
+    "Processing",
+    "Shipped",
+    "Delivered",
+  ];
+
+  // Helper to generate tracking number
+  const generateTrackingNumber = () => 'TRK' + Math.random().toString(36).substring(2, 10);
+
+  // Update order status in Firestore and local state
+const updateOrderStatus = async (
+  newStatus: Order["status"],
+  description: string
+) => {
+  if (!orderId || !order) return;
+
+  try {
+    const orderRef = doc(db, "orders", orderId);
+    const newTimelineEvent = {
+      status: newStatus,
+      date: new Date().toISOString(),
+      description,
+    };
+
+    await updateDoc(orderRef, {
+      status: newStatus,
+      timeline: [...(order.timeline || []), newTimelineEvent],
+      ...(newStatus === "Shipped" && {
+        trackingNumber: generateTrackingNumber(),
+      }),
+    });
+
+    setOrder((prev) =>
+      prev
+        ? {
+            ...prev,
+            status: newStatus,
+            timeline: [...(prev.timeline || []), newTimelineEvent],
+            ...(newStatus === "Shipped" && {
+              trackingNumber: generateTrackingNumber(),
+            }),
+          }
+        : prev
+    );
+  } catch (error) {
+    console.error("Error updating status:", error);
+  }
+};
+
+
+  // Move to next status in the flow
+  const moveToNextStatus = async () => {
+  if (!order) return;
+
+  const ORDER_FLOW: Order["status"][] = [
+    "Pending",
+    "Processing",
+    "Shipped",
+    "Delivered",
+  ];
+
+  const currentIndex = ORDER_FLOW.indexOf(order.status);
+  if (currentIndex === -1 || currentIndex === ORDER_FLOW.length - 1) return;
+
+  const nextStatus = ORDER_FLOW[currentIndex + 1];
+  console.log("Advancing to:", nextStatus); // <-- debug log
+
+  await updateOrderStatus(nextStatus, `Order moved to ${nextStatus}`);
+};
+
+
   const { orderId } = useParams<{ orderId: string }>();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // Helper to generate tracking number
-  const generateTrackingNumber = () =>
-    'TRK' + Math.random().toString(36).substring(2, 10);
-
-  const updateOrderStatus = async (
-    newStatus: 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled',
-    description: string
-  ) => {
-    if (!orderId || !order) return;
-
-    try {
-      const orderRef = doc(db, 'orders', orderId);
-      const newTimelineEvent = {
-        status: newStatus,
-        date: new Date().toISOString(),
-        description,
-      };
-
-      await updateDoc(orderRef, {
-        status: newStatus,
-        timeline: [...(order.timeline || []), newTimelineEvent],
-        ...(newStatus === 'Shipped' && {
-          trackingNumber: generateTrackingNumber(),
-        }),
-      });
-
-      setOrder({
-        ...order,
-        status: newStatus,
-        timeline: [...(order.timeline || []), newTimelineEvent],
-        ...(newStatus === 'Shipped' && {
-          trackingNumber: generateTrackingNumber(),
-        }),
-      });
-    } catch (error) {
-      console.error('Error updating status:', error);
-    }
-  };
-
   useEffect(() => {
-    const fetchOrderDetails = async () => {
-      setLoading(true);
-      try {
-        const orderRef = doc(db, 'orders', orderId!);
-        const orderSnap = await getDoc(orderRef);
+    if (!orderId) return;
+    setLoading(true);
 
-        if (orderSnap.exists()) {
-          const data = orderSnap.data();
-          setOrder({
-            ...data,
-            id: orderId!,
-            date: data.timeline?.[0]?.date || new Date().toISOString(),
-            status: (data.status as Order['status']) || 'Pending',
-            trackingNumber: data.trackingNumber || '',
-            timeline: data.timeline || [],
-          } as Order);
-        }
-      } finally {
-        setLoading(false);
+    const orderRef = doc(db, "orders", orderId);
+    const unsubscribe = onSnapshot(orderRef, (orderSnap) => {
+      if (orderSnap.exists()) {
+        const data = orderSnap.data();
+        setOrder({
+          ...data,
+          id: orderId,
+          date: data.timeline?.[0]?.date || new Date().toISOString(),
+          status: (data.status as Order["status"]) || "Pending",
+          trackingNumber: data.trackingNumber || "",
+          timeline: data.timeline || [],
+        } as Order);
+      } else {
+        setOrder(null);
       }
-    };
-    if (orderId) fetchOrderDetails();
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, [orderId]);
-  if (loading) {
-    return <div className="min-h-screen bg-white">
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="flex justify-center items-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading order details...</p>
-            </div>
-          </div>
-        </main>
-      </div>;
-  }
   if (!order) {
     return <div className="min-h-screen bg-white">
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -200,6 +221,13 @@ export const OrderDetails = () => {
               <ShoppingCartIcon className="h-4 w-4 mr-2" />
               Reorder
             </button>
+            <button
+  onClick={moveToNextStatus}
+  className="px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800"
+>
+  Advance Order
+</button>
+
           </div>
         </div>
         <div className="bg-white shadow-sm rounded-lg overflow-hidden mb-8">
