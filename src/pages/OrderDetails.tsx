@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Link, useParams } from 'react-router-dom';
-import { ChevronRightIcon, HomeIcon, PackageIcon, TruckIcon, CreditCardIcon, CheckCircleIcon, ArrowLeftIcon, PrinterIcon, ShoppingCartIcon } from 'lucide-react';
+import { ChevronRightIcon, HomeIcon, PackageIcon, TruckIcon, CreditCardIcon, CheckCircleIcon, ArrowLeftIcon, PrinterIcon, ShoppingCartIcon, XCircleIcon } from 'lucide-react';
 // Define types
 interface OrderItem {
   id: number;
@@ -188,16 +188,27 @@ export const OrderDetails = () => {
             <div className="flex items-center">
               <div className={`
                 h-10 w-10 rounded-full flex items-center justify-center 
-                ${order.status === 'Delivered' ? 'bg-green-100' : 'bg-blue-100'}
+                ${order.status === 'Delivered' ? 'bg-green-100' : 
+                  order.status === 'Cancelled' ? 'bg-red-100' : 'bg-blue-100'}
               `}>
-                {order.status === 'Delivered' ? <CheckCircleIcon className="h-6 w-6 text-green-700" /> : <TruckIcon className="h-6 w-6 text-blue-700" />}
+                {order.status === 'Delivered' ? (
+                  <CheckCircleIcon className="h-6 w-6 text-green-700" />
+                ) : order.status === 'Cancelled' ? (
+                  <XCircleIcon className="h-6 w-6 text-red-700" />
+                ) : (
+                  <TruckIcon className="h-6 w-6 text-blue-700" />
+                )}
               </div>
               <div className="ml-4">
                 <h2 className="text-lg font-medium text-gray-900">
                   {order.status}
                 </h2>
                 <p className="text-sm text-gray-500">
-                  {order.status === 'Delivered' ? `Your order was delivered on ${order.timeline[order.timeline.length - 1].date}` : `Your order is being processed`}
+                  {order.status === 'Delivered' 
+                    ? `Delivered on ${order.timeline[order.timeline.length - 1].date}`
+                    : order.status === 'Cancelled'
+                    ? `Cancelled on ${order.timeline[order.timeline.length - 1].date}`
+                    : 'Your order is being processed'}
                 </p>
               </div>
             </div>
