@@ -173,11 +173,17 @@ export const OrderDetails = () => {
             <p className="mt-1 text-sm text-gray-500">Placed on {order.date}</p>
           </div>
           <div className="flex space-x-3">
-            <button className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            <button 
+              className={`inline-flex items-center px-3 py-2 border ${order.status === 'Cancelled' ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed' : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'} shadow-sm text-sm font-medium rounded-md`}
+              disabled={order.status === 'Cancelled'}
+            >
               <PrinterIcon className="h-4 w-4 mr-2" />
               Print
             </button>
-            <button className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-700 hover:bg-green-800">
+            <button 
+              className={`inline-flex items-center px-3 py-2 border ${order.status === 'Cancelled' ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed' : 'border-transparent text-white bg-green-700 hover:bg-green-800'} shadow-sm text-sm font-medium rounded-md`}
+              disabled={order.status === 'Cancelled'}
+            >
               <ShoppingCartIcon className="h-4 w-4 mr-2" />
               Reorder
             </button>
