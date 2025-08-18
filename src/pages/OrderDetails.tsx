@@ -108,34 +108,59 @@ const updateOrderStatus = async (
 
   // Move to next status in the flow
   const moveToNextStatus = async () => {
-  console.log("Advance Order button clicked ✅");
-  console.log("Current order:", order);
+    console.log("Advance Order button clicked ✅");
+    console.log("Current order:", order);
 
-  if (!order) {
-    console.warn("No order loaded yet.");
-    return;
-  }
+    if (!order) {
+      console.warn("No order loaded yet.");
+      return;
+    }
 
-  const currentIndex = ORDER_FLOW.findIndex(
-  (s) => s.toLowerCase() === order.status.toLowerCase()
-);
+    const currentIndex = ORDER_FLOW.findIndex(
+      (s) => s.toLowerCase() === order.status.toLowerCase()
+    );
 
-  console.log("Current status:", order.status, "Index:", currentIndex);
+    console.log("Current status:", order.status, "Index:", currentIndex);
 
-  if (currentIndex === -1) {
-    console.warn("Order status not in ORDER_FLOW.");
-    return;
-  }
-  if (currentIndex === ORDER_FLOW.length - 1) {
-    console.warn("Order already at final state:", order.status);
-    return;
-  }
+    if (currentIndex === -1) {
+      console.warn("Order status not in ORDER_FLOW.");
+      return;
+    }
+    if (currentIndex === ORDER_FLOW.length - 1) {
+      console.warn("Order already at final state:", order.status);
+      return;
+    }
 
-  const nextStatus = ORDER_FLOW[currentIndex + 1];
-  console.log("Advancing to:", nextStatus);
+    const nextStatus = ORDER_FLOW[currentIndex + 1];
+    console.log("Advancing to:", nextStatus);
 
-  await updateOrderStatus(nextStatus, `Order moved to ${nextStatus}`);
-};
+    await updateOrderStatus(nextStatus, `Order moved to ${nextStatus}`);
+  };
+
+  const cancelOrder = async () => {
+    console.log("Cancel Order button clicked ❌");
+
+    if (!orderId || !order) return;
+
+    try {
+      const newTimelineEvent = {
+        status: "Cancelled",
+        date: new Date().toISOString(),
+        description: "Order was cancelled by user",
+      };
+
+      const orderRef = doc(db, "orders", orderId);
+
+      await updateDoc(orderRef, {
+        status: "Cancelled",
+        timeline: [...(order.timeline || []), newTimelineEvent],
+      });
+
+      // Let Firestore snapshot update local state
+    } catch (error) {
+      console.error("Error cancelling order:", error);
+    }
+  };
 
 
   useEffect(() => {
@@ -233,6 +258,14 @@ const updateOrderStatus = async (
 >
   Advance Order
 </button>
+{order?.status !== "Shipped" && (
+        <button 
+          onClick={cancelOrder} 
+          className="bg-red-600 text-white hover:bg-red-700"
+        >
+          Cancel Order
+        </button>
+      )}
           </div>
         </div>
         <div className="bg-white shadow-sm rounded-lg overflow-hidden mb-8">
