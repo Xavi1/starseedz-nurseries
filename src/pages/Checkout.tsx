@@ -29,6 +29,7 @@ type Address = {
   city: string;
   administrativeUnit: string;
   phone: string;
+  email?: string;
 };
 
 export const Checkout = () => {
@@ -394,7 +395,8 @@ const handlePlaceOrder = async () => {
                             apartment: addr.apartment,
                             city: addr.city,
                             administrativeUnit: addr.administrativeUnit,
-                            // Keep email, state, zipCode, country as is (user may want to edit)
+                            email: addr.email || prev.email,
+                            // Keep state, zipCode, country as is (user may want to edit)
                           }));
                         }
                       }}
