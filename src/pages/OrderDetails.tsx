@@ -56,6 +56,10 @@ interface Order {
 }
 
 export const OrderDetails = () => {
+  const { orderId } = useParams<{ orderId: string }>();
+  const [order, setOrder] = useState<Order | null>(null);
+  const [loading, setLoading] = useState(true);
+
   // Status flow for orders
   const ORDER_FLOW: Order["status"][] = [
     "Pending",
@@ -75,63 +79,65 @@ const updateOrderStatus = async (
   if (!orderId || !order) return;
 
   try {
-    const orderRef = doc(db, "orders", orderId);
     const newTimelineEvent = {
       status: newStatus,
       date: new Date().toISOString(),
       description,
     };
 
-    await updateDoc(orderRef, {
+    const updateData: any = {
       status: newStatus,
       timeline: [...(order.timeline || []), newTimelineEvent],
-      ...(newStatus === "Shipped" && {
-        trackingNumber: generateTrackingNumber(),
-      }),
-    });
+    };
 
-    setOrder((prev) =>
-      prev
-        ? {
-            ...prev,
-            status: newStatus,
-            timeline: [...(prev.timeline || []), newTimelineEvent],
-            ...(newStatus === "Shipped" && {
-              trackingNumber: generateTrackingNumber(),
-            }),
-          }
-        : prev
-    );
+    if (newStatus === "Shipped") {
+      updateData.trackingNumber = generateTrackingNumber();
+    }
+
+    const orderRef = doc(db, "orders", orderId);
+    await updateDoc(orderRef, updateData);
+
+    // ❌ Remove the manual setOrder update
+    // Firestore listener will update local state automatically
   } catch (error) {
     console.error("Error updating status:", error);
   }
 };
 
 
+
   // Move to next status in the flow
   const moveToNextStatus = async () => {
-  if (!order) return;
+  console.log("Advance Order button clicked ✅");
+  console.log("Current order:", order);
 
-  const ORDER_FLOW: Order["status"][] = [
-    "Pending",
-    "Processing",
-    "Shipped",
-    "Delivered",
-  ];
+  if (!order) {
+    console.warn("No order loaded yet.");
+    return;
+  }
 
-  const currentIndex = ORDER_FLOW.indexOf(order.status);
-  if (currentIndex === -1 || currentIndex === ORDER_FLOW.length - 1) return;
+  const currentIndex = ORDER_FLOW.findIndex(
+  (s) => s.toLowerCase() === order.status.toLowerCase()
+);
+
+  console.log("Current status:", order.status, "Index:", currentIndex);
+
+  if (currentIndex === -1) {
+    console.warn("Order status not in ORDER_FLOW.");
+    return;
+  }
+  if (currentIndex === ORDER_FLOW.length - 1) {
+    console.warn("Order already at final state:", order.status);
+    return;
+  }
 
   const nextStatus = ORDER_FLOW[currentIndex + 1];
-  console.log("Advancing to:", nextStatus); // <-- debug log
+  console.log("Advancing to:", nextStatus);
 
   await updateOrderStatus(nextStatus, `Order moved to ${nextStatus}`);
 };
 
 
-  const { orderId } = useParams<{ orderId: string }>();
-  const [order, setOrder] = useState<Order | null>(null);
-  const [loading, setLoading] = useState(true);
   useEffect(() => {
     if (!orderId) return;
     setLoading(true);
@@ -227,7 +233,6 @@ const updateOrderStatus = async (
 >
   Advance Order
 </button>
-
           </div>
         </div>
         <div className="bg-white shadow-sm rounded-lg overflow-hidden mb-8">
