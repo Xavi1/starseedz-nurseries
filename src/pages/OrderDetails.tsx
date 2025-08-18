@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Link, useParams } from 'react-router-dom';
-import { ChevronRightIcon, HomeIcon, PackageIcon, TruckIcon, CreditCardIcon, CheckCircleIcon, ArrowLeftIcon, PrinterIcon, ShoppingCartIcon, XCircleIcon } from 'lucide-react';
+import { ChevronRightIcon, HomeIcon, PackageIcon, TruckIcon, CreditCardIcon, CheckCircleIcon, ArrowLeftIcon, PrinterIcon, ShoppingCartIcon, XCircleIcon, ClockIcon } from 'lucide-react';
+
 // Define types
 interface OrderItem {
   id: number;
@@ -11,11 +12,12 @@ interface OrderItem {
   price: number;
   image?: string;
 }
+
 interface Order {
   id: string;
   date: string;
   total: number;
-  status: string;
+  status: 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
   items: OrderItem[];
   shippingAddress: {
     firstName: string;
@@ -52,63 +54,74 @@ interface Order {
   shipping: number;
   tax: number;
 }
+
 export const OrderDetails = () => {
-  const {
-    orderId
-  } = useParams<{
-    orderId: string;
-  }>();
+  const { orderId } = useParams<{ orderId: string }>();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Helper to generate tracking number
+  const generateTrackingNumber = () =>
+    'TRK' + Math.random().toString(36).substring(2, 10);
+
+  const updateOrderStatus = async (
+    newStatus: 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled',
+    description: string
+  ) => {
+    if (!orderId || !order) return;
+
+    try {
+      const orderRef = doc(db, 'orders', orderId);
+      const newTimelineEvent = {
+        status: newStatus,
+        date: new Date().toISOString(),
+        description,
+      };
+
+      await updateDoc(orderRef, {
+        status: newStatus,
+        timeline: [...(order.timeline || []), newTimelineEvent],
+        ...(newStatus === 'Shipped' && {
+          trackingNumber: generateTrackingNumber(),
+        }),
+      });
+
+      setOrder({
+        ...order,
+        status: newStatus,
+        timeline: [...(order.timeline || []), newTimelineEvent],
+        ...(newStatus === 'Shipped' && {
+          trackingNumber: generateTrackingNumber(),
+        }),
+      });
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
+  };
+
   useEffect(() => {
     const fetchOrderDetails = async () => {
       setLoading(true);
-      if (!orderId) {
-        setOrder(null);
-        setLoading(false);
-        return;
-      }
       try {
-        const orderRef = doc(db, 'orders', orderId);
+        const orderRef = doc(db, 'orders', orderId!);
         const orderSnap = await getDoc(orderRef);
+
         if (orderSnap.exists()) {
           const data = orderSnap.data();
-          // Map Firestore fields to UI fields
           setOrder({
-            id: orderId,
-            date: data.date || '',
-            total: data.total || 0,
-            status: data.status || '',
-            items: (data.items || []).map((item: any, idx: number) => ({
-              id: idx,
-              name: item.name,
-              quantity: item.quantity,
-              price: item.price,
-              image: item.image || ''
-            })),
-            shippingAddress: data.shippingAddress || {
-              firstName: '', lastName: '', address: '', apartment: '', city: '', zipCode: '', country: ''
-            },
-            billingAddress: data.billingAddress || {
-              firstName: '', lastName: '', address: '', apartment: '', city: '', zipCode: '', country: ''
-            },
-            paymentMethod: data.paymentMethod || { type: '', last4: '' },
-            shippingMethod: data.shippingMethod || '',
+            ...data,
+            id: orderId!,
+            date: data.timeline?.[0]?.date || new Date().toISOString(),
+            status: (data.status as Order['status']) || 'Pending',
             trackingNumber: data.trackingNumber || '',
             timeline: data.timeline || [],
-            subtotal: data.subtotal || 0,
-            shipping: data.shipping || 0,
-            tax: data.tax || 0
-          });
-        } else {
-          setOrder(null);
+          } as Order);
         }
-      } catch (err) {
-        setOrder(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
-    fetchOrderDetails();
+    if (orderId) fetchOrderDetails();
   }, [orderId]);
   if (loading) {
     return <div className="min-h-screen bg-white">
@@ -194,15 +207,18 @@ export const OrderDetails = () => {
             <div className="flex items-center">
               <div className={`
                 h-10 w-10 rounded-full flex items-center justify-center 
-                ${order.status === 'Delivered' ? 'bg-green-100' : 
-                  order.status === 'Cancelled' ? 'bg-red-100' : 'bg-blue-100'}
+                ${order.status.toLowerCase() === 'delivered' ? 'bg-green-100' : 
+                  order.status.toLowerCase() === 'cancelled' ? 'bg-red-100' : 
+                  order.status.toLowerCase() === 'shipped' ? 'bg-blue-100' : 'bg-yellow-100'}
               `}>
-                {order.status === 'Delivered' ? (
+                {order.status.toLowerCase() === 'delivered' ? (
                   <CheckCircleIcon className="h-6 w-6 text-green-700" />
-                ) : order.status === 'Cancelled' ? (
+                ) : order.status.toLowerCase() === 'cancelled' ? (
                   <XCircleIcon className="h-6 w-6 text-red-700" />
-                ) : (
+                ) : order.status.toLowerCase() === 'shipped' ? (
                   <TruckIcon className="h-6 w-6 text-blue-700" />
+                ) : (
+                  <ClockIcon className="h-6 w-6 text-yellow-700" />
                 )}
               </div>
               <div className="ml-4">
@@ -336,7 +352,7 @@ export const OrderDetails = () => {
                     Shipping Method
                   </h3>
                   <div className="mt-2 text-sm text-gray-500">
-                    <p>{order.shippingMethod}</p>
+                    <p className="whitespace-pre-line">{order.shippingMethod}</p>
                     {order.trackingNumber && <p className="mt-2">
                         <span className="font-medium">Tracking Number: </span>
                         {order.trackingNumber}
