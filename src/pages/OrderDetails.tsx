@@ -59,6 +59,7 @@ export const OrderDetails = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   // Status flow for orders
   const ORDER_FLOW: Order["status"][] = [
@@ -208,6 +209,15 @@ const updateOrderStatus = async (
       </div>;
   }
   return <div className="min-h-screen bg-gray-50">
+      {/* Cancel Confirmation Dialog */}
+      <dialog open={showCancelConfirm} className="modal" style={{padding: '2rem', borderRadius: '0.5rem', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)'}}>
+        <h2 className="text-lg font-bold mb-2">Cancel this order?</h2>
+        <p className="mb-4">This action cannot be undone.</p>
+        <div className="flex space-x-4">
+          <button onClick={() => setShowCancelConfirm(false)} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Keep Order</button>
+          <button onClick={() => { setShowCancelConfirm(false); cancelOrder(); }} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Yes, Cancel Order</button>
+        </div>
+      </dialog>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumbs */}
         <nav className="flex items-center text-sm mb-8">
@@ -253,19 +263,19 @@ const updateOrderStatus = async (
               Reorder
             </button>
             <button
-  onClick={moveToNextStatus}
-  className="px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800"
->
-  Advance Order
-</button>
-{order?.status !== "Shipped" && (
-        <button 
-          onClick={cancelOrder} 
-          className=" px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-        >
-          Cancel Order
-        </button>
-      )}
+              onClick={moveToNextStatus}
+              className="px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800"
+            >
+              Advance Order
+            </button>
+            {order?.status !== "Shipped" && order?.status !== "Cancelled" && (
+              <button
+                onClick={() => setShowCancelConfirm(true)}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+              >
+                Cancel Order
+              </button>
+            )}
           </div>
         </div>
         <div className="bg-white shadow-sm rounded-lg overflow-hidden mb-8">
