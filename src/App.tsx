@@ -24,6 +24,7 @@ import {Account} from './pages/Account';
 import { SignUp } from './pages/Signup';
 import Login from './pages/Login';
 import { OrderDetails } from './pages/OrderDetails';
+import { AdminDashboard } from './pages/AdminDashboard';
 
 export function App() {
   return (
@@ -59,6 +60,7 @@ export function App() {
                 <Route path="/signup"  element={<SignUp />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/order-details/:orderId" element={<OrderDetails />} />
+                <Route path="/admin" element={<AdminDashboard/>}/>
               </Routes>
             </main>
             <Footer />
