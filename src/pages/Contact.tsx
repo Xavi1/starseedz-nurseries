@@ -184,7 +184,7 @@ export default function ContactPage() {
 
             <div className="space-y-8">
               <div className="bg-white rounded-lg shadow-lg p-8">
-                <h2 className="text-2xl font-semibold text-black-700 mb-6">Visit Our Nursery</h2>
+                <h2 className="text-2xl font-semibold text-black-700 mb-6">General Information</h2>
                 <div className="space-y-4">
                   <div className="flex items-start">
                     <div className="flex-shrink-0 text-green-600">
