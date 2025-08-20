@@ -202,9 +202,13 @@ const handlePlaceOrder = async () => {
         await updateDoc(productRef, updateData);
       }
     }
-    // Create the order document with the complete structure
+
+    // Generate custom order number
+    const customOrderNumber = Math.floor(Math.random() * 10000000).toString().padStart(7, '0');
+
+    // Create the order document with the custom order number
     const orderRef = await addDoc(collection(db, "orders"), {
-      id: "", // Will be filled with the document ID after creation
+      orderNumber: customOrderNumber,
       userId: auth.currentUser.uid,
       date: new Date().toISOString(),
       total: total,
@@ -268,18 +272,12 @@ const handlePlaceOrder = async () => {
       tax: tax
     });
 
-    // Update the order with its ID
-    await updateDoc(orderRef, {
-      id: orderRef.id
-    });
+    // Optionally, you can still store the Firestore document ID if needed
+    // await updateDoc(orderRef, { id: orderRef.id });
 
     // Clear the cart after successful order placement
     resetCartState();
-
-    // Clear cart and navigate to confirmation
-    resetCartState();
     setOrderPlaced(true);
-    
   } catch (error) {
     console.error("Error placing order: ", error);
     alert("There was an issue placing your order. Please try again.");
