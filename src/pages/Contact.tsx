@@ -142,7 +142,6 @@ export default function ContactPage() {
                     <option value="General Inquiry">General Inquiry</option>
                     <option value="Plant Availability">Plant Availability</option>
                     <option value="Workshop Information">Workshop Information</option>
-                    <option value="Landscaping Services">Landscaping Services</option>
                     <option value="Wholesale Inquiry">Wholesale Inquiry</option>
                     <option value="Other">Other</option>
                   </select>
