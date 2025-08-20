@@ -226,7 +226,7 @@ setRelatedProducts(relatedDocs.filter(Boolean));
           },
           reviews,
           inStock: data.inStock !== undefined ? data.inStock : true,
-          quantity: data.quantity || 0,
+          quantity: data.stock || 0,
           relatedProducts: [], // we already set this separately
           isNew: data.isNew || false,
           isBestSeller: data.isBestSeller || false
@@ -395,6 +395,11 @@ setRelatedProducts(relatedDocs.filter(Boolean));
                       </span> : <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                         Out of Stock
                       </span>}
+                    {product.inStock && typeof product.quantity === 'number' && product.quantity <= 10 && product.quantity > 0 && (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                        Only {product.quantity} left!
+                      </span>
+                    )}
                   </div>
                   {/* Description */}
                   <div className="mt-6">
