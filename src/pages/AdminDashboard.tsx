@@ -754,8 +754,8 @@ export const AdminDashboard = () => {
             <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
               Order Items
             </h4>
-            <div className="bg-gray-50 rounded-lg overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
+            <div className="bg-gray-50 rounded-lg overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 text-xs sm:text-sm">
                 <thead>
                   <tr>
                     <th className="px-6 py-3 bg-gray-100 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -2244,7 +2244,7 @@ export const AdminDashboard = () => {
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
                 <div>
                   <h4 className="text-lg font-medium text-gray-900 mb-4">
                     Orders by Status
