@@ -6,8 +6,6 @@ import { collection, setDoc, doc, getDoc } from 'firebase/firestore';
 import { getAuth, createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup, signOut, getAdditionalUserInfo } from 'firebase/auth';
 
 export const SignUp = () => {
-  const [showTerms, setShowTerms] = useState(false);
-  const [showPrivacy, setShowPrivacy] = useState(false);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: '',
@@ -372,11 +370,11 @@ export const SignUp = () => {
                   <div className="ml-3 text-sm">
                     <label htmlFor="agreeToTerms" className="font-medium text-gray-700">
                       I agree to the{' '}
-                      <button type="button" className="text-green-700 hover:text-green-800 underline" onClick={() => setShowTerms(true)}>
+                      <button type="button" className="text-green-700 hover:text-green-800 underline" onClick={() => window.open('/terms-of-service', '_blank')}>
                         Terms of Service
                       </button>{' '}
                       and{' '}
-                      <button type="button" className="text-green-700 hover:text-green-800 underline" onClick={() => setShowPrivacy(true)}>
+                      <button type="button" className="text-green-700 hover:text-green-800 underline" onClick={() => window.open('/privacy-policy', '_blank')}>
                         Privacy Policy
                       </button>
                     </label>
@@ -385,26 +383,6 @@ export const SignUp = () => {
                       </p>}
                   </div>
                 </div>
-  {/* Terms of Service Popup */}
-  <dialog open={showTerms} className="modal" style={{padding: '2rem', borderRadius: '0.5rem', border: 'none', maxWidth: '600px', margin: 'auto'}}>
-    <h2 className="text-lg font-bold mb-2">Terms of Service</h2>
-    <div className="mb-4 text-sm text-gray-700" style={{maxHeight: '300px', overflowY: 'auto'}}>
-      {/* You can replace this with actual terms content or import from a file */}
-      <p>By using this site, you agree to the following terms...</p>
-      <p>[Insert your full Terms of Service here]</p>
-    </div>
-    <button onClick={() => setShowTerms(false)} className="px-4 py-2 bg-green-700 text-white rounded hover:bg-green-800">Close</button>
-  </dialog>
-  {/* Privacy Policy Popup */}
-  <dialog open={showPrivacy} className="modal" style={{padding: '2rem', borderRadius: '0.5rem', border: 'none', maxWidth: '600px', margin: 'auto'}}>
-    <h2 className="text-lg font-bold mb-2">Privacy Policy</h2>
-    <div className="mb-4 text-sm text-gray-700" style={{maxHeight: '300px', overflowY: 'auto'}}>
-      {/* You can replace this with actual privacy content or import from a file */}
-      <p>Your privacy is important to us...</p>
-      <p>[Insert your full Privacy Policy here]</p>
-    </div>
-    <button onClick={() => setShowPrivacy(false)} className="px-4 py-2 bg-green-700 text-white rounded hover:bg-green-800">Close</button>
-  </dialog>
                 <div className="flex items-start">
                   <div className="flex items-center h-5">
                     <input id="receiveEmails" name="receiveEmails" type="checkbox" checked={formData.receiveEmails} onChange={handleChange} className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500" />
