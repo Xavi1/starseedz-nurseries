@@ -2639,7 +2639,7 @@ export const AdminDashboard = () => {
                     Store Name
                   </label>
                   <div className="mt-1">
-                    <input type="text" name="store-name" id="store-name" defaultValue="GreenThumb Nursery" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+                    <input type="text" name="store-name" id="store-name" defaultValue="Starseedz Nurseries" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
                   </div>
                 </div>
                 <div className="sm:col-span-3">
@@ -2647,7 +2647,7 @@ export const AdminDashboard = () => {
                     Email Address
                   </label>
                   <div className="mt-1">
-                    <input type="email" name="store-email" id="store-email" defaultValue="info@greenthumb.com" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+                    <input type="email" name="store-email" id="store-email" defaultValue="info@starseedz.com" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
                   </div>
                 </div>
                 <div className="sm:col-span-3">
