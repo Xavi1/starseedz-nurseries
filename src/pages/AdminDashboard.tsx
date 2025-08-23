@@ -506,18 +506,21 @@ const getStatusBadgeClass = (status: OrderStatus): string => {
   }
 };
   // Get activity icon based on type
-  const getActivityIcon = type => {
-    switch (type) {
-      case 'signup':
-        return <UserPlusIcon className="h-5 w-5 text-green-500" />;
-      case 'review':
-        return <StarIcon className="h-5 w-5 text-yellow-500" />;
-      case 'inquiry':
-        return <MessageCircleIcon className="h-5 w-5 text-blue-500" />;
-      default:
-        return <BellIcon className="h-5 w-5 text-gray-500" />;
-    }
-  };
+  type ActivityType = 'signup' | 'review' | 'inquiry' | string;
+
+const getActivityIcon = (type: ActivityType): JSX.Element => {
+  switch (type) {
+    case 'signup':
+      return <UserPlusIcon className="h-5 w-5 text-green-500" />;
+    case 'review':
+      return <StarIcon className="h-5 w-5 text-yellow-500" />;
+    case 'inquiry':
+      return <MessageCircleIcon className="h-5 w-5 text-blue-500" />;
+    default:
+      return <BellIcon className="h-5 w-5 text-gray-500" />;
+  }
+};
+
   // Navigation items
   const navItems = [{
     id: 'dashboard',
