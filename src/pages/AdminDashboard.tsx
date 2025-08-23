@@ -8,9 +8,9 @@ export const AdminDashboard = () => {
   const [orderStatusFilter, setOrderStatusFilter] = useState('all');
   const [productCategoryFilter, setProductCategoryFilter] = useState('all');
   const [customerSegmentFilter, setCustomerSegmentFilter] = useState('all');
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<number | null>(null);
   const [reportType, setReportType] = useState('sales');
   const [reportTimeframe, setReportTimeframe] = useState('month');
   const [activeSettingsTab, setActiveSettingsTab] = useState('store');
