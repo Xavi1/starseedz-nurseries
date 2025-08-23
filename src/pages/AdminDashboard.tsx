@@ -487,22 +487,24 @@ export const AdminDashboard = () => {
     notes: 'Collector of rare plants. Interested in plant swaps and events.'
   }];
   // Status badge color mapper
-  const getStatusBadgeClass = status => {
-    switch (status) {
-      case 'Pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'Processing':
-        return 'bg-blue-100 text-blue-800';
-      case 'Shipped':
-        return 'bg-purple-100 text-purple-800';
-      case 'Delivered':
-        return 'bg-green-100 text-green-800';
-      case 'Cancelled':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+  type OrderStatus = 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled' | string;
+
+const getStatusBadgeClass = (status: OrderStatus): string => {
+  switch (status) {
+    case 'Pending':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'Processing':
+      return 'bg-blue-100 text-blue-800';
+    case 'Shipped':
+      return 'bg-purple-100 text-purple-800';
+    case 'Delivered':
+      return 'bg-green-100 text-green-800';
+    case 'Cancelled':
+      return 'bg-red-100 text-red-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+};
   // Get activity icon based on type
   const getActivityIcon = type => {
     switch (type) {
