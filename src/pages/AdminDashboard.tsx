@@ -2589,10 +2589,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                       }, {
                         name: 'Pots & Planters',
                         value: 5400
-                      }]} cx="50%" cy="50%" labelLine={false} outerRadius={80} fill="#8884d8" dataKey="value" label={({
-                        name,
-                        percent
-                      }) => `${name}: ${(percent * 100).toFixed(0)}%`}>
+                      }]} cx="50%" cy="50%" labelLine={false} outerRadius={80} fill="#8884d8" dataKey="value" label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`}>
                             <Cell fill="#16a34a" />
                             <Cell fill="#22c55e" />
                             <Cell fill="#3b82f6" />
