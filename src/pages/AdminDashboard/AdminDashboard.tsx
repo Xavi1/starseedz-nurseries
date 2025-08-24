@@ -50,12 +50,65 @@ const AdminDashboard = () => {
           </div>
         </header>
         <main className="p-4">
-          {activeNav === 'dashboard' && <DashboardOverview />}
-          {activeNav === 'orders' && <OrdersList />}
-          {activeNav === 'products' && <ProductsList />}
-          {activeNav === 'customers' && <CustomersList />}
-          {activeNav === 'reports' && <SalesReport />}
-          {activeNav === 'settings' && <StoreSettings />}
+          {activeNav === 'dashboard' && (
+            <DashboardOverview
+              salesData={salesData}
+              topProductsData={topProductsData}
+              inventoryAlerts={inventoryAlerts}
+              customerActivity={customerActivity}
+              recentOrders={recentOrders}
+              getStatusBadgeClass={getStatusBadgeClass}
+              getActivityIcon={getActivityIcon}
+              setActiveNav={setActiveNav}
+              setSelectedOrder={setSelectedOrder}
+            />
+          )}
+          {activeNav === 'orders' && (
+            <OrdersList
+              allOrders={allOrders}
+              filteredOrders={filteredOrders}
+              orderStatusFilter={orderStatusFilter}
+              setOrderStatusFilter={setOrderStatusFilter}
+              selectedOrder={selectedOrder}
+              setSelectedOrder={setSelectedOrder}
+              getStatusBadgeClass={getStatusBadgeClass}
+            />
+          )}
+          {activeNav === 'products' && (
+            <ProductsList
+              products={products}
+              filteredProducts={filteredProducts}
+              productCategoryFilter={productCategoryFilter}
+              setProductCategoryFilter={setProductCategoryFilter}
+              selectedProduct={selectedProduct}
+              setSelectedProduct={setSelectedProduct}
+            />
+          )}
+          {activeNav === 'customers' && (
+            <CustomersList
+              customers={customers}
+              filteredCustomers={filteredCustomers}
+              customerSegmentFilter={customerSegmentFilter}
+              setCustomerSegmentFilter={setCustomerSegmentFilter}
+              selectedCustomer={selectedCustomer}
+              setSelectedCustomer={setSelectedCustomer}
+            />
+          )}
+          {activeNav === 'reports' && (
+            <SalesReport
+              reportType={reportType}
+              setReportType={setReportType}
+              reportTimeframe={reportTimeframe}
+              setReportTimeframe={setReportTimeframe}
+              getReportData={getReportData}
+            />
+          )}
+          {activeNav === 'settings' && (
+            <StoreSettings
+              activeSettingsTab={activeSettingsTab}
+              setActiveSettingsTab={setActiveSettingsTab}
+            />
+          )}
         </main>
       </div>
     </div>
