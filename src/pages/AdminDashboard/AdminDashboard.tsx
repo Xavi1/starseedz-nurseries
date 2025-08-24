@@ -16,6 +16,66 @@ const navItems = [
 ];
 
 const AdminDashboard = () => {
+  // --- Dashboard Data & Handlers ---
+  const [orderStatusFilter, setOrderStatusFilter] = useState('all');
+  const [productCategoryFilter, setProductCategoryFilter] = useState('all');
+  const [customerSegmentFilter, setCustomerSegmentFilter] = useState('all');
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [reportType, setReportType] = useState('sales');
+  const [reportTimeframe, setReportTimeframe] = useState('month');
+  const [activeSettingsTab, setActiveSettingsTab] = useState('store');
+
+  // Mock data for charts
+  const salesData = [
+    { month: 'Jan', sales: 4000 },
+    { month: 'Feb', sales: 3000 },
+    { month: 'Mar', sales: 5000 },
+    { month: 'Apr', sales: 4500 },
+    { month: 'May', sales: 6000 },
+    { month: 'Jun', sales: 5500 },
+    { month: 'Jul', sales: 7000 }
+  ];
+  const topProductsData = [
+    { name: 'Snake Plant', sales: 78 },
+    { name: 'Monstera', sales: 65 },
+    { name: 'Potting Soil', sales: 52 },
+    { name: 'Fiddle Leaf Fig', sales: 48 },
+    { name: 'Ceramic Pot', sales: 38 }
+  ];
+  const inventoryAlerts = [
+    { id: 1, product: 'Monstera Deliciosa', sku: 'PLT-001', stock: 3, threshold: 5, image: '' },
+    { id: 2, product: 'Ceramic Pot - Large', sku: 'POT-012', stock: 2, threshold: 10, image: '' }
+  ];
+  const customerActivity = [
+    { id: 1, type: 'signup', customer: 'David Anderson', time: '10 minutes ago', details: 'New customer signed up via email' }
+  ];
+  const recentOrders = [
+    { id: 'ORD-7892', customer: 'Emma Johnson', date: '2023-07-15', status: 'Delivered', total: '$125.99', paymentMethod: 'Credit Card', shippingMethod: 'Standard Shipping' }
+  ];
+  const allOrders = [...recentOrders];
+  const filteredOrders = orderStatusFilter === 'all' ? allOrders : allOrders.filter(order => order.status.toLowerCase() === orderStatusFilter.toLowerCase());
+  const products = [
+    { id: 1, name: 'Monstera Deliciosa', sku: 'PLT-001', category: 'Indoor Plants', price: 39.99, stock: 24, lowStockThreshold: 5, featured: true, image: '' }
+  ];
+  const filteredProducts = productCategoryFilter === 'all' ? products : products.filter(product => product.category === productCategoryFilter);
+  const customers = [
+    { id: 1, name: 'Emma Johnson', email: 'emma.johnson@example.com', ordersCount: 8, totalSpend: '$425.75', lastActive: '2023-07-15', segment: 'repeat', phone: '', address: '', createdAt: '', notes: '' }
+  ];
+  const filteredCustomers = customerSegmentFilter === 'all' ? customers : customers.filter(customer => customer.segment === customerSegmentFilter);
+  const getStatusBadgeClass = (status) => {
+    switch (status) {
+      case 'Pending': return 'bg-yellow-100 text-yellow-800';
+      case 'Processing': return 'bg-blue-100 text-blue-800';
+      case 'Shipped': return 'bg-purple-100 text-purple-800';
+      case 'Delivered': return 'bg-green-100 text-green-800';
+      case 'Cancelled': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+  const getActivityIcon = (type) => null;
+  const getReportData = () => [];
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeNav, setActiveNav] = useState('dashboard');
 
