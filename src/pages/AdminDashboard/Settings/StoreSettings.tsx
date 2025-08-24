@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SettingsIcon, StoreIcon, ShippingIcon, PaymentIcon, NotificationIcon, UserIcon, ShieldIcon } from 'lucide-react';
+import { SettingsIcon, StoreIcon, ShipIcon, CreditCardIcon, BellIcon, UserIcon, ShieldIcon } from 'lucide-react';
 
 type StoreSettingsProps = {
   activeSettingsTab: string;
@@ -37,9 +37,9 @@ const StoreSettings: React.FC<StoreSettingsProps> = ({
   const tabs = [
     { id: 'general', label: 'General', icon: SettingsIcon },
     { id: 'store', label: 'Store Info', icon: StoreIcon },
-    { id: 'shipping', label: 'Shipping', icon: ShippingIcon },
-    { id: 'payments', label: 'Payments', icon: PaymentIcon },
-    { id: 'notifications', label: 'Notifications', icon: NotificationIcon },
+    { id: 'shipping', label: 'Shipping', icon: ShipIcon },
+    { id: 'payments', label: 'Payments', icon: CreditCardIcon },
+    { id: 'notifications', label: 'Notifications', icon: BellIcon },
     { id: 'users', label: 'Users', icon: UserIcon },
     { id: 'security', label: 'Security', icon: ShieldIcon }
   ];
