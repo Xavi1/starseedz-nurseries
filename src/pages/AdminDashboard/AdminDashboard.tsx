@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import DashboardOverview from './DashboardOverview/DashboardOverview';
+import DashboardOverview from 'c:/Users/Xavi/Downloads/1eb0b63a-2640-4748-b131-bb050f07833f/src/pages/AdminDashboard/DashboardOverview';
 import OrdersList from './Orders/OrdersList';
 import ProductsList from './Products/ProductsList';
 import CustomersList from './Customers/CustomersList';
