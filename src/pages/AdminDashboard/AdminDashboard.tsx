@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import DashboardOverview from './DashboardOverview';
+import { useState } from 'react';
+import DashboardOverview from './DashboardOverview/DashboardOverview';
 import OrdersList from './Orders/OrdersList';
 import ProductsList from './Products/ProductsList';
 import CustomersList from './Customers/CustomersList';
@@ -64,7 +64,7 @@ const AdminDashboard = () => {
     { id: 1, name: 'Emma Johnson', email: 'emma.johnson@example.com', ordersCount: 8, totalSpend: '$425.75', lastActive: '2023-07-15', segment: 'repeat', phone: '', address: '', createdAt: '', notes: '' }
   ];
   const filteredCustomers = customerSegmentFilter === 'all' ? customers : customers.filter(customer => customer.segment === customerSegmentFilter);
-  const getStatusBadgeClass = (status) => {
+  const getStatusBadgeClass = (status: string) => {
     switch (status) {
       case 'Pending': return 'bg-yellow-100 text-yellow-800';
       case 'Processing': return 'bg-blue-100 text-blue-800';
@@ -74,7 +74,7 @@ const AdminDashboard = () => {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
-  const getActivityIcon = (type) => null;
+  const getActivityIcon = (_type: string) => null;
   const getReportData = () => [];
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeNav, setActiveNav] = useState('dashboard');
@@ -120,7 +120,7 @@ const AdminDashboard = () => {
               getStatusBadgeClass={getStatusBadgeClass}
               getActivityIcon={getActivityIcon}
               setActiveNav={setActiveNav}
-              setSelectedOrder={setSelectedOrder}
+              setSelectedOrder={(id: string | null) => setSelectedOrder(id)}
             />
           )}
           {activeNav === 'orders' && (
@@ -141,7 +141,7 @@ const AdminDashboard = () => {
               productCategoryFilter={productCategoryFilter}
               setProductCategoryFilter={setProductCategoryFilter}
               selectedProduct={selectedProduct}
-              setSelectedProduct={setSelectedProduct}
+              setSelectedProduct={(id: number | null) => setSelectedProduct(id)}
             />
           )}
           {activeNav === 'customers' && (
@@ -151,7 +151,7 @@ const AdminDashboard = () => {
               customerSegmentFilter={customerSegmentFilter}
               setCustomerSegmentFilter={setCustomerSegmentFilter}
               selectedCustomer={selectedCustomer}
-              setSelectedCustomer={setSelectedCustomer}
+              setSelectedCustomer={(id: number | null) => setSelectedCustomer(id)}
             />
           )}
           {activeNav === 'reports' && (
