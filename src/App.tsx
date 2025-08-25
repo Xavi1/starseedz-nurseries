@@ -25,6 +25,7 @@ import { SignUp } from './pages/Signup';
 import Login from './pages/Login';
 import { OrderDetails } from './pages/OrderDetails';
 import { AdminDashboard } from './pages/AdminDashboard';
+import ReturnsRefunds  from './pages/ReturnsRefunds'
 
 export function App() {
   return (
@@ -61,6 +62,7 @@ export function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/order-details/:orderId" element={<OrderDetails />} />
                 <Route path="/admin" element={<AdminDashboard/>}/>
+                <Route path="/returns" element={<ReturnsRefunds/>}/>
               </Routes>
             </main>
             <Footer />
