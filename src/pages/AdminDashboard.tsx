@@ -2667,6 +2667,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                       <option>GBP (£)</option>
                       <option>CAD ($)</option>
                       <option>AUD ($)</option>
+                      <option>TTD ($)</option>
                     </select>
                   </div>
                 </div>
