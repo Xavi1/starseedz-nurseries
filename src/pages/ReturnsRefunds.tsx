@@ -15,7 +15,7 @@ const ReturnsRefunds: React.FC = () => (
     </ul>
     <h2 className="text-xl font-bold text-gray-800 mt-8 mb-2">How to Initiate a Return</h2>
     <ol className="list-decimal pl-6 mb-4 text-gray-700">
-      <li>Contact our support team at <a href="mailto:support@starseedz.com" className="text-green-700 underline">support@starseedz.com</a> with your order number and reason for return.</li>
+      <li>Contact our support team at <a href="mailto:info@starseedz.com" className="text-green-700 underline">info@starseedz.com</a> with your order number and reason for return.</li>
       <li>We will provide instructions and a return shipping label if eligible.</li>
       <li>Pack your items securely and send them back using the provided label.</li>
     </ol>
@@ -31,7 +31,7 @@ const ReturnsRefunds: React.FC = () => (
       <li>Contact us within 48 hours of delivery for exchange requests.</li>
     </ul>
     <h2 className="text-xl font-bold text-gray-800 mt-8 mb-2">Questions?</h2>
-    <p className="text-gray-700">If you have any questions about returns or refunds, please contact us at <a href="mailto:support@starseedz.com" className="text-green-700 underline">support@starseedz.com</a>.</p>
+    <p className="text-gray-700">If you have any questions about returns or refunds, please contact us at <a href="mailto:info@starseedz.com" className="text-green-700 underline">info@starseedz.com</a>.</p>
   </div>
 );
 
