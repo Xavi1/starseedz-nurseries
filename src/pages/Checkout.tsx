@@ -109,6 +109,8 @@ export const Checkout = () => {
   const [shippingMethod, setShippingMethod] = useState('standard');
   const [shippingErrors, setShippingErrors] = useState<Record<string, string>>({});
   const [paymentErrors, setPaymentErrors] = useState<Record<string, string>>({});
+  const [paymentMethod, setPaymentMethod] = useState<'credit-card' | 'cash-on-delivery'>('credit-card'); // New Payment Method State
+
   // Calculate cart totals
   const subtotal = cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
   const shipping = shippingMethod === 'express' ? 14.99 : subtotal > 50 ? 0 : 9.99;
