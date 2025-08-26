@@ -135,6 +135,9 @@ export const Checkout = () => {
   };
   const validatePaymentInfo = () => {
     const errors: Record<string, string> = {};
+     if (paymentMethod === 'cash-on-delivery') {
+    return true; // No validation needed for cash on delivery
+  }
     if (!paymentInfo.cardNumber) {
       errors.cardNumber = 'Card number is required';
     } else if (!/^\d{16}$/.test(paymentInfo.cardNumber.replace(/\s/g, ''))) {
@@ -675,6 +678,39 @@ const handlePlaceOrder = async () => {
                 <h2 className="text-lg font-medium text-gray-900 mb-4">
                   Payment Information
                 </h2>
+                    <div className="mb-6">
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        Payment Method
+      </label>
+      <div className="space-y-2">
+        <div className="flex items-center">
+          <input
+            id="credit-card"
+            name="payment-method"
+            type="radio"
+            checked={paymentMethod === 'credit-card'}
+            onChange={() => setPaymentMethod('credit-card')}
+            className="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300"
+          />
+          <label htmlFor="credit-card" className="ml-2 text-sm text-gray-700">
+            Credit Card
+          </label>
+        </div>
+        <div className="flex items-center">
+          <input
+            id="cash-on-delivery"
+            name="payment-method"
+            type="radio"
+            checked={paymentMethod === 'cash-on-delivery'}
+            onChange={() => setPaymentMethod('cash-on-delivery')}
+            className="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300"
+          />
+          <label htmlFor="cash-on-delivery" className="ml-2 text-sm text-gray-700">
+            Cash on Delivery
+          </label>
+        </div>
+      </div>
+    </div>
                 <form onSubmit={handlePaymentSubmit}>
                   <div className="space-y-6">
                     <div>
