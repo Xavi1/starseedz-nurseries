@@ -313,8 +313,8 @@ const handlePlaceOrder = async () => {
       </div>;
   }
   if (orderPlaced) {
-    return <div className="min-h-screen bg-white">
-        
+    return (
+      <div className="min-h-screen bg-white">
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center py-16">
             <div className="mx-auto h-16 w-16 flex items-center justify-center rounded-full bg-green-100">
@@ -338,12 +338,12 @@ const handlePlaceOrder = async () => {
             </div>
           </div>
         </main>
-        
-      </div>;
+      </div>
+    );
   }
   return <div className="min-h-screen bg-white">
       
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumbs */}
         <nav className="flex items-center text-sm mb-8">
           <Link to="/" className="text-gray-500 hover:text-gray-700 flex items-center">
@@ -678,39 +678,146 @@ const handlePlaceOrder = async () => {
                 <h2 className="text-lg font-medium text-gray-900 mb-4">
                   Payment Information
                 </h2>
-                    <div className="mb-6">
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        Payment Method
-      </label>
-      <div className="space-y-2">
-        <div className="flex items-center">
-          <input
-            id="credit-card"
-            name="payment-method"
-            type="radio"
-            checked={paymentMethod === 'credit-card'}
-            onChange={() => setPaymentMethod('credit-card')}
-            className="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300"
-          />
-          <label htmlFor="credit-card" className="ml-2 text-sm text-gray-700">
-            Credit Card
-          </label>
-        </div>
-        <div className="flex items-center">
-          <input
-            id="cash-on-delivery"
-            name="payment-method"
-            type="radio"
-            checked={paymentMethod === 'cash-on-delivery'}
-            onChange={() => setPaymentMethod('cash-on-delivery')}
-            className="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300"
-          />
-          <label htmlFor="cash-on-delivery" className="ml-2 text-sm text-gray-700">
-            Cash on Delivery
-          </label>
-        </div>
-      </div>
-    </div>
+                <form onSubmit={handlePaymentSubmit}>
+                  <div className="mb-6"> 
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Payment Method
+                    </label>
+                    <div className="space-y-2">
+                      <div className="flex items-center">
+                        <input
+                          id="credit-card"
+                          name="payment-method"
+                          type="radio"
+                          checked={paymentMethod === 'credit-card'}
+                          onChange={() => setPaymentMethod('credit-card')}
+                          className="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300"
+                        />
+                        <label htmlFor="credit-card" className="ml-2 text-sm text-gray-700">
+                          Credit Card
+                        </label>
+                      </div>
+                      <div className="flex items-center">
+                        <input
+                          id="cash-on-delivery"
+                          name="payment-method"
+                          type="radio"
+                          checked={paymentMethod === 'cash-on-delivery'}
+                          onChange={() => setPaymentMethod('cash-on-delivery')}
+                          className="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300"
+                        />
+                        <label htmlFor="cash-on-delivery" className="ml-2 text-sm text-gray-700">
+                          Cash on Delivery
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Conditionally render payment form based on method */}
+                  {paymentMethod === 'credit-card' && (
+                    <div className="space-y-6">
+                      <div>
+                        <label htmlFor="cardNumber" className="block text-sm font-medium text-gray-700">
+                          Card number
+                        </label>
+                        <div className="mt-1 relative rounded-md shadow-sm">
+                          <input type="text" id="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456" value={paymentInfo.cardNumber} onChange={e => {
+                            // Format card number with spaces
+                            const value = e.target.value.replace(/\s/g, '');
+                            if (/^\d*$/.test(value) && value.length <= 16) {
+                              const formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+                              handleInputChange({
+                                ...e,
+                                target: {
+                                  ...e.target,
+                                  value: formattedValue,
+                                  name: 'cardNumber'
+                                }
+                              }, setPaymentInfo);
+                            }
+                          }} className={`mt-1 block w-full border ${paymentErrors.cardNumber ? 'border-red-300' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm`} />
+                          <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <CreditCardIcon className="h-5 w-5 text-gray-400" />
+                          </div>
+                        </div>
+                        {paymentErrors.cardNumber && <p className="mt-1 text-sm text-red-600">
+                            {paymentErrors.cardNumber}
+                          </p>}
+                      </div>
+                      <div>
+                        <label htmlFor="nameOnCard" className="block text-sm font-medium text-gray-700">
+                          Name on card
+                        </label>
+                        <input type="text" id="nameOnCard" name="nameOnCard" value={paymentInfo.nameOnCard} onChange={e => handleInputChange(e, setPaymentInfo)} className={`mt-1 block w-full border ${paymentErrors.nameOnCard ? 'border-red-300' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm`} />
+                        {paymentErrors.nameOnCard && <p className="mt-1 text-sm text-red-600">
+                            {paymentErrors.nameOnCard}
+                          </p>}
+                      </div>
+                      <div className="grid grid-cols-2 gap-x-4">
+                        <div>
+                          <label htmlFor="expiryDate" className="block text-sm font-medium text-gray-700">
+                            Expiry date (MM/YY)
+                          </label>
+                          <input type="text" id="expiryDate" name="expiryDate" placeholder="MM/YY" value={paymentInfo.expiryDate} onChange={e => {
+                            const value = e.target.value.replace(/\D/g, '');
+                            if (value.length <= 4) {
+                              const month = value.slice(0, 2);
+                              const year = value.slice(2);
+                              const formattedValue = year ? `${month}/${year}` : month;
+                              handleInputChange({
+                                ...e,
+                                target: {
+                                  ...e.target,
+                                  value: formattedValue,
+                                  name: 'expiryDate'
+                                }
+                              }, setPaymentInfo);
+                            }
+                          }} className={`mt-1 block w-full border ${paymentErrors.expiryDate ? 'border-red-300' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm`} />
+                          {paymentErrors.expiryDate && <p className="mt-1 text-sm text-red-600">
+                              {paymentErrors.expiryDate}
+                            </p>}
+                        </div>
+                        <div>
+                          <label htmlFor="cvv" className="block text-sm font-medium text-gray-700">
+                            CVV
+                          </label>
+                          <input type="text" id="cvv" name="cvv" placeholder="123" value={paymentInfo.cvv} onChange={e => {
+                            const value = e.target.value.replace(/\D/g, '');
+                            if (value.length <= 4) {
+                              handleInputChange({
+                                ...e,
+                                target: {
+                                  ...e.target,
+                                  value,
+                                  name: 'cvv'
+                                }
+                              }, setPaymentInfo);
+                            }
+                          }} className={`mt-1 block w-full border ${paymentErrors.cvv ? 'border-red-300' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm`} />
+                          {paymentErrors.cvv && <p className="mt-1 text-sm text-red-600">
+                              {paymentErrors.cvv}
+                            </p>}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {paymentMethod === 'cash-on-delivery' && (
+                    <div className="bg-blue-50 p-4 rounded-md">
+                      <p className="text-sm text-blue-700">
+                        You'll pay with cash when your order is delivered. No payment information is required now.
+                      </p>
+                    </div>
+                  )}
+                  <div className="mt-6 flex justify-between">
+                    <button type="button" onClick={() => setCurrentStep('shipping')} className="flex items-center text-sm text-gray-500 hover:text-gray-700">
+                      <ChevronLeftIcon className="mr-1 h-4 w-4" />
+                      Back to shipping
+                    </button>
+                    <button type="submit" className="bg-green-700 border border-transparent rounded-md shadow-sm py-2 px-4 text-sm font-medium text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                      Review Order
+                    </button>
+                  </div>
+                </form>
                 <form onSubmit={handlePaymentSubmit}>
                   <div className="space-y-6">
                     <div>
