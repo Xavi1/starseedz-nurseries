@@ -888,9 +888,17 @@ const handlePlaceOrder = async () => {
                     </button>
                   </div>
                   <div className="text-sm text-gray-700">
-                    <p>Card ending in {paymentInfo.cardNumber.slice(-4)}</p>
-                    <p>{paymentInfo.nameOnCard}</p>
-                    <p>Expires {paymentInfo.expiryDate}</p>
+                    {paymentMethod === 'credit-card' ? (
+                      <>
+                        <p>Card ending in {paymentInfo.cardNumber.slice(-4)}</p>
+                        <p>{paymentInfo.nameOnCard}</p>
+                        <p>Expires {paymentInfo.expiryDate}</p>
+                      </>
+                    ) : (
+                      <p className="text-blue-700">
+                        You'll pay with cash when your order is delivered. No payment information is required now.
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="mt-6 flex justify-between">
