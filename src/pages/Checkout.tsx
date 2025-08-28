@@ -737,7 +737,7 @@ const handlePlaceOrder = async () => {
           />
           <label htmlFor="credit-card" className="ml-3 flex items-center text-sm font-medium text-gray-700">
             {/* Use Lucide or Material icon here */}
-            <CreditCardIcon className="mr-2 h-5 w-5 text-blue-600" />
+            <CreditCardIcon className="mr-2 h-5 w-5 text-green-600" />
             Credit Card
           </label>
         </div>
@@ -752,7 +752,7 @@ const handlePlaceOrder = async () => {
           />
           <label htmlFor="cash-on-delivery" className="ml-3 flex items-center text-sm font-medium text-gray-700">
             {/* Use Lucide or Material icon here */}
-             <BanknoteIcon className="mr-2 h-5 w-5 text-blue-600" />
+             <BanknoteIcon className="mr-2 h-5 w-5 text-green-600" />
             Cash on Delivery
           </label>
         </div>
