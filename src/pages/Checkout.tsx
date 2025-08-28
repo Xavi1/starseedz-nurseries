@@ -6,7 +6,7 @@ import { collection, onSnapshot, addDoc, doc, serverTimestamp, updateDoc, getDoc
 import { db, auth } from '../firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronRightIcon, HomeIcon, ShoppingCartIcon, CreditCardIcon, ShieldCheckIcon, TruckIcon, CheckIcon, ChevronLeftIcon, ChevronDownIcon, AlertCircleIcon } from 'lucide-react';
+import { ChevronRightIcon, HomeIcon, ShoppingCartIcon, CreditCardIcon,BanknoteIcon, ShieldCheckIcon, TruckIcon, CheckIcon, ChevronLeftIcon, ChevronDownIcon, AlertCircleIcon } from 'lucide-react';
 import { useCart  } from '../context/CartContext';
 import { CheckoutSteps } from '../components/CheckoutSteps';
 // Define cart item type (same as in Cart.tsx)
@@ -752,7 +752,7 @@ const handlePlaceOrder = async () => {
           />
           <label htmlFor="cash-on-delivery" className="ml-3 flex items-center text-sm font-medium text-gray-700">
             {/* Use Lucide or Material icon here */}
-            <span className="material-symbols-outlined mr-2" style={{ fontSize: 20 }}>payments</span>
+             <BanknoteIcon className="mr-2 h-5 w-5 text-blue-600" />
             Cash on Delivery
           </label>
         </div>
