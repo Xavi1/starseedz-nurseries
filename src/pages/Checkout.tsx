@@ -859,8 +859,8 @@ const handlePlaceOrder = async () => {
                     </div>
                   )}
                   {paymentMethod === 'cash-on-delivery' && (
-                    <div className="bg-blue-50 p-4 rounded-md">
-                      <p className="text-sm text-blue-700">
+                    <div className="bg-green-50 p-4 rounded-md">
+                      <p className="text-sm text-green-700">
                         You'll pay with cash when your order is delivered. No payment information is required now.
                       </p>
                     </div>
@@ -953,7 +953,7 @@ const handlePlaceOrder = async () => {
                         <p>Expires {paymentInfo.expiryDate}</p>
                       </>
                     ) : (
-                      <p className="text-blue-700">
+                      <p className="text-green-700">
                         You'll pay with cash when your order is delivered. No payment information is required now.
                       </p>
                     )}
