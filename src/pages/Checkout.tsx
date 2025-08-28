@@ -731,7 +731,7 @@ const handlePlaceOrder = async () => {
               </div>}
             {/* Payment Information */}
             {currentStep === 'payment' && <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-  // Payment step: select payment method and enter payment details
+  {/* Payment step: select payment method and enter payment details */}
                 <h2 className="text-lg font-medium text-gray-900 mb-4">
                   Payment Information
                 </h2>
@@ -878,7 +878,7 @@ const handlePlaceOrder = async () => {
               </div>}
             {/* Order Review */}
             {currentStep === 'review' && <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-  // Review step: show summary of items, shipping, and payment info
+  {/* Review step: show summary of items, shipping, and payment info */}
                 <h2 className="text-lg font-medium text-gray-900 mb-4">
                   Review Your Order
                 </h2>
@@ -972,7 +972,7 @@ const handlePlaceOrder = async () => {
           </div>
           {/* Order Summary */}
           <div className="mt-10 lg:mt-0 lg:col-span-5">
-  // Order summary sidebar: shows cart totals, coupon, and trust badges
+  {/* Order summary sidebar: shows cart totals, coupon, and trust badges */}
             <div className="bg-gray-50 rounded-lg px-6 py-6 sticky top-20">
               <h2 className="text-lg font-medium text-gray-900 mb-4">
                 Order Summary
