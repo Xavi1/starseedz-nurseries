@@ -1,3 +1,6 @@
+// Checkout.tsx
+// This file implements the main checkout flow for the e-commerce app, including shipping, billing, payment, and order review.
+// It uses React functional components, Firebase for backend, and context for cart state.
 import React, { useEffect, useState } from 'react';
 import { collection, onSnapshot, addDoc, doc, serverTimestamp, updateDoc, getDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
@@ -33,14 +36,22 @@ type Address = {
 };
 
 export const Checkout = () => {
+  // Access cart state and reset function from context
+  // 'cart' contains all items in the user's cart
+  // 'resetCartState' clears the cart after order placement
   const { cart, resetCartState } = useCart();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState<CheckoutStep>('shipping');
+  // Tracks which step of the checkout process the user is on
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  // Unused: could be used for local cart management if needed
   const [loading, setLoading] = useState(false);
+  // Loading state for async actions (e.g., placing order)
   const [orderPlaced, setOrderPlaced] = useState(false);
+  // True when order is successfully placed
   // Form states
   const [shippingInfo, setShippingInfo] = useState({
+  // Stores shipping address info for the order
     id: '',
     name: '',
     isDefault: false,
@@ -57,12 +68,18 @@ export const Checkout = () => {
   });
   // Saved addresses
   const [addresses, setAddresses] = useState<Address[]>([]);
+  // List of saved addresses for the user (from Firestore)
   const [selectedAddressId, setSelectedAddressId] = useState<string>('');
+  // Tracks which saved address is selected
   const [addressesLoading, setAddressesLoading] = useState(true);
+  // Loading state for address fetch
 
   // Get current user from Firebase Auth
   const [userId, setUserId] = useState<string | null>(null);
+  // Stores the current user's Firebase UID
   useEffect(() => {
+  // Listen for authentication state changes and set userId
+  // Fetch user's saved addresses from Firestore when userId changes
     const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
       if (user && user.uid) {
         setUserId(user.uid);
@@ -86,6 +103,7 @@ export const Checkout = () => {
     return () => unsubscribe();
   }, [userId]);
   const [billingInfo, setBillingInfo] = useState({
+  // Stores billing address info (can be same as shipping)
     id: '',
     name: '',
     isDefault: false,
@@ -100,23 +118,34 @@ export const Checkout = () => {
     country: 'Trinidad and Tobago'
   });
   const [paymentInfo, setPaymentInfo] = useState({
+  // Stores payment details for credit card payments
     cardNumber: '',
     nameOnCard: '',
     expiryDate: '',
     cvv: ''
   });
   const [useShippingForBilling, setUseShippingForBilling] = useState(true);
+  // If true, billing info is copied from shipping info
   const [shippingMethod, setShippingMethod] = useState('standard');
+  // Tracks selected shipping method (standard/express)
   const [shippingErrors, setShippingErrors] = useState<Record<string, string>>({});
+  // Validation errors for shipping form
   const [paymentErrors, setPaymentErrors] = useState<Record<string, string>>({});
+  // Validation errors for payment form
+  // Tracks selected payment method
   const [paymentMethod, setPaymentMethod] = useState<'credit-card' | 'cash-on-delivery'>('credit-card'); // New Payment Method State
 
   // Calculate cart totals
   const subtotal = cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+  // Calculate subtotal from cart items
   const shipping = shippingMethod === 'express' ? 14.99 : subtotal > 50 ? 0 : 9.99;
+  // Shipping cost logic: free over $50, express is $14.99
   const tax = subtotal * 0.07; // 7% tax rate
+  // Tax calculation (7%)
   const total = subtotal + shipping + tax;
+  // Total order cost
   const validateShippingInfo = () => {
+  // Validate shipping form fields and set errors
     const errors: Record<string, string> = {};
     if (!shippingInfo.firstName) errors.firstName = 'First name is required';
     if (!shippingInfo.lastName) errors.lastName = 'Last name is required';
@@ -134,6 +163,8 @@ export const Checkout = () => {
     return Object.keys(errors).length === 0;
   };
   const validatePaymentInfo = () => {
+  // Validate payment form fields and set errors
+  // If cash-on-delivery, skip validation
     const errors: Record<string, string> = {};
      if (paymentMethod === 'cash-on-delivery') {
     return true; // No validation needed for cash on delivery
@@ -158,6 +189,8 @@ export const Checkout = () => {
     return Object.keys(errors).length === 0;
   };
   const handleShippingSubmit = (e: React.FormEvent) => {
+  // Handles shipping form submission
+  // If valid, copies info to billing (if needed) and moves to payment step
     e.preventDefault();
     if (validateShippingInfo()) {
       if (useShippingForBilling) {
@@ -181,6 +214,8 @@ export const Checkout = () => {
     }
   };
   const handlePaymentSubmit = (e: React.FormEvent) => {
+  // Handles payment form submission
+  // If valid, moves to review step
     e.preventDefault();
     if (validatePaymentInfo()) {
       setCurrentStep('review');
@@ -188,6 +223,8 @@ export const Checkout = () => {
     }
   };
 const handlePlaceOrder = async () => {
+  // Places the order in Firestore, updates product stock, and resets cart
+  // Throws error if user is not logged in
   if (!auth.currentUser) {
     throw new Error("You must be logged in to place an order.");
   }
@@ -289,6 +326,8 @@ const handlePlaceOrder = async () => {
   }
 };
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>, setter: React.Dispatch<React.SetStateAction<any>>) => {
+  // Generic input change handler for forms
+  // Updates state for shipping, billing, or payment info
     const {
       name,
       value
@@ -299,6 +338,7 @@ const handlePlaceOrder = async () => {
     }));
   };
   if (loading) {
+  // Show loading spinner while async actions are in progress
     return <div className="min-h-screen bg-white">
         
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -313,6 +353,8 @@ const handlePlaceOrder = async () => {
       </div>;
   }
   if (orderPlaced) {
+  // Show order confirmation after successful placement
+  // Main checkout UI
     return (
       <div className="min-h-screen bg-white">
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -367,6 +409,7 @@ const handlePlaceOrder = async () => {
           <div className="lg:col-span-7">
             {/* Shipping Information */}
             {currentStep === 'shipping' && <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+  // Shipping step: form for address, shipping method, billing info
                 <h2 className="text-lg font-medium text-gray-900 mb-4">
                   Shipping Information
                 </h2>
@@ -675,6 +718,7 @@ const handlePlaceOrder = async () => {
               </div>}
             {/* Payment Information */}
             {currentStep === 'payment' && <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+  // Payment step: select payment method and enter payment details
                 <h2 className="text-lg font-medium text-gray-900 mb-4">
                   Payment Information
                 </h2>
@@ -821,6 +865,7 @@ const handlePlaceOrder = async () => {
               </div>}
             {/* Order Review */}
             {currentStep === 'review' && <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+  // Review step: show summary of items, shipping, and payment info
                 <h2 className="text-lg font-medium text-gray-900 mb-4">
                   Review Your Order
                 </h2>
@@ -914,6 +959,7 @@ const handlePlaceOrder = async () => {
           </div>
           {/* Order Summary */}
           <div className="mt-10 lg:mt-0 lg:col-span-5">
+  // Order summary sidebar: shows cart totals, coupon, and trust badges
             <div className="bg-gray-50 rounded-lg px-6 py-6 sticky top-20">
               <h2 className="text-lg font-medium text-gray-900 mb-4">
                 Order Summary
