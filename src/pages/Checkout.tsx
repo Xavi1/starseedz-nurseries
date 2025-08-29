@@ -1,6 +1,18 @@
+// =============================
 // Checkout.tsx
+// =============================
+// Senior Developer Notes:
 // This file implements the main checkout flow for the e-commerce app, including shipping, billing, payment, and order review.
 // It uses React functional components, Firebase for backend, and context for cart state.
+//
+// Key Concepts:
+// - React hooks for state and lifecycle
+// - Context API for cart management
+// - Firebase Firestore for user/address/order data
+// - Conditional rendering for multi-step UI
+// - Form validation and error handling
+// - Inline documentation for maintainability
+// =============================
 import React, { useEffect, useState } from 'react';
 import { collection, onSnapshot, addDoc, doc, serverTimestamp, updateDoc, getDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
@@ -36,21 +48,29 @@ type Address = {
 };
 
 export const Checkout = () => {
+  // =============================
+  // State Management
+  // =============================
   // Access cart state and reset function from context
   // 'cart' contains all items in the user's cart
   // 'resetCartState' clears the cart after order placement
   const { cart, resetCartState } = useCart();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState<CheckoutStep>('shipping');
+  // currentStep: controls which checkout step is shown (shipping, payment, review)
   // Tracks which step of the checkout process the user is on
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  // cartItems: unused, but could be used for local cart management
   // Unused: could be used for local cart management if needed
   const [loading, setLoading] = useState(false);
+  // loading: shows spinner during async actions (e.g. order placement)
   // Loading state for async actions (e.g., placing order)
   const [orderPlaced, setOrderPlaced] = useState(false);
+  // orderPlaced: true after successful order placement, triggers confirmation UI
   // True when order is successfully placed
   // Form states
   const [shippingInfo, setShippingInfo] = useState({
+  // shippingInfo: stores shipping address info for the order
   // Stores shipping address info for the order
     id: '',
     name: '',
@@ -68,16 +88,25 @@ export const Checkout = () => {
   });
   // Saved addresses
   const [addresses, setAddresses] = useState<Address[]>([]);
+  // addresses: list of saved addresses for the user (from Firestore)
   // List of saved addresses for the user (from Firestore)
   const [selectedAddressId, setSelectedAddressId] = useState<string>('');
+  // selectedAddressId: tracks which saved address is selected
   // Tracks which saved address is selected
   const [addressesLoading, setAddressesLoading] = useState(true);
+  // addressesLoading: loading state for address fetch
   // Loading state for address fetch
 
   // Get current user from Firebase Auth
   const [userId, setUserId] = useState<string | null>(null);
+  // userId: stores the current user's Firebase UID
+  // =============================
+  // Effects: Auth & Address Fetch
+  // =============================
   // Stores the current user's Firebase UID
   useEffect(() => {
+  // Listen for authentication state changes and set userId
+  // When userId changes, fetch user's saved addresses from Firestore
   // Listen for authentication state changes and set userId
   // Fetch user's saved addresses from Firestore when userId changes
     const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
@@ -103,6 +132,7 @@ export const Checkout = () => {
     return () => unsubscribe();
   }, [userId]);
   const [billingInfo, setBillingInfo] = useState({
+  // billingInfo: stores billing address info (can be same as shipping)
   // Stores billing address info (can be same as shipping)
     id: '',
     name: '',
@@ -118,6 +148,7 @@ export const Checkout = () => {
     country: 'Trinidad and Tobago'
   });
   const [paymentInfo, setPaymentInfo] = useState({
+  // paymentInfo: stores payment details for credit card payments
   // Stores payment details for credit card payments
     cardNumber: '',
     nameOnCard: '',
@@ -125,26 +156,42 @@ export const Checkout = () => {
     cvv: ''
   });
   const [useShippingForBilling, setUseShippingForBilling] = useState(true);
+  // useShippingForBilling: if true, billing info is copied from shipping info
   // If true, billing info is copied from shipping info
   const [shippingMethod, setShippingMethod] = useState('standard');
+  // shippingMethod: tracks selected shipping method (standard/express)
   // Tracks selected shipping method (standard/express)
   const [shippingErrors, setShippingErrors] = useState<Record<string, string>>({});
+  // shippingErrors: validation errors for shipping form
   // Validation errors for shipping form
   const [paymentErrors, setPaymentErrors] = useState<Record<string, string>>({});
+  // paymentErrors: validation errors for payment form
   // Validation errors for payment form
   // Tracks selected payment method
   const [paymentMethod, setPaymentMethod] = useState<'credit-card' | 'cash-on-delivery'>('credit-card'); // New Payment Method State
+  // paymentMethod: tracks selected payment method (credit-card/cash-on-delivery)
+  // =============================
+  // Cart Totals Calculation
+  // =============================
 
   // Calculate cart totals
   const subtotal = cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+  // subtotal: sum of all cart item prices
   // Calculate subtotal from cart items
   const shipping = shippingMethod === 'express' ? 14.99 : subtotal > 50 ? 0 : 9.99;
+  // shipping: cost logic (free over $50, express $14.99)
   // Shipping cost logic: free over $50, express is $14.99
   const tax = subtotal * 0.07; // 7% tax rate
+  // tax: 7% of subtotal
   // Tax calculation (7%)
   const total = subtotal + shipping + tax;
+  // total: final order cost
+  // =============================
+  // Form Validation Functions
+  // =============================
   // Total order cost
   const validateShippingInfo = () => {
+  // Validates shipping form fields, sets errors, returns true if valid
   // Validate shipping form fields and set errors
     const errors: Record<string, string> = {};
     if (!shippingInfo.firstName) errors.firstName = 'First name is required';
@@ -163,6 +210,8 @@ export const Checkout = () => {
     return Object.keys(errors).length === 0;
   };
   const validatePaymentInfo = () => {
+  // Validates payment form fields, sets errors, returns true if valid
+  // If cash-on-delivery, skips validation
   // Validate payment form fields and set errors
   // If cash-on-delivery, skip validation
     const errors: Record<string, string> = {};
@@ -191,6 +240,8 @@ export const Checkout = () => {
   const handleShippingSubmit = (e: React.FormEvent) => {
   // Handles shipping form submission
   // If valid, copies info to billing (if needed) and moves to payment step
+  // Handles shipping form submission
+  // If valid, copies info to billing (if needed) and moves to payment step
     e.preventDefault();
     if (validateShippingInfo()) {
       if (useShippingForBilling) {
@@ -216,12 +267,19 @@ export const Checkout = () => {
   const handlePaymentSubmit = (e: React.FormEvent) => {
   // Handles payment form submission
   // If valid, moves to review step
+  // Handles payment form submission
+  // If valid, moves to review step
     e.preventDefault();
     if (validatePaymentInfo()) {
       setCurrentStep('review');
       window.scrollTo(0, 0);
     }
   };
+  // =============================
+  // Order Placement Logic
+  // =============================
+  // Places the order in Firestore, updates product stock, and resets cart
+  // Throws error if user is not logged in
 const handlePlaceOrder = async () => {
   // Places the order in Firestore, updates product stock, and resets cart
   // Throws error if user is not logged in
@@ -328,6 +386,8 @@ const handlePlaceOrder = async () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>, setter: React.Dispatch<React.SetStateAction<any>>) => {
   // Generic input change handler for forms
   // Updates state for shipping, billing, or payment info
+  // Generic input change handler for forms
+  // Updates state for shipping, billing, or payment info
     const {
       name,
       value
@@ -338,6 +398,9 @@ const handlePlaceOrder = async () => {
     }));
   };
   if (loading) {
+  // =============================
+  // Loading Spinner UI
+  // =============================
   // Show loading spinner while async actions are in progress
     return <div className="min-h-screen bg-white">
         
@@ -353,6 +416,9 @@ const handlePlaceOrder = async () => {
       </div>;
   }
   if (orderPlaced) {
+  // =============================
+  // Order Confirmation UI
+  // =============================
   // Show order confirmation after successful placement
   // Main checkout UI
     return (
@@ -384,9 +450,13 @@ const handlePlaceOrder = async () => {
     );
   }
   return <div className="min-h-screen bg-white">
+  // =============================
+  // Main Checkout UI
+  // =============================
       
   <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumbs */}
+  {/* Shows navigation path for user context */}
         <nav className="flex items-center text-sm mb-8">
           <Link to="/" className="text-gray-500 hover:text-gray-700 flex items-center">
             <HomeIcon className="h-4 w-4 mr-1" />
@@ -403,11 +473,14 @@ const handlePlaceOrder = async () => {
           Checkout
         </h1>
         {/* Checkout Steps */}
+  {/* Visual indicator of current checkout step */}
         <CheckoutSteps currentStep={currentStep} />
         <div className="lg:grid lg:grid-cols-12 lg:gap-x-12 lg:items-start">
           {/* Main content */}
+    {/* Contains all step forms and review logic */}
           <div className="lg:col-span-7">
             {/* Shipping Information */}
+            {/* Step 1: Shipping address, method, billing info */}
             {currentStep === 'shipping' && (
               <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
                 <h2 className="text-lg font-medium text-gray-900 mb-4">
@@ -717,6 +790,7 @@ const handlePlaceOrder = async () => {
             </div>
             )}
             {/* Payment Information */}
+            {/* Step 2: Payment method selection and form */}
            {currentStep === 'payment' && (
   <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-lg mx-auto">
     <form onSubmit={handlePaymentSubmit}>
@@ -791,6 +865,7 @@ const handlePlaceOrder = async () => {
   </div>
 )}
             {/* Order Review */}
+            {/* Step 3: Review all order details before placing */}
             {currentStep === 'review' && (
               <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
   {/* Review step: show summary of items, shipping, and payment info */}
@@ -887,6 +962,7 @@ const handlePlaceOrder = async () => {
             )}
           </div>
           {/* Order Summary */}
+          {/* Sidebar: shows cart totals, coupon, trust badges */}
           <div className="mt-10 lg:mt-0 lg:col-span-5">
   {/* Order summary sidebar: shows cart totals, coupon, and trust badges */}
             <div className="bg-gray-50 rounded-lg px-6 py-6 sticky top-20">
