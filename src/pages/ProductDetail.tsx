@@ -227,7 +227,7 @@ setRelatedProducts(relatedDocs.filter(Boolean));
           reviews,
           inStock: data.inStock !== undefined ? data.inStock : true,
           quantity: data.stock || 0,
-          relatedProducts: [], // we already set this separately
+          relatedProducts: [],
           isNew: data.isNew || false,
           isBestSeller: data.isBestSeller || false
         };
