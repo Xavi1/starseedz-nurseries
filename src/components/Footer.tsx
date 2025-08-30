@@ -14,12 +14,12 @@ const Footer = () => {
               <a href="#" className="text-gray-400 hover:text-white">
                 <FacebookIcon className="h-6 w-6" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-white">
+              {/* <a href="#" className="text-gray-400 hover:text-white">
                 <InstagramIcon className="h-6 w-6" />
               </a>
               <a href="#" className="text-gray-400 hover:text-white">
                 <TwitterIcon className="h-6 w-6" />
-              </a>
+              </a> */}
             </div>
           </div>
           <div>
