@@ -1,21 +1,52 @@
+// =============================
+// AdminDashboard.tsx
+// =============================
+// Senior Developer Notes:
+// This file implements the main admin dashboard for the e-commerce app, including navigation, analytics, orders, products, customers, reports, and settings.
+// It uses React functional components, hooks for state, and Lucide icons for UI.
+//
+// Key Concepts:
+// - React hooks for state and UI control
+// - Modular mock data for charts, tables, and detail views
+// - Conditional rendering for multi-tab navigation
+// - Inline documentation for maintainability and onboarding
+// =============================
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { LayoutDashboardIcon, ShoppingBagIcon, PackageIcon, UsersIcon, BarChartIcon, SettingsIcon, MenuIcon, XIcon, SearchIcon, BellIcon, ChevronDownIcon, TrendingUpIcon, ClockIcon, UserCheckIcon, DollarSignIcon, ChevronRightIcon, FilterIcon, AlertCircleIcon, PlusIcon, TagIcon, BoxIcon, CalendarIcon, CreditCardIcon, TruckIcon, FileTextIcon, TrashIcon, EditIcon, DownloadIcon, PrinterIcon, CheckCircleIcon, UserPlusIcon, StarIcon, MessageCircleIcon, RefreshCwIcon, EyeIcon, ShieldIcon, BellRingIcon, GlobeIcon, PercentIcon, KeyIcon, RepeatIcon, HeartIcon } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 export const AdminDashboard = () => {
+  // =============================
+  // State Management
+  // =============================
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  // sidebarOpen: controls mobile sidebar visibility
   const [activeNav, setActiveNav] = useState('dashboard');
+  // activeNav: tracks which main tab is active (dashboard, orders, products, etc.)
   const [orderStatusFilter, setOrderStatusFilter] = useState('all');
+  // orderStatusFilter: filter for orders by status
   const [productCategoryFilter, setProductCategoryFilter] = useState('all');
+  // productCategoryFilter: filter for products by category
   const [customerSegmentFilter, setCustomerSegmentFilter] = useState('all');
+  // customerSegmentFilter: filter for customers by segment
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
+  // selectedOrder: tracks which order is selected for detail view
   const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
+  // selectedProduct: tracks which product is selected for detail view
   const [selectedCustomer, setSelectedCustomer] = useState<number | null>(null);
+  // selectedCustomer: tracks which customer is selected for detail view
   const [reportType, setReportType] = useState('sales');
+  // reportType: controls which report is shown (sales, customers, inventory)
   const [reportTimeframe, setReportTimeframe] = useState('month');
+  // reportTimeframe: controls report data granularity
   const [activeSettingsTab, setActiveSettingsTab] = useState('store');
+  // activeSettingsTab: controls which settings tab is active
+  // =============================
+  // Mock Data Definitions
+  // =============================
   // Mock data for charts
   const salesData = [{
+  // salesData: monthly sales for dashboard chart
     month: 'Jan',
     sales: 4000
   }, {
@@ -38,6 +69,7 @@ export const AdminDashboard = () => {
     sales: 7000
   }];
   const topProductsData = [{
+  // topProductsData: top-selling products for dashboard chart
     name: 'Snake Plant',
     sales: 78
   }, {
@@ -55,6 +87,7 @@ export const AdminDashboard = () => {
   }];
   // Extended data for reports
   const salesReportData = [{
+  // salesReportData: extended sales data for reports
     date: '2023-07-01',
     revenue: 1240,
     orders: 28,
@@ -91,6 +124,7 @@ export const AdminDashboard = () => {
     avgOrderValue: 52.86
   }];
   const customerReportData = [{
+  // customerReportData: extended customer data for reports
     date: '2023-07-01',
     new: 12,
     returning: 16,
@@ -127,6 +161,7 @@ export const AdminDashboard = () => {
     churnRate: 1.6
   }];
   const inventoryReportData = [{
+  // inventoryReportData: extended inventory data for reports
     category: 'Indoor Plants',
     inStock: 145,
     lowStock: 12,
@@ -154,6 +189,7 @@ export const AdminDashboard = () => {
   }];
   // Customer activity data
   const customerActivity = [{
+  // customerActivity: recent customer actions for dashboard
     id: 1,
     type: 'signup',
     customer: 'David Anderson',
@@ -186,6 +222,7 @@ export const AdminDashboard = () => {
   }];
   // Inventory alerts data
   const inventoryAlerts = [{
+  // inventoryAlerts: low stock and out-of-stock alerts
     id: 1,
     product: 'Monstera Deliciosa',
     sku: 'PLT-001',
@@ -216,6 +253,7 @@ export const AdminDashboard = () => {
   }];
   // Mock data for recent orders
   const recentOrders = [{
+  // recentOrders: latest orders for dashboard and orders tab
     id: 'ORD-7892',
     customer: 'Emma Johnson',
     date: '2023-07-15',
@@ -258,6 +296,7 @@ export const AdminDashboard = () => {
   }];
   // Extended orders data for Orders tab
   const allOrders = [...recentOrders, {
+  // allOrders: extended orders for orders tab
     id: 'ORD-7887',
     customer: 'Robert Taylor',
     date: '2023-07-11',
@@ -300,6 +339,7 @@ export const AdminDashboard = () => {
   }];
   // Products data for Products tab
   const products = [{
+  // products: product catalog for products tab
     id: 1,
     name: 'Monstera Deliciosa',
     sku: 'PLT-001',
@@ -402,6 +442,10 @@ export const AdminDashboard = () => {
   }];
   // Customers data for Customers tab
   const customers = [{
+  // customers: customer list for customers tab
+  // =============================
+  // Utility Functions
+  // =============================
     id: 1,
     name: 'Emma Johnson',
     email: 'emma.johnson@example.com',
@@ -489,6 +533,7 @@ export const AdminDashboard = () => {
   // Status badge color mapper
   type OrderStatus = 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled' | string;
 
+  // getStatusBadgeClass: returns CSS class for order status badge
 const getStatusBadgeClass = (status: OrderStatus): string => {
   switch (status) {
     case 'Pending':
@@ -508,6 +553,7 @@ const getStatusBadgeClass = (status: OrderStatus): string => {
   // Get activity icon based on type
   type ActivityType = 'signup' | 'review' | 'inquiry' | string;
 
+  // getActivityIcon: returns icon for customer activity type
 const getActivityIcon = (type: ActivityType): JSX.Element => {
   switch (type) {
     case 'signup':
@@ -523,6 +569,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
 
   // Navigation items
   const navItems = [{
+  // navItems: sidebar navigation configuration
     id: 'dashboard',
     name: 'Dashboard',
     icon: <LayoutDashboardIcon className="w-5 h-5" />
@@ -549,14 +596,19 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
   }];
   // Filter orders by status
   const filteredOrders = orderStatusFilter === 'all' ? allOrders : allOrders.filter(order => order.status.toLowerCase() === orderStatusFilter.toLowerCase());
+  // filteredOrders: orders filtered by status
   // Filter products by category
   const filteredProducts = productCategoryFilter === 'all' ? products : products.filter(product => product.category === productCategoryFilter);
+  // filteredProducts: products filtered by category
   // Filter customers by segment
   const filteredCustomers = customerSegmentFilter === 'all' ? customers : customers.filter(customer => customer.segment === customerSegmentFilter);
+  // filteredCustomers: customers filtered by segment
   // Get product categories for filter
   const productCategories = ['all', ...new Set(products.map(product => product.category))];
+  // productCategories: unique product categories for filter dropdown
   // Get current report data based on type
   const getReportData = () => {
+  // getReportData: returns report data based on selected type
     switch (reportType) {
       case 'sales':
         return salesReportData;
@@ -570,6 +622,10 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
   };
   // Render order detail view
   const renderOrderDetail = () => {
+  // =============================
+  // Order Detail View
+  // =============================
+  // Renders detailed view for a selected order
     if (!selectedOrder) return null;
     const order = allOrders.find(o => o.id === selectedOrder);
     if (!order) return null;
@@ -840,6 +896,10 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
   };
   // Render product detail view
   const renderProductDetail = () => {
+  // =============================
+  // Product Detail View
+  // =============================
+  // Renders detailed view for a selected product
     if (!selectedProduct) return null;
     const product = products.find(p => p.id === selectedProduct);
     if (!product) return null;
@@ -983,6 +1043,10 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
   };
   // Render customer detail view
   const renderCustomerDetail = () => {
+  // =============================
+  // Customer Detail View
+  // =============================
+  // Renders detailed view for a selected customer
     if (!selectedCustomer) return null;
     const customer = customers.find(c => c.id === selectedCustomer);
     if (!customer) return null;
