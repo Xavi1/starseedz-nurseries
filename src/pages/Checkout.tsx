@@ -48,6 +48,8 @@ type Address = {
 };
 
 export const Checkout = () => {
+  // State for confirmation dialog
+  const [showConfirm, setShowConfirm] = useState(false);
   // =============================
   // State Management
   // =============================
@@ -954,10 +956,23 @@ const handlePlaceOrder = async () => {
                     <ChevronLeftIcon className="mr-1 h-4 w-4" />
                     Back to payment
                   </button>
-                  <button type="button" onClick={handlePlaceOrder} className="bg-green-700 border border-transparent rounded-md shadow-sm py-2 px-4 text-sm font-medium text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                  <button type="button" onClick={() => setShowConfirm(true)} className="bg-green-700 border border-transparent rounded-md shadow-sm py-2 px-4 text-sm font-medium text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                     Place Order
                   </button>
                 </div>
+                {/* Confirmation Dialog */}
+                {showConfirm && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                    <div className="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full">
+                      <h3 className="text-lg font-bold text-gray-900 mb-4">Confirm Order Placement</h3>
+                      <p className="text-gray-700 mb-6">Are you sure you want to place this order? This action cannot be undone.</p>
+                      <div className="flex justify-end space-x-3">
+                        <button onClick={() => setShowConfirm(false)} className="px-4 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300">Cancel</button>
+                        <button onClick={() => { setShowConfirm(false); handlePlaceOrder(); }} className="px-4 py-2 rounded-md bg-green-700 text-white hover:bg-green-800">Confirm</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
