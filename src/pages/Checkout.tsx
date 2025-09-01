@@ -14,7 +14,7 @@
 // - Inline documentation for maintainability
 // =============================
 import React, { useEffect, useState } from 'react';
-import { collection, onSnapshot, addDoc, doc, serverTimestamp, updateDoc, getDoc } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, doc, serverTimestamp, updateDoc, getDoc, setDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { Link, useNavigate } from 'react-router-dom';
@@ -285,8 +285,6 @@ export const Checkout = () => {
   // Places the order in Firestore, updates product stock, and resets cart
   // Throws error if user is not logged in
 const handlePlaceOrder = async () => {
-  // Places the order in Firestore, updates product stock, and resets cart
-  // Throws error if user is not logged in
   if (!auth.currentUser) {
     throw new Error("You must be logged in to place an order.");
   }
@@ -307,12 +305,17 @@ const handlePlaceOrder = async () => {
       }
     }
 
-  // Generate custom order number
-  const customOrderNumber = Math.floor(Math.random() * 10000000).toString().padStart(7, '0');
+    // Generate custom order number (7-digit random)
+    const customOrderNumber = Math.floor(Math.random() * 10000000)
+      .toString()
+      .padStart(7, "0");
 
-    // Create the order document with the custom order number
-    await addDoc(collection(db, "orders"), {
-      orderNumber: customOrderNumber,
+    // Firestore doc ID will just be the number (no spaces or "#")
+    const orderDocRef = doc(db, "orders", customOrderNumber);
+
+    // Save order to Firestore
+    await setDoc(orderDocRef, {
+      orderNumber: `Order #${customOrderNumber}`, // display value
       userId: auth.currentUser.uid,
       date: new Date().toISOString(),
       total: total,
@@ -329,9 +332,9 @@ const handlePlaceOrder = async () => {
         firstName: shippingInfo.firstName,
         lastName: shippingInfo.lastName,
         address: shippingInfo.address,
-        apartment: shippingInfo.apartment || '',
+        apartment: shippingInfo.apartment || "",
         city: shippingInfo.city,
-        state: shippingInfo.administrativeUnit || '',
+        state: shippingInfo.administrativeUnit || "",
         zipCode: shippingInfo.zipCode,
         country: shippingInfo.country
       },
@@ -340,9 +343,9 @@ const handlePlaceOrder = async () => {
             firstName: shippingInfo.firstName,
             lastName: shippingInfo.lastName,
             address: shippingInfo.address,
-            apartment: shippingInfo.apartment || '',
+            apartment: shippingInfo.apartment || "",
             city: shippingInfo.city,
-            state: shippingInfo.administrativeUnit || '',
+            state: shippingInfo.administrativeUnit || "",
             zipCode: shippingInfo.zipCode,
             country: shippingInfo.country
           }
@@ -350,20 +353,21 @@ const handlePlaceOrder = async () => {
             firstName: billingInfo.firstName,
             lastName: billingInfo.lastName,
             address: billingInfo.address,
-            apartment: billingInfo.apartment || '',
+            apartment: billingInfo.apartment || "",
             city: billingInfo.city,
-            state: billingInfo.administrativeUnit || '',
+            state: billingInfo.administrativeUnit || "",
             zipCode: billingInfo.zipCode,
             country: billingInfo.country
           },
       paymentMethod: {
-        type: "Credit Card", // You could make this dynamic based on payment type
-        last4: paymentInfo.cardNumber.slice(-4)
+        type: paymentMethod === "cash-on-delivery" ? "Cash on Delivery" : "Credit Card",
+        last4: paymentMethod === "credit-card" ? paymentInfo.cardNumber.slice(-4) : ""
       },
-      shippingMethod: shippingMethod === 'express' 
-        ? 'Express Shipping (1-2 business days)' 
-        : 'Standard Shipping (3-5 business days)',
-      trackingNumber: "", // Will be added when shipped
+      shippingMethod:
+        shippingMethod === "express"
+          ? "Express Shipping (1-2 business days)"
+          : "Standard Shipping (3-5 business days)",
+      trackingNumber: "",
       timeline: [
         {
           status: "Order Placed",
@@ -371,17 +375,15 @@ const handlePlaceOrder = async () => {
           description: "Your order has been received"
         }
       ],
-      subtotal: subtotal,
-      shipping: shipping,
-      tax: tax
+      subtotal,
+      shipping,
+      tax
     });
+
     // Store the order number for confirmation UI
-    setPlacedOrderNumber(customOrderNumber);
+    setPlacedOrderNumber(`Order #${customOrderNumber}`);
 
-    // Optionally, you can still store the Firestore document ID if needed
-    // await updateDoc(orderRef, { id: orderRef.id });
-
-    // Clear the cart after successful order placement
+    // Clear cart + show success
     resetCartState();
     setOrderPlaced(true);
   } catch (error) {
