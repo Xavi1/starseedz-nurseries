@@ -48,6 +48,8 @@ type Address = {
 };
 
 export const Checkout = () => {
+  // State to store the placed order number for confirmation UI
+  const [placedOrderNumber, setPlacedOrderNumber] = useState<string | null>(null);
   // State for confirmation dialog
   const [showConfirm, setShowConfirm] = useState(false);
   // =============================
@@ -305,11 +307,11 @@ const handlePlaceOrder = async () => {
       }
     }
 
-    // Generate custom order number
-    const customOrderNumber = Math.floor(Math.random() * 10000000).toString().padStart(7, '0');
+  // Generate custom order number
+  const customOrderNumber = Math.floor(Math.random() * 10000000).toString().padStart(7, '0');
 
     // Create the order document with the custom order number
-    const orderRef = await addDoc(collection(db, "orders"), {
+    await addDoc(collection(db, "orders"), {
       orderNumber: customOrderNumber,
       userId: auth.currentUser.uid,
       date: new Date().toISOString(),
@@ -373,6 +375,8 @@ const handlePlaceOrder = async () => {
       shipping: shipping,
       tax: tax
     });
+    // Store the order number for confirmation UI
+    setPlacedOrderNumber(customOrderNumber);
 
     // Optionally, you can still store the Firestore document ID if needed
     // await updateDoc(orderRef, { id: orderRef.id });
@@ -435,7 +439,7 @@ const handlePlaceOrder = async () => {
             </h1>
             <p className="mt-2 text-lg text-gray-500">
               Order #
-              {Math.floor(Math.random() * 10000000).toString().padStart(7, '0')}
+              {placedOrderNumber}
             </p>
             <p className="mt-6 text-base text-gray-500">
               We've sent a confirmation email to {shippingInfo.email} with your
