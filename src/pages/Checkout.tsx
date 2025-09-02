@@ -440,7 +440,6 @@ const handlePlaceOrder = async () => {
               Thank you for your order!
             </h1>
             <p className="mt-2 text-lg text-gray-500">
-              Order #
               {placedOrderNumber}
             </p>
             <p className="mt-6 text-base text-gray-500">
