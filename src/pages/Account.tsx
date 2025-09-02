@@ -806,16 +806,31 @@ const handleLogout = async () => {
     )}
 
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Breadcrumbs */}
-      <nav className="flex items-center text-sm mb-8">
-        <Link to="/" className="text-gray-500 hover:text-gray-700 flex items-center">
-          <HomeIcon className="h-4 w-4 mr-1" />
-          Home
-        </Link>
-        <ChevronRightIcon className="h-4 w-4 text-gray-400 mx-2" />
-        <span className="text-green-700 font-medium">My Account</span>
-      </nav>
+{/* Breadcrumbs */}
+<nav className="flex items-center text-sm mb-8">
+  <Link to="/" className="text-gray-500 hover:text-gray-700 flex items-center">
+    <HomeIcon className="h-4 w-4 mr-1" />
+    Home
+  </Link>
+  <ChevronRightIcon className="h-4 w-4 text-gray-400 mx-2" />
+  <span className="text-gray-500">My Account</span>
 
+  {activeTab && (
+    <>
+      <ChevronRightIcon className="h-4 w-4 text-gray-400 mx-2" />
+      <span className="text-green-700 font-medium">
+        {{
+          profile: "My Profile",
+          orders: "Order History",
+          wishlist: "My Wishlist",
+          addresses: "Addresses",
+          payment: "Payment Methods",
+          preferences: "Preferences"
+        }[activeTab]}
+      </span>
+    </>
+  )}
+</nav>
         <div className="lg:grid lg:grid-cols-12 lg:gap-x-8">
           {/* Sidebar Navigation */}
           <div className="lg:col-span-3">
