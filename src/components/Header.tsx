@@ -63,7 +63,7 @@ const Header = () => {
               <input
                 ref={searchInputRef}
                 type="text"
-                className="w-64 px-3 py-2 border border-green-500 rounded-md shadow focus:outline-none focus:ring-2 focus:ring-green-700 transition"
+                className="w-64 px-3 py-2 border border-green-500 rounded-md shadow focus:outline-none focus:ring-2 focus:ring-green-600 transition"
                 placeholder="Search..."
                 value={searchValue}
                 onChange={e => setSearchValue(e.target.value)}
