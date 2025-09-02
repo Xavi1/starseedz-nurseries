@@ -15,7 +15,7 @@ const Header = () => {
   const location = useLocation();
   const { cartCount } = useCart();
 
-  // ✅ Track auth state
+  // Track auth state
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setIsLoggedIn(!!user);
@@ -29,7 +29,7 @@ const Header = () => {
     }
   }, [showSearch]);
 
-  // ✅ Decide where to go when user icon clicked
+  // Decide where to go when user icon clicked
   const handleUserClick = () => {
     if (isLoggedIn) {
       navigate('/account');
