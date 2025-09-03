@@ -3521,7 +3521,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                 {/* Profile dropdown */}
                 <div className="ml-3 relative">
                   <div className="flex items-center">
-                    <div className="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center text-white font-medium">
+                    <div className="h-8 w-8 rounded-full bg-green-700 flex items-center justify-center text-white font-medium">
                       A
                     </div>
                     <span className="hidden md:flex md:items-center ml-2">
