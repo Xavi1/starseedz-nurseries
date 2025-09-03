@@ -51,12 +51,14 @@ export const AdminDashboard = () => {
     activeCustomers: number;
     recentOrders: DashboardOrder[];
     avgOrderValue: number;
+    repeatCustomers: number;
   }>({
     totalSales: 0,
     pendingOrders: 0,
     activeCustomers: 0,
     recentOrders: [],
     avgOrderValue: 0,
+    repeatCustomers: 0,
   });
 
   useEffect(() => {
@@ -98,6 +100,14 @@ export const AdminDashboard = () => {
       const usersRef = collection(db, 'users');
       const usersSnap = await getDocs(usersRef);
       const activeCustomers = usersSnap.size;
+      // Count repeat customers (segment === 'repeat')
+      let repeatCustomers = 0;
+      usersSnap.forEach(doc => {
+        const data = doc.data();
+        if (typeof data.segment === 'string' && data.segment.toLowerCase() === 'repeat') {
+          repeatCustomers++;
+        }
+      });
 
       setDashboardStats({
         totalSales,
@@ -105,6 +115,7 @@ export const AdminDashboard = () => {
         activeCustomers,
         recentOrders,
         avgOrderValue,
+        repeatCustomers,
       });
     };
     fetchDashboardData();
@@ -1526,7 +1537,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                     Repeat Customers
                   </dt>
                   <dd>
-                    <div className="text-lg font-medium text-gray-900">--</div>
+                    <div className="text-lg font-medium text-gray-900">{dashboardStats.repeatCustomers}</div>
                   </dd>
                 </dl>
               </div>
