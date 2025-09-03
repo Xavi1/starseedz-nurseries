@@ -66,7 +66,7 @@ export const AdminDashboard = () => {
       const ordersSnap = await getDocs(ordersRef);
       let totalSales = 0;
       let pendingOrders = 0;
-      let recentOrders = [];
+      let recentOrders: any[] = [];
       ordersSnap.forEach(doc => {
         const data = doc.data();
         totalSales += typeof data.total === 'number' ? data.total : 0;
@@ -88,7 +88,7 @@ export const AdminDashboard = () => {
       // Customers
       const usersRef = collection(db, 'users');
       const usersSnap = await getDocs(usersRef);
-      let activeCustomers = usersSnap.size;
+      const activeCustomers = usersSnap.size;
 
       setDashboardStats({
         totalSales,
