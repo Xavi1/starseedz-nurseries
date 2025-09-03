@@ -70,7 +70,8 @@ export const AdminDashboard = () => {
       ordersSnap.forEach(doc => {
         const data = doc.data();
         totalSales += typeof data.total === 'number' ? data.total : 0;
-        if (data.status === 'Pending') pendingOrders++;
+        // Use case-insensitive comparison for 'pending'
+        if (typeof data.status === 'string' && data.status.toLowerCase() === 'pending') pendingOrders++;
         recentOrders.push({
           id: doc.id,
           customer: data.shippingAddress?.firstName + ' ' + data.shippingAddress?.lastName,
