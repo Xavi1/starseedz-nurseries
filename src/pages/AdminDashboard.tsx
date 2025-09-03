@@ -50,11 +50,13 @@ export const AdminDashboard = () => {
     pendingOrders: number;
     activeCustomers: number;
     recentOrders: DashboardOrder[];
+    avgOrderValue: number;
   }>({
     totalSales: 0,
     pendingOrders: 0,
     activeCustomers: 0,
     recentOrders: [],
+    avgOrderValue: 0,
   });
 
   useEffect(() => {
@@ -66,10 +68,14 @@ export const AdminDashboard = () => {
       const ordersSnap = await getDocs(ordersRef);
       let totalSales = 0;
       let pendingOrders = 0;
+      let orderCount = 0;
       let recentOrders: any[] = [];
       ordersSnap.forEach(doc => {
-        const data = doc.data();
-        totalSales += typeof data.total === 'number' ? data.total : 0;
+            const data = doc.data();
+            if (typeof data.total === 'number') {
+              totalSales += data.total;
+              orderCount++;
+            }
         // Use case-insensitive comparison for 'pending'
         if (typeof data.status === 'string' && data.status.toLowerCase() === 'pending') pendingOrders++;
         recentOrders.push({
@@ -82,6 +88,8 @@ export const AdminDashboard = () => {
           shippingMethod: data.shippingMethod || '',
         });
       });
+      // Calculate average order value
+      const avgOrderValue = orderCount > 0 ? totalSales / orderCount : 0;
       // Sort recentOrders by date desc
       recentOrders.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       recentOrders = recentOrders.slice(0, 5);
@@ -96,6 +104,7 @@ export const AdminDashboard = () => {
         pendingOrders,
         activeCustomers,
         recentOrders,
+        avgOrderValue,
       });
     };
     fetchDashboardData();
@@ -1488,8 +1497,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                   </dt>
                   <dd>
                     <div className="text-lg font-medium text-gray-900">
-                      {/* TODO: Calculate average order value */}
-                      --
+                      ${dashboardStats.avgOrderValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                     </div>
                   </dd>
                 </dl>
