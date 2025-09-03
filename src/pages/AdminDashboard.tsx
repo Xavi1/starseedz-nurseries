@@ -100,14 +100,18 @@ export const AdminDashboard = () => {
       const usersRef = collection(db, 'users');
       const usersSnap = await getDocs(usersRef);
       const activeCustomers = usersSnap.size;
-      // Count repeat customers (segment === 'repeat')
-      let repeatCustomers = 0;
-      usersSnap.forEach(doc => {
+
+      // Repeat customers: userId appears more than once in orders
+      // Build a map of userId to order count
+      const userOrderCount: Record<string, number> = {};
+      ordersSnap.forEach(doc => {
         const data = doc.data();
-        if (typeof data.segment === 'string' && data.segment.toLowerCase() === 'repeat') {
-          repeatCustomers++;
+        if (typeof data.userId === 'string') {
+          userOrderCount[data.userId] = (userOrderCount[data.userId] || 0) + 1;
         }
       });
+      // Count userIds with more than one order
+      const repeatCustomers = Object.values(userOrderCount).filter(count => count > 1).length;
 
       setDashboardStats({
         totalSales,
