@@ -12,35 +12,93 @@
 // - Inline documentation for maintainability and onboarding
 // =============================
 import React, { useState } from 'react';
+import { useEffect } from 'react';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebase';
 import { Link } from 'react-router-dom';
-import { LayoutDashboardIcon, ShoppingBagIcon, PackageIcon, UsersIcon, BarChartIcon, SettingsIcon, MenuIcon, XIcon, SearchIcon, BellIcon, ChevronDownIcon, TrendingUpIcon, ClockIcon, UserCheckIcon, DollarSignIcon, ChevronRightIcon, FilterIcon, AlertCircleIcon, PlusIcon, TagIcon, BoxIcon, CalendarIcon, CreditCardIcon, TruckIcon, FileTextIcon, TrashIcon, EditIcon, DownloadIcon, PrinterIcon, CheckCircleIcon, UserPlusIcon, StarIcon, MessageCircleIcon, RefreshCwIcon, EyeIcon, ShieldIcon, BellRingIcon, GlobeIcon, PercentIcon, KeyIcon, RepeatIcon, HeartIcon } from 'lucide-react';
+import { LayoutDashboardIcon, ShoppingBagIcon, PackageIcon, UsersIcon, BarChartIcon, SettingsIcon, MenuIcon, XIcon, SearchIcon, BellIcon, ChevronDownIcon, TrendingUpIcon, ClockIcon, UserCheckIcon, DollarSignIcon, ChevronRightIcon, FilterIcon, AlertCircleIcon, PlusIcon, TagIcon, BoxIcon, CreditCardIcon, TruckIcon, TrashIcon, EditIcon, DownloadIcon, PrinterIcon, CheckCircleIcon, UserPlusIcon, StarIcon, MessageCircleIcon, RefreshCwIcon, EyeIcon, KeyIcon, RepeatIcon, HeartIcon } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 export const AdminDashboard = () => {
+  // Type for dashboard recent orders
+  type DashboardOrder = {
+    id: string;
+    customer: string;
+    date: string;
+    status: string;
+    total: number;
+    paymentMethod: string;
+    shippingMethod: string;
+  };
   // =============================
   // State Management
   // =============================
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  // sidebarOpen: controls mobile sidebar visibility
   const [activeNav, setActiveNav] = useState('dashboard');
-  // activeNav: tracks which main tab is active (dashboard, orders, products, etc.)
   const [orderStatusFilter, setOrderStatusFilter] = useState('all');
-  // orderStatusFilter: filter for orders by status
   const [productCategoryFilter, setProductCategoryFilter] = useState('all');
-  // productCategoryFilter: filter for products by category
   const [customerSegmentFilter, setCustomerSegmentFilter] = useState('all');
-  // customerSegmentFilter: filter for customers by segment
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
-  // selectedOrder: tracks which order is selected for detail view
   const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
-  // selectedProduct: tracks which product is selected for detail view
   const [selectedCustomer, setSelectedCustomer] = useState<number | null>(null);
-  // selectedCustomer: tracks which customer is selected for detail view
   const [reportType, setReportType] = useState('sales');
-  // reportType: controls which report is shown (sales, customers, inventory)
   const [reportTimeframe, setReportTimeframe] = useState('month');
-  // reportTimeframe: controls report data granularity
   const [activeSettingsTab, setActiveSettingsTab] = useState('store');
-  // activeSettingsTab: controls which settings tab is active
+
+  // Dashboard Firebase Data
+  const [dashboardStats, setDashboardStats] = useState<{
+    totalSales: number;
+    pendingOrders: number;
+    activeCustomers: number;
+    recentOrders: DashboardOrder[];
+  }>({
+    totalSales: 0,
+    pendingOrders: 0,
+    activeCustomers: 0,
+    recentOrders: [],
+  });
+
+  useEffect(() => {
+    if (activeNav !== 'dashboard') return;
+    // Fetch orders
+    const fetchDashboardData = async () => {
+      // Orders
+      const ordersRef = collection(db, 'orders');
+      const ordersSnap = await getDocs(ordersRef);
+      let totalSales = 0;
+      let pendingOrders = 0;
+      let recentOrders = [];
+      ordersSnap.forEach(doc => {
+        const data = doc.data();
+        totalSales += typeof data.total === 'number' ? data.total : 0;
+        if (data.status === 'Pending') pendingOrders++;
+        recentOrders.push({
+          id: doc.id,
+          customer: data.shippingAddress?.firstName + ' ' + data.shippingAddress?.lastName,
+          date: data.date || '',
+          status: data.status || '',
+          total: data.total || 0,
+          paymentMethod: data.paymentMethod?.type || '',
+          shippingMethod: data.shippingMethod || '',
+        });
+      });
+      // Sort recentOrders by date desc
+      recentOrders.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      recentOrders = recentOrders.slice(0, 5);
+
+      // Customers
+      const usersRef = collection(db, 'users');
+      const usersSnap = await getDocs(usersRef);
+      let activeCustomers = usersSnap.size;
+
+      setDashboardStats({
+        totalSales,
+        pendingOrders,
+        activeCustomers,
+        recentOrders,
+      });
+    };
+    fetchDashboardData();
+  }, [activeNav]);
   // =============================
   // Mock Data Definitions
   // =============================
@@ -1294,7 +1352,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
   };
   // Render dashboard content
   const renderDashboardContent = () => <>
-      {/* Metrics cards */}
+      {/* Metrics cards - Firebase data */}
       <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {/* Total Sales */}
         <div className="bg-white overflow-hidden shadow rounded-lg">
@@ -1310,7 +1368,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                   </dt>
                   <dd>
                     <div className="text-lg font-medium text-gray-900">
-                      $24,780.50
+                      ${dashboardStats.totalSales.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                     </div>
                   </dd>
                 </dl>
@@ -1339,7 +1397,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                     Pending Orders
                   </dt>
                   <dd>
-                    <div className="text-lg font-medium text-gray-900">18</div>
+                    <div className="text-lg font-medium text-gray-900">{dashboardStats.pendingOrders}</div>
                   </dd>
                 </dl>
               </div>
@@ -1368,7 +1426,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                   </dt>
                   <dd>
                     <div className="text-lg font-medium text-gray-900">
-                      1,257
+                      {dashboardStats.activeCustomers}
                     </div>
                   </dd>
                 </dl>
@@ -1384,7 +1442,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
             </div>
           </div>
         </div>
-        {/* Revenue Growth */}
+        {/* Revenue Growth - Placeholder */}
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-5">
             <div className="flex items-center">
@@ -1398,7 +1456,8 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                   </dt>
                   <dd>
                     <div className="text-lg font-medium text-gray-900">
-                      +12.5%
+                      {/* TODO: Calculate growth from previous period */}
+                      --
                     </div>
                   </dd>
                 </dl>
@@ -1414,7 +1473,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
             </div>
           </div>
         </div>
-        {/* Average Order Value (NEW) */}
+        {/* Average Order Value - Placeholder */}
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-5">
             <div className="flex items-center">
@@ -1428,7 +1487,8 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                   </dt>
                   <dd>
                     <div className="text-lg font-medium text-gray-900">
-                      $86.42
+                      {/* TODO: Calculate average order value */}
+                      --
                     </div>
                   </dd>
                 </dl>
@@ -1444,7 +1504,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
             </div>
           </div>
         </div>
-        {/* Repeat Customers (NEW) */}
+        {/* Repeat Customers - Placeholder */}
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-5">
             <div className="flex items-center">
@@ -1457,7 +1517,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                     Repeat Customers
                   </dt>
                   <dd>
-                    <div className="text-lg font-medium text-gray-900">68%</div>
+                    <div className="text-lg font-medium text-gray-900">--</div>
                   </dd>
                 </dl>
               </div>
@@ -1618,6 +1678,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
         </div>
       </div>
       {/* Recent Orders Table */}
+      {/* Recent Orders Table - Firebase data */}
       <div className="mt-8">
         <div className="bg-white shadow rounded-lg">
           <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
@@ -1656,7 +1717,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {recentOrders.map(order => <tr key={order.id} className="hover:bg-gray-50 transition-colors">
+                {dashboardStats.recentOrders.map(order => <tr key={order.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {order.id}
                     </td>
@@ -1664,7 +1725,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                       {order.customer}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      {new Date(order.date).toLocaleDateString()}
+                      {order.date ? new Date(order.date).toLocaleDateString() : '--'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadgeClass(order.status)}`}>
@@ -1672,7 +1733,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      {order.total}
+                      ${typeof order.total === 'number' ? order.total.toFixed(2) : order.total}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <a href="#" className="text-green-700 hover:text-green-900" onClick={e => {
@@ -1686,54 +1747,6 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                   </tr>)}
               </tbody>
             </table>
-          </div>
-          <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 sm:px-6">
-            <div className="flex items-center justify-between">
-              <div className="flex-1 flex justify-between sm:hidden">
-                <a href="#" className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                  Previous
-                </a>
-                <a href="#" className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                  Next
-                </a>
-              </div>
-              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm text-gray-700">
-                    Showing <span className="font-medium">1</span> to{' '}
-                    <span className="font-medium">5</span> of{' '}
-                    <span className="font-medium">24</span> results
-                  </p>
-                </div>
-                <div>
-                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                    <a href="#" className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                      <span className="sr-only">Previous</span>
-                      <ChevronRightIcon className="h-5 w-5 transform rotate-180" />
-                    </a>
-                    <a href="#" className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                      1
-                    </a>
-                    <a href="#" className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-green-50 text-sm font-medium text-green-700">
-                      2
-                    </a>
-                    <a href="#" className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                      3
-                    </a>
-                    <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
-                      ...
-                    </span>
-                    <a href="#" className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                      8
-                    </a>
-                    <a href="#" className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                      <span className="sr-only">Next</span>
-                      <ChevronRightIcon className="h-5 w-5" />
-                    </a>
-                  </nav>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
