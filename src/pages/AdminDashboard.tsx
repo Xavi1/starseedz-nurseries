@@ -124,7 +124,12 @@ export const AdminDashboard = () => {
   });
 }
       setSalesData(salesDataArr);
-
+  console.log('Raw sales data:', salesByMonth);
+  console.log('Processed chart data:', salesDataArr);
+  ordersSnap.forEach(doc => {
+  const data = doc.data();
+  console.log('Order data:', data.date, data.total);
+});
       // Customers
       const usersRef = collection(db, 'users');
       const usersSnap = await getDocs(usersRef);
