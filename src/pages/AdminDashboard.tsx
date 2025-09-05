@@ -32,6 +32,8 @@ export const AdminDashboard = () => {
   // =============================
   // State Management
   // =============================
+  // Sales over time chart data (from Firebase)
+  const [salesData, setSalesData] = useState<{ month: string; sales: number }[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeNav, setActiveNav] = useState('dashboard');
   const [orderStatusFilter, setOrderStatusFilter] = useState('all');
@@ -72,12 +74,15 @@ export const AdminDashboard = () => {
       let pendingOrders = 0;
       let orderCount = 0;
       let recentOrders: any[] = [];
+      // For sales over time
+      const salesByMonth: Record<string, number> = {};
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
       ordersSnap.forEach(doc => {
-            const data = doc.data();
-            if (typeof data.total === 'number') {
-              totalSales += data.total;
-              orderCount++;
-            }
+        const data = doc.data();
+        if (typeof data.total === 'number') {
+          totalSales += data.total;
+          orderCount++;
+        }
         // Use case-insensitive comparison for 'pending'
         if (typeof data.status === 'string' && data.status.toLowerCase() === 'pending') pendingOrders++;
         recentOrders.push({
@@ -89,12 +94,28 @@ export const AdminDashboard = () => {
           paymentMethod: data.paymentMethod?.type || '',
           shippingMethod: data.shippingMethod || '',
         });
+        // Group sales by month (assume data.date is ISO string or Date)
+        if (data.date && typeof data.total === 'number') {
+          const d = new Date(data.date);
+          if (!isNaN(d.getTime())) {
+            const key = monthNames[d.getMonth()];
+            salesByMonth[key] = (salesByMonth[key] || 0) + data.total;
+          }
+        }
       });
       // Calculate average order value
       const avgOrderValue = orderCount > 0 ? totalSales / orderCount : 0;
       // Sort recentOrders by date desc
       recentOrders.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       recentOrders = recentOrders.slice(0, 5);
+      // Prepare salesData for chart (show all months, 0 if no sales)
+      const now = new Date();
+      const months = Array.from({length: 7}, (_, i) => {
+        const d = new Date(now.getFullYear(), now.getMonth() - 6 + i, 1);
+        return monthNames[d.getMonth()];
+      });
+      const salesDataArr = months.map(month => ({ month, sales: salesByMonth[month] || 0 }));
+      setSalesData(salesDataArr);
 
       // Customers
       const usersRef = collection(db, 'users');
@@ -128,29 +149,7 @@ export const AdminDashboard = () => {
   // Mock Data Definitions
   // =============================
   // Mock data for charts
-  const salesData = [{
-  // salesData: monthly sales for dashboard chart
-    month: 'Jan',
-    sales: 4000
-  }, {
-    month: 'Feb',
-    sales: 3000
-  }, {
-    month: 'Mar',
-    sales: 5000
-  }, {
-    month: 'Apr',
-    sales: 4500
-  }, {
-    month: 'May',
-    sales: 6000
-  }, {
-    month: 'Jun',
-    sales: 5500
-  }, {
-    month: 'Jul',
-    sales: 7000
-  }];
+  // salesData: now comes from Firebase, see useState above
   const topProductsData = [{
   // topProductsData: top-selling products for dashboard chart
     name: 'Snake Plant',
