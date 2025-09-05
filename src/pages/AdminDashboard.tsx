@@ -98,6 +98,8 @@ export const AdminDashboard = () => {
         if (data.date && typeof data.total === 'number') {
           const d = new Date(data.date);
           if (!isNaN(d.getTime())) {
+            const year = d.getFullYear();
+            const monthIndex = d.getMonth();
             const key = monthNames[d.getMonth()];
             salesByMonth[key] = (salesByMonth[key] || 0) + data.total;
           }
@@ -110,11 +112,17 @@ export const AdminDashboard = () => {
       recentOrders = recentOrders.slice(0, 5);
       // Prepare salesData for chart (show all months, 0 if no sales)
       const now = new Date();
-      const months = Array.from({length: 7}, (_, i) => {
-        const d = new Date(now.getFullYear(), now.getMonth() - 6 + i, 1);
-        return monthNames[d.getMonth()];
-      });
-      const salesDataArr = months.map(month => ({ month, sales: salesByMonth[month] || 0 }));
+      const salesDataArr = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const year = d.getFullYear();
+        const monthIndex = d.getMonth();
+      const key = `${year}-${monthIndex}`;
+    salesDataArr.push({
+      month: `${monthNames[monthIndex]} ${year}`,
+      sales: salesByMonth[key] || 0
+  });
+}
       setSalesData(salesDataArr);
 
       // Customers
