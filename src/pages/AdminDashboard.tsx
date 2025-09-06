@@ -79,28 +79,30 @@ export const AdminDashboard = () => {
       const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
       ordersSnap.forEach(doc => {
         const data = doc.data();
-
+        // Debug: log each order's total and date
+        console.log('Order:', doc.id, 'total:', data.total, 'date:', data.date);
         // Skip orders without valid total or date
-  if (typeof data.total !== 'number' || data.total <= 0) {
-    return; // skip this order
-  }
-
-  // Handle different date formats
-  let date: Date | null = null;
-
-  if (data.date instanceof Date) {
-    date = data.date;
-  } else if (typeof data.date === 'string') {
-    date = new Date(data.date);
-  } else if (data.date && typeof data.date === 'object' && data.date.seconds) {
-    // Firebase Timestamp object
-    date = new Date(data.date.seconds * 1000);
-  }
-
-  if (!date || isNaN(date.getTime())) {
-    return; // skip invalid dates
-  }
-
+        if (typeof data.total !== 'number' || data.total <= 0) {
+          console.log('Skipping order (invalid total):', doc.id, data.total);
+          return;
+        }
+        // Add to totalSales
+        totalSales += data.total;
+        orderCount++;
+        // Handle different date formats
+        let date: Date | null = null;
+        if (data.date instanceof Date) {
+          date = data.date;
+        } else if (typeof data.date === 'string') {
+          date = new Date(data.date);
+        } else if (data.date && typeof data.date === 'object' && data.date.seconds) {
+          // Firebase Timestamp object
+          date = new Date(data.date.seconds * 1000);
+        }
+        if (!date || isNaN(date.getTime())) {
+          console.log('Skipping order (invalid date):', doc.id, data.date);
+          return;
+        }
         // Use case-insensitive comparison for 'pending'
         if (typeof data.status === 'string' && data.status.toLowerCase() === 'pending') pendingOrders++;
         recentOrders.push({
@@ -113,12 +115,13 @@ export const AdminDashboard = () => {
           shippingMethod: data.shippingMethod || '',
         });
         // Group sales by month with year consideration
-  const year = date.getFullYear();
-  const monthIndex = date.getMonth();
-  const key = `${year}-${monthIndex}`;
-  
-  salesByMonth[key] = (salesByMonth[key] || 0) + data.total;
-});
+        const year = date.getFullYear();
+        const monthIndex = date.getMonth();
+        const key = `${year}-${monthIndex}`;
+        salesByMonth[key] = (salesByMonth[key] || 0) + data.total;
+      });
+      // Debug: log final totalSales
+      console.log('Total sales calculated:', totalSales);
       // Calculate average order value
       const avgOrderValue = orderCount > 0 ? totalSales / orderCount : 0;
       // Sort recentOrders by date desc
@@ -127,28 +130,20 @@ export const AdminDashboard = () => {
       // Prepare salesData for chart (show all months, 0 if no sales)
       const now = new Date();
       const salesDataArr = [];
-for (let i = 6; i >= 0; i--) {
-  const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-  const year = d.getFullYear();
-  const monthIndex = d.getMonth();
-  const key = `${year}-${monthIndex}`;
-  
-  salesDataArr.push({
-    month: `${monthNames[monthIndex]}`, // or `${monthNames[monthIndex]} ${year}`
-    sales: salesByMonth[key] || 0
-  });
-}
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const year = d.getFullYear();
+        const monthIndex = d.getMonth();
+        const key = `${year}-${monthIndex}`;
+        salesDataArr.push({
+          month: `${monthNames[monthIndex]}`,
+          sales: salesByMonth[key] || 0
+        });
+      }
       setSalesData(salesDataArr);
-
       // Debug logs
-  console.log('Processed sales by month:', salesByMonth);
-  console.log('Final chart data:', salesDataArr);
-  console.log('Raw sales data:', salesByMonth);
-  console.log('Processed chart data:', salesDataArr);
-  ordersSnap.forEach(doc => {
-  const data = doc.data();
-  console.log('Order data:', data.date, data.total);
-});
+      console.log('Processed sales by month:', salesByMonth);
+      console.log('Final chart data:', salesDataArr);
       // Customers
       const usersRef = collection(db, 'users');
       const usersSnap = await getDocs(usersRef);
@@ -167,7 +162,7 @@ for (let i = 6; i >= 0; i--) {
       const repeatCustomers = Object.values(userOrderCount).filter(count => count > 1).length;
 
       setDashboardStats({
-        totalSales,
+  totalSales,
         pendingOrders,
         activeCustomers,
         recentOrders,
