@@ -74,8 +74,8 @@ export const AdminDashboard = () => {
       let pendingOrders = 0;
       let orderCount = 0;
       let recentOrders: any[] = [];
-      // For sales over time
-      const salesByMonth: Record<string, number> = {};
+  // For sales over time (order count, not sales sum)
+  const ordersByMonth: Record<string, number> = {};
       const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
       ordersSnap.forEach(doc => {
         const data = doc.data();
@@ -114,11 +114,11 @@ export const AdminDashboard = () => {
           paymentMethod: data.paymentMethod?.type || '',
           shippingMethod: data.shippingMethod || '',
         });
-        // Group sales by month with year consideration
-        const year = date.getFullYear();
-        const monthIndex = date.getMonth();
-        const key = `${year}-${monthIndex}`;
-        salesByMonth[key] = (salesByMonth[key] || 0) + data.total;
+  // Group order count by month with year consideration
+  const year = date.getFullYear();
+  const monthIndex = date.getMonth();
+  const key = `${year}-${monthIndex}`;
+  ordersByMonth[key] = (ordersByMonth[key] || 0) + 1;
       });
       // Debug: log final totalSales
       console.log('Total sales calculated:', totalSales);
@@ -137,13 +137,13 @@ export const AdminDashboard = () => {
         const key = `${year}-${monthIndex}`;
         salesDataArr.push({
           month: `${monthNames[monthIndex]}`,
-          sales: salesByMonth[key] || 0
+          sales: ordersByMonth[key] || 0
         });
       }
       setSalesData(salesDataArr);
-      // Debug logs
-      console.log('Processed sales by month:', salesByMonth);
-      console.log('Final chart data:', salesDataArr);
+  // Debug logs
+  console.log('Processed order count by month:', ordersByMonth);
+  console.log('Final chart data (order count):', salesDataArr);
       // Customers
       const usersRef = collection(db, 'users');
       const usersSnap = await getDocs(usersRef);
