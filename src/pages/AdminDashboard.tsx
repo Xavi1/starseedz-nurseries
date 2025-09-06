@@ -54,6 +54,7 @@ export const AdminDashboard = () => {
     recentOrders: DashboardOrder[];
     avgOrderValue: number;
     repeatCustomers: number;
+    revenueGrowth: number;
   }>({
     totalSales: 0,
     pendingOrders: 0,
@@ -61,6 +62,7 @@ export const AdminDashboard = () => {
     recentOrders: [],
     avgOrderValue: 0,
     repeatCustomers: 0,
+    revenueGrowth: 0,
   });
 
   useEffect(() => {
@@ -76,6 +78,8 @@ export const AdminDashboard = () => {
       let recentOrders: any[] = [];
   // For sales over time (order count, not sales sum)
   const ordersByMonth: Record<string, number> = {};
+  // For revenue growth calculation
+  const revenueByMonth: Record<string, number> = {};
       const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
       ordersSnap.forEach(doc => {
         const data = doc.data();
@@ -119,6 +123,8 @@ export const AdminDashboard = () => {
   const monthIndex = date.getMonth();
   const key = `${year}-${monthIndex}`;
   ordersByMonth[key] = (ordersByMonth[key] || 0) + 1;
+  // Group revenue by month for growth calculation
+  revenueByMonth[key] = (revenueByMonth[key] || 0) + data.total;
       });
       // Debug: log final totalSales
       console.log('Total sales calculated:', totalSales);
@@ -141,6 +147,24 @@ export const AdminDashboard = () => {
         });
       }
       setSalesData(salesDataArr);
+      // Calculate revenue growth (current month vs previous month)
+      const now2 = new Date();
+      const thisMonthKey = `${now2.getFullYear()}-${now2.getMonth()}`;
+      const lastMonth = new Date(now2.getFullYear(), now2.getMonth() - 1, 1);
+      const lastMonthKey = `${lastMonth.getFullYear()}-${lastMonth.getMonth()}`;
+      const thisMonthRevenue = revenueByMonth[thisMonthKey] || 0;
+      const lastMonthRevenue = revenueByMonth[lastMonthKey] || 0;
+      let revenueGrowth = 0;
+      if (lastMonthRevenue > 0) {
+        revenueGrowth = ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100;
+      } else if (thisMonthRevenue > 0) {
+        revenueGrowth = 100;
+      }
+      // Debug logs for revenue growth
+      console.log('Revenue by month:', revenueByMonth);
+      console.log('This month revenue:', thisMonthRevenue);
+      console.log('Last month revenue:', lastMonthRevenue);
+      console.log('Revenue growth (%):', revenueGrowth);
   // Debug logs
   console.log('Processed order count by month:', ordersByMonth);
   console.log('Final chart data (order count):', salesDataArr);
@@ -162,12 +186,13 @@ export const AdminDashboard = () => {
       const repeatCustomers = Object.values(userOrderCount).filter(count => count > 1).length;
 
       setDashboardStats({
-  totalSales,
+        totalSales,
         pendingOrders,
         activeCustomers,
         recentOrders,
         avgOrderValue,
         repeatCustomers,
+        revenueGrowth,
       });
     };
     fetchDashboardData();
