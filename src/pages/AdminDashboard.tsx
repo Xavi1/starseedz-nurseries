@@ -200,25 +200,37 @@ export const AdminDashboard = () => {
   // =============================
   // Mock Data Definitions
   // =============================
-  // Mock data for charts
-  // salesData: now comes from Firebase, see useState above
-  const topProductsData = [{
-  // topProductsData: top-selling products for dashboard chart
-    name: 'Snake Plant',
-    sales: 78
-  }, {
-    name: 'Monstera',
-    sales: 65
-  }, {
-    name: 'Potting Soil',
-    sales: 52
-  }, {
-    name: 'Fiddle Leaf Fig',
-    sales: 48
-  }, {
-    name: 'Ceramic Pot',
-    sales: 38
-  }];
+  // Top products chart data (from Firebase)
+  const [topProductsData, setTopProductsData] = useState<{ name: string; sales: number }[]>([]);
+
+  useEffect(() => {
+    if (activeNav !== 'dashboard') return;
+    // Fetch top products by sales from Firebase
+    const fetchTopProducts = async () => {
+      // Get all orders
+      const ordersRef = collection(db, 'orders');
+      const ordersSnap = await getDocs(ordersRef);
+      // Count sales per product name
+      const productSales: Record<string, number> = {};
+      ordersSnap.forEach(doc => {
+        const data = doc.data();
+        if (Array.isArray(data.items)) {
+          data.items.forEach((item: any) => {
+            if (item && item.name && typeof item.quantity === 'number') {
+              productSales[item.name] = (productSales[item.name] || 0) + item.quantity;
+            }
+          });
+        }
+      });
+      // Convert to array and sort by sales descending
+      const sorted = Object.entries(productSales)
+        .map(([name, sales]) => ({ name, sales }))
+        .sort((a, b) => b.sales - a.sales)
+        .slice(0, 5); // Top 5
+      setTopProductsData(sorted);
+    };
+    fetchTopProducts();
+  }, [activeNav]);
   // Extended data for reports
   const salesReportData = [{
   // salesReportData: extended sales data for reports
@@ -1532,8 +1544,9 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                   </dt>
                   <dd>
                     <div className="text-lg font-medium text-gray-900">
-                      {/* TODO: Calculate growth from previous period */}
-                      --
+                      {dashboardStats.revenueGrowth !== undefined && dashboardStats.revenueGrowth !== null
+                        ? `${dashboardStats.revenueGrowth > 0 ? '+' : ''}${dashboardStats.revenueGrowth.toFixed(2)}%`
+                        : '--'}
                     </div>
                   </dd>
                 </dl>
