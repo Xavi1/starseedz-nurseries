@@ -201,36 +201,38 @@ export const AdminDashboard = () => {
   // Mock Data Definitions
   // =============================
   // Top products chart data (from Firebase)
-  const [topProductsData, setTopProductsData] = useState<{ name: string; sales: number }[]>([]);
+  const [topProductsData, setTopProductsData] = useState<{ name: string; sales: number; revenue: number }[]>([]);
+  const [productsMetric, setProductsMetric] = useState<'sales' | 'revenue'>('sales');
 
   useEffect(() => {
     if (activeNav !== 'dashboard') return;
-    // Fetch top products by sales from Firebase
+    // Fetch top products by sales and revenue from Firebase
     const fetchTopProducts = async () => {
-      // Get all orders
       const ordersRef = collection(db, 'orders');
       const ordersSnap = await getDocs(ordersRef);
-      // Count sales per product name
-      const productSales: Record<string, number> = {};
+      // Count sales and revenue per product name
+      const productStats: Record<string, { sales: number; revenue: number }> = {};
       ordersSnap.forEach(doc => {
         const data = doc.data();
         if (Array.isArray(data.items)) {
           data.items.forEach((item: any) => {
-            if (item && item.name && typeof item.quantity === 'number') {
-              productSales[item.name] = (productSales[item.name] || 0) + item.quantity;
+            if (item && item.name && typeof item.quantity === 'number' && typeof item.price === 'number') {
+              if (!productStats[item.name]) productStats[item.name] = { sales: 0, revenue: 0 };
+              productStats[item.name].sales += item.quantity;
+              productStats[item.name].revenue += item.quantity * item.price;
             }
           });
         }
       });
-      // Convert to array and sort by sales descending
-      const sorted = Object.entries(productSales)
-        .map(([name, sales]) => ({ name, sales }))
-        .sort((a, b) => b.sales - a.sales)
+      // Convert to array and sort by selected metric descending
+      const sorted = Object.entries(productStats)
+        .map(([name, stats]) => ({ name, sales: stats.sales, revenue: stats.revenue }))
+        .sort((a, b) => b[productsMetric] - a[productsMetric])
         .slice(0, 5); // Top 5
       setTopProductsData(sorted);
     };
     fetchTopProducts();
-  }, [activeNav]);
+  }, [activeNav, productsMetric]);
   // Extended data for reports
   const salesReportData = [{
   // salesReportData: extended sales data for reports
@@ -1661,26 +1663,35 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-medium text-gray-900">Top Products</h3>
             <div className="flex items-center">
-              <select className="text-sm border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500">
-                <option>By Sales</option>
-                <option>By Revenue</option>
+              <select
+                className="text-sm border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
+                value={productsMetric}
+                onChange={e => setProductsMetric(e.target.value as 'sales' | 'revenue')}
+              >
+                <option value="sales">By Sales</option>
+                <option value="revenue">By Revenue</option>
               </select>
             </div>
           </div>
           <div className="h-60">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={topProductsData} layout="vertical" margin={{
-              top: 5,
-              right: 10,
-              left: 10,
-              bottom: 5
-            }}>
+                top: 5,
+                right: 10,
+                left: 10,
+                bottom: 5
+              }}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
                 <XAxis type="number" />
                 <YAxis dataKey="name" type="category" width={100} />
-                <Tooltip />
+                <Tooltip formatter={(value: any) => productsMetric === 'sales' ? `${value} units` : `$${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}/>
                 <Legend />
-                <Bar dataKey="sales" name="Units Sold" fill="#16a34a" radius={[0, 4, 4, 0]} />
+                <Bar
+                  dataKey={productsMetric}
+                  name={productsMetric === 'sales' ? 'Units Sold' : 'Revenue'}
+                  fill="#16a34a"
+                  radius={[0, 4, 4, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
