@@ -2852,7 +2852,8 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                     Address
                   </label>
                   <div className="mt-1">
-                    <input type="text" name="store-address" id="store-address" defaultValue="123 Main Street, Portland, OR 97201" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+                    <input type="text" name="store-address" id="store-address" defaultValue="Couva, Couva-Tabaquite-Talparo Regional Corporation,
+Trinidad and Tobago" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
                   </div>
                 </div>
               </div>
