@@ -45,6 +45,90 @@ export const AdminDashboard = () => {
   const [reportType, setReportType] = useState('sales');
   const [reportTimeframe, setReportTimeframe] = useState('month');
   const [activeSettingsTab, setActiveSettingsTab] = useState('store');
+  // Modal state for add product
+  const [showAddProductModal, setShowAddProductModal] = useState(false);
+  const [addProductForm, setAddProductForm] = useState({
+    name: '',
+    description: '',
+    longDescription: '',
+    price: '',
+    category: '',
+    image: '',
+    inStock: true,
+    isBestSeller: false,
+    rating: 0,
+    stock: '',
+    careInstructions: {
+      light: '',
+      temperature: '',
+      warnings: '',
+      water: '',
+    },
+    specifications: {
+      Difficulty: '',
+      'Growth Rate': '',
+      'Light Requirements': '',
+      'Mature Height': '',
+      'Pet Friendly': '',
+      'Pot Size': '',
+    },
+    relatedProducts: ['', '', ''],
+    reviews: '',
+  });
+  const handleAddProductChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value, type, checked } = e.target;
+    if (name.startsWith('careInstructions.')) {
+      const key = name.replace('careInstructions.', '');
+      setAddProductForm(f => ({ ...f, careInstructions: { ...f.careInstructions, [key]: value } }));
+    } else if (name.startsWith('specifications.')) {
+      const key = name.replace('specifications.', '');
+      setAddProductForm(f => ({ ...f, specifications: { ...f.specifications, [key]: value } }));
+    } else if (name.startsWith('relatedProducts.')) {
+      const idx = parseInt(name.replace('relatedProducts.', ''));
+      setAddProductForm(f => {
+        const arr = [...f.relatedProducts];
+        arr[idx] = value;
+        return { ...f, relatedProducts: arr };
+      });
+    } else if (type === 'checkbox') {
+      setAddProductForm(f => ({ ...f, [name]: checked }));
+    } else {
+      setAddProductForm(f => ({ ...f, [name]: value }));
+    }
+  };
+  const handleAddProductSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // TODO: Add product to Firebase here
+    setShowAddProductModal(false);
+    setAddProductForm({
+      name: '',
+      description: '',
+      longDescription: '',
+      price: '',
+      category: '',
+      image: '',
+      inStock: true,
+      isBestSeller: false,
+      rating: 0,
+      stock: '',
+      careInstructions: {
+        light: '',
+        temperature: '',
+        warnings: '',
+        water: '',
+      },
+      specifications: {
+        Difficulty: '',
+        'Growth Rate': '',
+        'Light Requirements': '',
+        'Mature Height': '',
+        'Pet Friendly': '',
+        'Pot Size': '',
+      },
+      relatedProducts: ['', '', ''],
+      reviews: '',
+    });
+  };
 
   // Dashboard Firebase Data
   const [dashboardStats, setDashboardStats] = useState<{
@@ -2019,10 +2103,116 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                       </option>)}
                   </select>
                 </div>
-                <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                <button
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  onClick={() => setShowAddProductModal(true)}
+                >
                   <PlusIcon className="h-4 w-4 mr-2" />
                   Add Product
                 </button>
+                {showAddProductModal && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                    <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-8 relative border border-gray-200">
+                      <button
+                        className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+                        onClick={() => setShowAddProductModal(false)}
+                        aria-label="Close"
+                      >
+                        <XIcon className="h-6 w-6" />
+                      </button>
+                      <h2 className="text-xl font-semibold mb-6 text-green-800 flex items-center gap-2">
+                        <PlusIcon className="h-5 w-5" /> Add New Product
+                      </h2>
+                      <form onSubmit={handleAddProductSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+                            <input type="text" name="name" value={addProductForm.name} onChange={handleAddProductChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" required />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Short Description</label>
+                            <textarea name="description" value={addProductForm.description} onChange={handleAddProductChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" rows={2} required />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Long Description</label>
+                            <textarea name="longDescription" value={addProductForm.longDescription} onChange={handleAddProductChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" rows={3} />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
+                            <input type="text" name="image" value={addProductForm.image} onChange={handleAddProductChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" />
+                          </div>
+                          <div className="flex gap-4">
+                            <div className="flex-1">
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+                              <input type="number" name="price" value={addProductForm.price} onChange={handleAddProductChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" min="0" step="0.01" required />
+                            </div>
+                            <div className="flex-1">
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
+                              <input type="number" name="stock" value={addProductForm.stock} onChange={handleAddProductChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" min="0" />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Category (comma separated)</label>
+                            <input type="text" name="category" value={addProductForm.category} onChange={handleAddProductChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" required />
+                          </div>
+                        </div>
+                        <div className="space-y-4">
+                          <div className="flex gap-4">
+                            <div className="flex-1">
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
+                              <input type="number" name="rating" value={addProductForm.rating} onChange={handleAddProductChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" min="0" max="5" />
+                            </div>
+                            <div className="flex-1 flex items-center gap-2 mt-6">
+                              <input type="checkbox" name="inStock" checked={addProductForm.inStock} onChange={handleAddProductChange} className="h-4 w-4 text-green-600 border-gray-300 rounded" />
+                              <label className="text-sm text-gray-700">In Stock</label>
+                            </div>
+                            <div className="flex-1 flex items-center gap-2 mt-6">
+                              <input type="checkbox" name="isBestSeller" checked={addProductForm.isBestSeller} onChange={handleAddProductChange} className="h-4 w-4 text-green-600 border-gray-300 rounded" />
+                              <label className="text-sm text-gray-700">Best Seller</label>
+                            </div>
+                          </div>
+                          <div className="border-t pt-4">
+                            <label className="block text-sm font-semibold text-gray-800 mb-2">Care Instructions</label>
+                            <div className="grid grid-cols-2 gap-2">
+                              <input type="text" name="careInstructions.light" value={addProductForm.careInstructions.light} onChange={handleAddProductChange} placeholder="Light" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
+                              <input type="text" name="careInstructions.temperature" value={addProductForm.careInstructions.temperature} onChange={handleAddProductChange} placeholder="Temperature" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
+                              <input type="text" name="careInstructions.warnings" value={addProductForm.careInstructions.warnings} onChange={handleAddProductChange} placeholder="Warnings" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
+                              <input type="text" name="careInstructions.water" value={addProductForm.careInstructions.water} onChange={handleAddProductChange} placeholder="Water" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
+                            </div>
+                          </div>
+                          <div className="border-t pt-4">
+                            <label className="block text-sm font-semibold text-gray-800 mb-2">Specifications</label>
+                            <div className="grid grid-cols-2 gap-2">
+                              <input type="text" name="specifications.Difficulty" value={addProductForm.specifications.Difficulty} onChange={handleAddProductChange} placeholder="Difficulty" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
+                              <input type="text" name="specifications.Growth Rate" value={addProductForm.specifications['Growth Rate']} onChange={handleAddProductChange} placeholder="Growth Rate" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
+                              <input type="text" name="specifications.Light Requirements" value={addProductForm.specifications['Light Requirements']} onChange={handleAddProductChange} placeholder="Light Requirements" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
+                              <input type="text" name="specifications.Mature Height" value={addProductForm.specifications['Mature Height']} onChange={handleAddProductChange} placeholder="Mature Height" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
+                              <input type="text" name="specifications.Pet Friendly" value={addProductForm.specifications['Pet Friendly']} onChange={handleAddProductChange} placeholder="Pet Friendly" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
+                              <input type="text" name="specifications.Pot Size" value={addProductForm.specifications['Pot Size']} onChange={handleAddProductChange} placeholder="Pot Size" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
+                            </div>
+                          </div>
+                          <div className="border-t pt-4">
+                            <label className="block text-sm font-semibold text-gray-800 mb-2">Related Products (IDs or paths)</label>
+                            <div className="flex gap-2">
+                              {[0, 1, 2].map(i => (
+                                <input key={i} type="text" name={`relatedProducts.${i}`} value={addProductForm.relatedProducts[i]} onChange={handleAddProductChange} placeholder={`Related Product ${i + 1}`} className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500 flex-1" />
+                              ))}
+                            </div>
+                          </div>
+                          <div className="border-t pt-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Reviews (path or ID)</label>
+                            <input type="text" name="reviews" value={addProductForm.reviews} onChange={handleAddProductChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" />
+                          </div>
+                        </div>
+                        <div className="md:col-span-2 flex justify-end mt-6">
+                          <button type="submit" className="inline-flex items-center px-6 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                            Add Product
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
