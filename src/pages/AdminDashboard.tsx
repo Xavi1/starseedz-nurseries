@@ -76,7 +76,7 @@ export const AdminDashboard = () => {
     reviews: '',
   });
   const handleAddProductChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type } = e.target;
     if (name.startsWith('careInstructions.')) {
       const key = name.replace('careInstructions.', '');
       setAddProductForm(f => ({ ...f, careInstructions: { ...f.careInstructions, [key]: value } }));
@@ -91,6 +91,7 @@ export const AdminDashboard = () => {
         return { ...f, relatedProducts: arr };
       });
     } else if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
       setAddProductForm(f => ({ ...f, [name]: checked }));
     } else {
       setAddProductForm(f => ({ ...f, [name]: value }));
