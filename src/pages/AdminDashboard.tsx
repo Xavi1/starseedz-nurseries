@@ -2194,7 +2194,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                           </div>
                           <div className="border-t pt-4">
                             <label className="block text-sm font-semibold text-gray-800 mb-2">Related Products (IDs or paths)</label>
-                            <div className="flex gap-2">
+                            <div className="grid grid-cols-1 gap-2">
                               {[0, 1, 2].map(i => (
                                 <input key={i} type="text" name={`relatedProducts.${i}`} value={addProductForm.relatedProducts[i]} onChange={handleAddProductChange} placeholder={`Related Product ${i + 1}`} className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500 flex-1" />
                               ))}
