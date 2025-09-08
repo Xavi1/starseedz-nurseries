@@ -14,7 +14,7 @@
 // - Inline documentation for maintainability
 // =============================
 import React, { useEffect, useState } from 'react';
-import { collection, onSnapshot, addDoc, doc, serverTimestamp, updateDoc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, doc, serverTimestamp, updateDoc, getDoc, setDoc, getDocs } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { Link, useNavigate } from 'react-router-dom';
@@ -305,17 +305,29 @@ const handlePlaceOrder = async () => {
       }
     }
 
-    // Generate custom order number (7-digit random)
-    const customOrderNumber = Math.floor(Math.random() * 10000000)
-      .toString()
-      .padStart(7, "0");
-
-    // Firestore doc ID will just be the number (no spaces or "#")
-    const orderDocRef = doc(db, "orders", customOrderNumber);
+    // Generate next order number in ORD-0000 format
+    // Query all orders, find the highest number, increment
+    const ordersRef = collection(db, "orders");
+    const ordersSnap = await getDocs(ordersRef);
+    let maxOrderNum = 0;
+    ordersSnap.forEach(docSnap => {
+      const id = docSnap.id;
+      // Accept both ORD-0000 and legacy numeric IDs
+      let num = 0;
+      if (id.startsWith("ORD-")) {
+        num = parseInt(id.replace("ORD-", ""), 10);
+      } else if (/^\d+$/.test(id)) {
+        num = parseInt(id, 10);
+      }
+      if (!isNaN(num) && num > maxOrderNum) maxOrderNum = num;
+    });
+    const nextOrderNum = maxOrderNum + 1;
+    const orderId = `ORD-${nextOrderNum.toString().padStart(4, "0")}`;
+    const orderDocRef = doc(db, "orders", orderId);
 
     // Save order to Firestore
     await setDoc(orderDocRef, {
-      orderNumber: `Order #${customOrderNumber}`, // display value
+      orderNumber: orderId, // display value
       userId: auth.currentUser.uid,
       date: new Date().toISOString(),
       total: total,
@@ -381,7 +393,7 @@ const handlePlaceOrder = async () => {
     });
 
     // Store the order number for confirmation UI
-    setPlacedOrderNumber(`Order #${customOrderNumber}`);
+  setPlacedOrderNumber(orderId);
 
     // Clear cart + show success
     resetCartState();
