@@ -12,7 +12,7 @@
 // - Inline documentation for maintainability and onboarding
 // =============================
 import React, { useState } from 'react';
-import { addProduct } from '../firebaseHelpers';
+import { addProduct, getAllProducts } from '../firebaseHelpers';
 import { useEffect } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -76,6 +76,23 @@ export const AdminDashboard = () => {
     relatedProducts: ['', '', ''],
     reviews: '',
   });
+
+  // Products from Firebase
+  const [products, setProducts] = useState<any[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoadingProducts(true);
+      try {
+        const fbProducts = await getAllProducts();
+        setProducts(fbProducts);
+      } catch (err) {
+        console.error('Error fetching products:', err);
+      }
+      setLoadingProducts(false);
+    };
+    fetchProducts();
+  }, []);
   const handleAddProductChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     if (name.startsWith('careInstructions.')) {
@@ -606,108 +623,6 @@ export const AdminDashboard = () => {
     shippingMethod: 'Standard Shipping'
   }];
   // Products data for Products tab
-  const products = [{
-  // products: product catalog for products tab
-    id: 1,
-    name: 'Monstera Deliciosa',
-    sku: 'PLT-001',
-    category: 'Indoor Plants',
-    price: 39.99,
-    stock: 24,
-    lowStockThreshold: 5,
-    featured: true,
-    image: 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80'
-  }, {
-    id: 2,
-    name: 'Snake Plant',
-    sku: 'PLT-002',
-    category: 'Indoor Plants',
-    price: 24.99,
-    stock: 32,
-    lowStockThreshold: 5,
-    featured: true,
-    image: 'https://images.unsplash.com/photo-1593482892290-f54927ae2b7b?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80'
-  }, {
-    id: 3,
-    name: 'Fiddle Leaf Fig',
-    sku: 'PLT-003',
-    category: 'Indoor Plants',
-    price: 49.99,
-    stock: 18,
-    lowStockThreshold: 5,
-    featured: false,
-    image: 'https://images.unsplash.com/photo-1616500163246-0ffbb872f4de?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80'
-  }, {
-    id: 4,
-    name: 'Peace Lily',
-    sku: 'PLT-004',
-    category: 'Indoor Plants',
-    price: 29.99,
-    stock: 21,
-    lowStockThreshold: 5,
-    featured: false,
-    image: 'https://images.unsplash.com/photo-1616784754051-4769c7a8cf5f?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80'
-  }, {
-    id: 5,
-    name: 'Lavender Plant',
-    sku: 'PLT-005',
-    category: 'Outdoor Plants',
-    price: 15.99,
-    stock: 45,
-    lowStockThreshold: 10,
-    featured: true,
-    image: 'https://images.unsplash.com/photo-1590585735278-6edaff1c0c28?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80'
-  }, {
-    id: 6,
-    name: 'Rosemary Herb',
-    sku: 'PLT-006',
-    category: 'Outdoor Plants',
-    price: 12.99,
-    stock: 38,
-    lowStockThreshold: 10,
-    featured: false,
-    image: 'https://images.unsplash.com/photo-1515586000433-45406d8e6662?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80'
-  }, {
-    id: 7,
-    name: 'Echeveria Succulent',
-    sku: 'PLT-007',
-    category: 'Succulents',
-    price: 9.99,
-    stock: 56,
-    lowStockThreshold: 15,
-    featured: true,
-    image: 'https://images.unsplash.com/photo-1509423350716-97f9360b4e09?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80'
-  }, {
-    id: 8,
-    name: 'Gardening Tool Set',
-    sku: 'TLS-001',
-    category: 'Garden Tools',
-    price: 34.99,
-    stock: 12,
-    lowStockThreshold: 5,
-    featured: false,
-    image: 'https://images.unsplash.com/photo-1585513553738-84971d9c2f8d?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80'
-  }, {
-    id: 9,
-    name: 'Ceramic Pot - Medium',
-    sku: 'POT-001',
-    category: 'Pots & Planters',
-    price: 19.99,
-    stock: 27,
-    lowStockThreshold: 8,
-    featured: true,
-    image: 'https://images.unsplash.com/photo-1485955900006-10f4d324d411?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80'
-  }, {
-    id: 10,
-    name: 'Potting Soil - 10L',
-    sku: 'SOL-001',
-    category: 'Garden Supplies',
-    price: 14.99,
-    stock: 42,
-    lowStockThreshold: 10,
-    featured: false,
-    image: 'https://images.unsplash.com/photo-1562847961-8f766d3b8289?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80'
-  }];
   // Customers data for Customers tab
   const customers = [{
   // customers: customer list for customers tab
