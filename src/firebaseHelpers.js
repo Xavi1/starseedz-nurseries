@@ -1,3 +1,8 @@
+// Update product
+export const updateProduct = async (productId, productData) => {
+  const productRef = doc(db, "products", productId);
+  await updateDoc(productRef, productData);
+};
 // Update user profile
 export const updateUserProfile = async (userId, profileData) => {
   const userRef = doc(db, "users", userId);

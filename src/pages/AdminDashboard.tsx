@@ -12,6 +12,7 @@
 // - Inline documentation for maintainability and onboarding
 // =============================
 import React, { useState } from 'react';
+import { addProduct } from '../firebaseHelpers';
 import { useEffect } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -97,9 +98,43 @@ export const AdminDashboard = () => {
       setAddProductForm(f => ({ ...f, [name]: value }));
     }
   };
-  const handleAddProductSubmit = (e: React.FormEvent) => {
+  const handleAddProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Add product to Firebase here
+    // Prepare product data for Firebase
+    const productToAdd = {
+      name: addProductForm.name,
+      description: addProductForm.description,
+      longDescription: addProductForm.longDescription,
+      price: parseFloat(addProductForm.price),
+      category: addProductForm.category.trim(),
+      imageUrl: addProductForm.image,
+      inStock: Boolean(addProductForm.inStock),
+      isBestSeller: Boolean(addProductForm.isBestSeller),
+      rating: Number(addProductForm.rating),
+      stock: addProductForm.stock === '' ? 0 : parseInt(addProductForm.stock),
+      careInstructions: {
+        light: addProductForm.careInstructions.light,
+        temperature: addProductForm.careInstructions.temperature,
+        warnings: addProductForm.careInstructions.warnings,
+        water: addProductForm.careInstructions.water,
+      },
+      specifications: {
+        Difficulty: addProductForm.specifications.Difficulty,
+        'Growth Rate': addProductForm.specifications['Growth Rate'],
+        'Light Requirements': addProductForm.specifications['Light Requirements'],
+        'Mature Height': addProductForm.specifications['Mature Height'],
+        'Pet Friendly': addProductForm.specifications['Pet Friendly'],
+        'Pot Size': addProductForm.specifications['Pot Size'],
+      },
+      relatedProducts: addProductForm.relatedProducts.filter(Boolean),
+      reviews: addProductForm.reviews,
+    };
+    try {
+      await addProduct(productToAdd);
+    } catch (err) {
+      // Optionally show error to user
+      console.error('Error adding product:', err);
+    }
     setShowAddProductModal(false);
     setAddProductForm({
       name: '',
