@@ -115,10 +115,42 @@ export const AdminDashboard = () => {
       setAddProductForm(f => ({ ...f, [name]: value }));
     }
   };
+  // Helper to generate SKU prefix from category
+  function getSkuPrefix(category: string) {
+    if (!category) return 'GEN';
+    const cat = category.toLowerCase();
+    if (cat.includes('plant')) return 'PLT';
+    if (cat.includes('pot')) return 'POT';
+    if (cat.includes('tool')) return 'TLS';
+    if (cat.includes('soil')) return 'SOL';
+    if (cat.includes('succulent')) return 'PLT';
+    if (cat.includes('supply')) return 'SUP';
+    return cat.substring(0, 3).toUpperCase();
+  }
+
+  // Generate next SKU for a prefix
+  function getNextSku(prefix: string) {
+    // Find max number for this prefix in current products
+    let max = 0;
+    products.forEach(p => {
+      if (typeof p.id === 'string' && p.id.startsWith(prefix + '-')) {
+        const num = parseInt(p.id.split('-')[1]);
+        if (!isNaN(num) && num > max) max = num;
+      } else if (typeof p.sku === 'string' && p.sku.startsWith(prefix + '-')) {
+        const num = parseInt(p.sku.split('-')[1]);
+        if (!isNaN(num) && num > max) max = num;
+      }
+    });
+    return `${prefix}-${(max + 1).toString().padStart(3, '0')}`;
+  }
+
   const handleAddProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Prepare product data for Firebase
+    const prefix = getSkuPrefix(addProductForm.category.trim());
+    const newId = getNextSku(prefix);
     const productToAdd = {
+      id: newId,
+      sku: newId,
       name: addProductForm.name,
       description: addProductForm.description,
       longDescription: addProductForm.longDescription,

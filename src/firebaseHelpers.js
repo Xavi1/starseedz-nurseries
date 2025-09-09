@@ -15,6 +15,7 @@ import {
   getDoc,
   doc,
   updateDoc,
+  setDoc,
   query,
   where,
   Timestamp
@@ -39,12 +40,13 @@ export const getUserById = async (userId) => {
 
 // PRODUCTS
 export const addProduct = async (product) => {
-  const productsRef = collection(db, "products");
-  const docRef = await addDoc(productsRef, {
+  // Use product.id as the Firestore document ID
+  const productRef = doc(db, "products", product.id);
+  await setDoc(productRef, {
     ...product,
     createdAt: Timestamp.now()
   });
-  return docRef.id;
+  return product.id;
 };
 
 export const getAllProducts = async () => {
