@@ -14,7 +14,7 @@
 import React, { useState } from 'react';
 import { addProduct, getAllProducts } from '../firebaseHelpers';
 import { useEffect } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Link } from 'react-router-dom';
 import { LayoutDashboardIcon, ShoppingBagIcon, PackageIcon, UsersIcon, BarChartIcon, SettingsIcon, MenuIcon, XIcon, SearchIcon, BellIcon, ChevronDownIcon, TrendingUpIcon, ClockIcon, UserCheckIcon, DollarSignIcon, ChevronRightIcon, FilterIcon, AlertCircleIcon, PlusIcon, TagIcon, BoxIcon, CreditCardIcon, TruckIcon, TrashIcon, EditIcon, DownloadIcon, PrinterIcon, CheckCircleIcon, UserPlusIcon, StarIcon, MessageCircleIcon, RefreshCwIcon, EyeIcon, KeyIcon, RepeatIcon, HeartIcon } from 'lucide-react';
@@ -164,9 +164,14 @@ export const AdminDashboard = () => {
       relatedProducts: editProductForm.relatedProducts.filter(Boolean),
     };
     try {
+      // Update Firestore document
+      const { doc, collection } = await import('firebase/firestore');
+      const productRef = doc(collection(db, 'products'), editProductId);
+      await updateDoc(productRef, updatedProduct);
       setProducts((prev: any[]) => prev.map(p => (p.id === editProductId ? updatedProduct : p)));
     } catch (err) {
       alert('Failed to update product.');
+      console.error('Firestore update error:', err);
     }
     setShowEditProductModal(false);
     setEditProductForm(null);
