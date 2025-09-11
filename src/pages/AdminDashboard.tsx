@@ -2419,7 +2419,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
       {/* Edit Product Modal */}
       {showEditProductModal && editProductForm && (
   <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-8 relative border border-gray-200">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-8 relative border border-gray-200 bg-opacity-40">
             <button
               className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
               onClick={() => { setShowEditProductModal(false); setEditProductForm(null); setEditProductId(null); }}
