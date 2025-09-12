@@ -1219,7 +1219,8 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
     if (!selectedProduct) return null;
     const product = products.find(p => p.id === selectedProduct);
     if (!product) return null;
-    return <div className="bg-white shadow rounded-lg overflow-hidden">
+    return (
+      <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="px-4 py-5 border-b border-gray-200 flex justify-between items-center">
           <h3 className="text-lg leading-6 font-medium text-gray-900">
             {product.name}
@@ -1343,7 +1344,38 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                 </div>
               </div>
               <div className="mt-6 flex justify-end space-x-3">
-                <button className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                <button
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  onClick={() => {
+                    setEditProductId(product.id);
+                    setEditProductForm({
+                      ...product,
+                      image: product.imageUrl || product.image || '',
+                      price: product.price?.toString() || '',
+                      stock: product.stock?.toString() || '',
+                      inStock: product.inStock ?? true,
+                      isBestSeller: product.isBestSeller ?? false,
+                      rating: product.rating ?? 0,
+                      careInstructions: {
+                        light: product.careInstructions?.light || '',
+                        temperature: product.careInstructions?.temperature || '',
+                        warnings: product.careInstructions?.warnings || '',
+                        water: product.careInstructions?.water || '',
+                      },
+                      specifications: {
+                        Difficulty: product.specifications?.Difficulty || '',
+                        'Growth Rate': product.specifications?.['Growth Rate'] || '',
+                        'Light Requirements': product.specifications?.['Light Requirements'] || '',
+                        'Mature Height': product.specifications?.['Mature Height'] || '',
+                        'Pet Friendly': product.specifications?.['Pet Friendly'] || '',
+                        'Pot Size': product.specifications?.['Pot Size'] || '',
+                      },
+                      relatedProducts: product.relatedProducts || ['', '', ''],
+                      reviews: product.reviews || '',
+                    });
+                    setShowEditProductModal(true);
+                  }}
+                >
                   <EditIcon className="h-4 w-4 mr-2" />
                   Edit Product
                 </button>
@@ -1355,7 +1387,8 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
             </div>
           </div>
         </div>
-      </div>;
+      </div>
+    );
   };
   // Render customer detail view
   const renderCustomerDetail = () => {
