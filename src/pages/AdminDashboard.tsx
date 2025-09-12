@@ -1380,7 +1380,28 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                   <EditIcon className="h-4 w-4 mr-2" />
                   Edit Product
                 </button>
-                <button className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                <button
+                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  onClick={async () => {
+                    const newStockStr = window.prompt('Enter new stock quantity:', product.stock?.toString() || '0');
+                    if (newStockStr === null) return;
+                    const newStock = parseInt(newStockStr);
+                    if (isNaN(newStock) || newStock < 0) {
+                      alert('Invalid stock value.');
+                      return;
+                    }
+                    try {
+                      const { doc, collection } = await import('firebase/firestore');
+                      const productRef = doc(collection(db, 'products'), product.id);
+                      await updateDoc(productRef, { stock: newStock });
+                      setProducts((prev: any[]) => prev.map(p => p.id === product.id ? { ...p, stock: newStock } : p));
+                      alert('Stock updated successfully.');
+                    } catch (err) {
+                      alert('Failed to update stock.');
+                      console.error('Update stock error:', err);
+                    }
+                  }}
+                >
                   <RefreshCwIcon className="h-4 w-4 mr-2" />
                   Update Stock
                 </button>
