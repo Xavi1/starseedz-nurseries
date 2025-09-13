@@ -86,10 +86,10 @@ const FeaturedCategories: React.FC = () => {
             Find the perfect plants for your space
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-3 sm:mt-0 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-8">
           {categories.map(category => (
-            <div key={category.name} className="group relative">
-              <div className="relative w-full h-80 bg-white rounded-lg overflow-hidden shadow-md">
+            <div key={category.name} className="group relative p-4 bg-white rounded-xl shadow-lg flex flex-col items-center hover:shadow-2xl transition-shadow duration-300">
+              <div className="relative w-full h-64 rounded-lg overflow-hidden mb-4">
                 <Link 
                   to={`/shop?category=${encodeURIComponent(category.name)}`} 
                   className="block w-full h-full"
@@ -101,16 +101,16 @@ const FeaturedCategories: React.FC = () => {
                   />
                 </Link>
               </div>
-              <div className="mt-4 text-center">
-                <h3 className="text-lg font-medium text-gray-900">
+              <div className="text-center flex-1 flex flex-col justify-between">
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
                   {category.name}
                 </h3>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mb-3 text-base text-gray-500 min-h-[48px]">
                   {category.description}
                 </p>
                 <Link 
                   to={`/shop?category=${encodeURIComponent(category.name)}`} 
-                  className="mt-2 inline-block text-green-700 hover:text-green-800 text-sm font-medium"
+                  className="mt-2 inline-block text-green-700 hover:text-green-800 text-base font-medium"
                 >
                   Shop Now →
                 </Link>
