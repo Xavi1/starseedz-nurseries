@@ -88,8 +88,8 @@ const FeaturedCategories: React.FC = () => {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-8">
           {categories.map(category => (
-            <div key={category.name} className="group relative p-4 bg-white rounded-xl shadow-lg flex flex-col items-center hover:shadow-2xl transition-shadow duration-300">
-              <div className="relative w-full aspect-square rounded-lg overflow-hidden mb-4 bg-gray-100">
+            <div key={category.name} className="group relative bg-white rounded-xl shadow-lg flex flex-col items-center hover:shadow-2xl transition-shadow duration-300">
+              <div className="relative w-full aspect-square rounded-t-xl overflow-hidden bg-gray-100">
                 <Link 
                   to={`/shop?category=${encodeURIComponent(category.name)}`} 
                   className="block w-full h-full"
