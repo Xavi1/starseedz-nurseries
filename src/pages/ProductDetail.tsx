@@ -339,21 +339,21 @@ setRelatedProducts(relatedDocs.filter(Boolean));
               {/* Product Image */}
               <div className="lg:max-w-lg lg:self-end">
                 <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-                  <img src={product.image} alt={product.name} className="w-full h-full object-center object-cover" />
+                  <img src={product.image} alt={product.name} className="w-full h-full object-top object-cover" />
                 </div>
                 {/* Additional images would go here in a real product */}
                 <div className="mt-4 grid grid-cols-4 gap-2">
                   <div className="aspect-square rounded-md overflow-hidden cursor-pointer border-2 border-green-600">
-                    <img src={product.image} alt={`${product.name} - Main View`} className="w-full h-full object-center object-cover" />
+                    <img src={product.image} alt={`${product.name} - Main View`} className="w-full h-full object-top object-cover" />
                   </div>
                   <div className="aspect-square rounded-md overflow-hidden cursor-pointer">
-                    <img src={`https://images.unsplash.com/photo-${productIdNum === 1 ? '1614594975525-e45190c55d0b' : productIdNum === 2 ? '1593482892290-f54927ae2b7b' : productIdNum === 3 ? '1616500163246-0ffbb872f4de' : '1616784754051-4769c7a8cf5f'}?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60&h=500&fit=crop`} alt={`${product.name} - Side View`} className="w-full h-full object-center object-cover" />
+                    <img src={`https://images.unsplash.com/photo-${productIdNum === 1 ? '1614594975525-e45190c55d0b' : productIdNum === 2 ? '1593482892290-f54927ae2b7b' : productIdNum === 3 ? '1616500163246-0ffbb872f4de' : '1616784754051-4769c7a8cf5f'}?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60&h=500&fit=crop`} alt={`${product.name} - Side View`} className="w-full h-full object-top object-cover" />
                   </div>
                   <div className="aspect-square rounded-md overflow-hidden cursor-pointer">
-                    <img src={`https://images.unsplash.com/photo-${productIdNum === 1 ? '1611000226964-c6e96070fcc3' : productIdNum === 2 ? '1593482892290-f54927ae2b7b' : productIdNum === 3 ? '1616500163246-0ffbb872f4de' : '1616784754051-4769c7a8cf5f'}?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60&h=500&fit=crop`} alt={`${product.name} - Detail View`} className="w-full h-full object-center object-cover" />
+                    <img src={`https://images.unsplash.com/photo-${productIdNum === 1 ? '1611000226964-c6e96070fcc3' : productIdNum === 2 ? '1593482892290-f54927ae2b7b' : productIdNum === 3 ? '1616500163246-0ffbb872f4de' : '1616784754051-4769c7a8cf5f'}?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60&h=500&fit=crop`} alt={`${product.name} - Detail View`} className="w-full h-full object-top object-cover" />
                   </div>
                   <div className="aspect-square rounded-md overflow-hidden cursor-pointer">
-                    <img src={`https://images.unsplash.com/photo-${productIdNum === 1 ? '1620127518526-c0712f189bf6' : productIdNum === 2 ? '1593482892290-f54927ae2b7b' : productIdNum === 3 ? '1616500163246-0ffbb872f4de' : '1616784754051-4769c7a8cf5f'}?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60&h=500&fit=crop`} alt={`${product.name} - Lifestyle View`} className="w-full h-full object-center object-cover" />
+                    <img src={`https://images.unsplash.com/photo-${productIdNum === 1 ? '1620127518526-c0712f189bf6' : productIdNum === 2 ? '1593482892290-f54927ae2b7b' : productIdNum === 3 ? '1616500163246-0ffbb872f4de' : '1616784754051-4769c7a8cf5f'}?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60&h=500&fit=crop`} alt={`${product.name} - Lifestyle View`} className="w-full h-full object-top object-cover" />
                   </div>
                 </div>
               </div>
