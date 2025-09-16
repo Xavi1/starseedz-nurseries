@@ -108,7 +108,11 @@ export const AdminDashboard = () => {
 
   // Edit product modal and form state
   const [showEditProductModal, setShowEditProductModal] = useState(false);
-  const [editProductForm, setEditProductForm] = useState<any>(null);
+  // Use a map/object for specifications with string values
+  const [editProductForm, setEditProductForm] = useState<{
+    [key: string]: any;
+    specifications?: { [key: string]: string };
+  } | null>(null);
   const [editProductId, setEditProductId] = useState<string | null>(null);
 
   // Edit product form change handler
@@ -129,7 +133,7 @@ export const AdminDashboard = () => {
       setEditProductForm((prev: any) => ({
         ...prev,
         specifications: {
-          ...prev.specifications,
+          ...(prev.specifications || {}),
           [key]: value,
         },
       }));
@@ -2545,12 +2549,12 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                 <div className="border-t pt-4">
                   <label className="block text-sm font-semibold text-gray-800 mb-2">Specifications</label>
                   <div className="grid grid-cols-2 gap-2">
-                    <input type="text" name="specifications.Difficulty" value={editProductForm.specifications.Difficulty} onChange={handleEditProductChange} placeholder="Difficulty" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
-                    <input type="text" name="specifications.Growth Rate" value={editProductForm.specifications['Growth Rate']} onChange={handleEditProductChange} placeholder="Growth Rate" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
-                    <input type="text" name="specifications.Light Requirements" value={editProductForm.specifications['Light Requirements']} onChange={handleEditProductChange} placeholder="Light Requirements" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
-                    <input type="text" name="specifications.Mature Height" value={editProductForm.specifications['Mature Height']} onChange={handleEditProductChange} placeholder="Mature Height" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
-                    <input type="text" name="specifications.Pet Friendly" value={editProductForm.specifications['Pet Friendly']} onChange={handleEditProductChange} placeholder="Pet Friendly" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
-                    <input type="text" name="specifications.Pot Size" value={editProductForm.specifications['Pot Size']} onChange={handleEditProductChange} placeholder="Pot Size" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
+                    <input type="text" name="specifications.Difficulty" value={editProductForm.specifications?.Difficulty ?? ''} onChange={handleEditProductChange} placeholder="Difficulty" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
+                    <input type="text" name="specifications.Growth Rate" value={editProductForm.specifications?.['Growth Rate'] ?? ''} onChange={handleEditProductChange} placeholder="Growth Rate" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
+                    <input type="text" name="specifications.Light Requirements" value={editProductForm.specifications?.['Light Requirements'] ?? ''} onChange={handleEditProductChange} placeholder="Light Requirements" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
+                    <input type="text" name="specifications.Mature Height" value={editProductForm.specifications?.['Mature Height'] ?? ''} onChange={handleEditProductChange} placeholder="Mature Height" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
+                    <input type="text" name="specifications.Pet Friendly" value={editProductForm.specifications?.['Pet Friendly'] ?? ''} onChange={handleEditProductChange} placeholder="Pet Friendly" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
+                    <input type="text" name="specifications.Pot Size" value={editProductForm.specifications?.['Pot Size'] ?? ''} onChange={handleEditProductChange} placeholder="Pot Size" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
                   </div>
                 </div>
                 <div className="border-t pt-4">
