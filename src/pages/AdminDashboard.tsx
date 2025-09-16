@@ -2456,15 +2456,15 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                                 water: product.careInstructions?.water || '',
                               },
                               specifications: {
-                                Difficulty: product.specifications?.Difficulty || '',
-                                'Growth Rate': product.specifications?.['Growth Rate'] || '',
-                                'Light Requirements': product.specifications?.['Light Requirements'] || '',
-                                'Mature Height': product.specifications?.['Mature Height'] || '',
-                                'Pet Friendly': product.specifications?.['Pet Friendly'] || '',
-                                'Pot Size': product.specifications?.['Pot Size'] || '',
+                                Difficulty: typeof product.specifications?.Difficulty === 'string' ? product.specifications.Difficulty : '',
+                                'Growth Rate': typeof product.specifications?.['Growth Rate'] === 'string' ? product.specifications['Growth Rate'] : '',
+                                'Light Requirements': typeof product.specifications?.['Light Requirements'] === 'string' ? product.specifications['Light Requirements'] : '',
+                                'Mature Height': typeof product.specifications?.['Mature Height'] === 'string' ? product.specifications['Mature Height'] : '',
+                                'Pet Friendly': typeof product.specifications?.['Pet Friendly'] === 'string' ? product.specifications['Pet Friendly'] : '',
+                                'Pot Size': typeof product.specifications?.['Pot Size'] === 'string' ? product.specifications['Pot Size'] : '',
                               },
-                              relatedProducts: product.relatedProducts || ['', '', ''],
-                              reviews: product.reviews || '',
+                              relatedProducts: Array.isArray(product.relatedProducts) ? product.relatedProducts : ['', '', ''],
+                              reviews: typeof product.reviews === 'string' ? product.reviews : '',
                             });
                             setShowEditProductModal(true);
                           }}
