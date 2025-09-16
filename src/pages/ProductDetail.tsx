@@ -335,50 +335,79 @@ setRelatedProducts(relatedDocs.filter(Boolean));
         {/* Product Detail Section */}
         <section className="py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="lg:grid lg:grid-cols-2 lg:gap-x-8">
-              {/* Product Image */}
-              <div className="lg:max-w-lg lg:self-end">
-                <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-                  <img src={product.image} alt={product.name} className="w-full h-full object-top object-cover" />
-                </div>
-                {/* Additional images would go here in a real product */}
-                <div className="mt-4 grid grid-cols-4 gap-2">
-                  <div className="aspect-square rounded-md overflow-hidden cursor-pointer border-2 border-green-600">
-                    <img src={product.image} alt={`${product.name} - Main View`} className="w-full h-full object-top object-cover" />
-                  </div>
-                  <div className="aspect-square rounded-md overflow-hidden cursor-pointer">
-                    <img src={`https://images.unsplash.com/photo-${productIdNum === 1 ? '1614594975525-e45190c55d0b' : productIdNum === 2 ? '1593482892290-f54927ae2b7b' : productIdNum === 3 ? '1616500163246-0ffbb872f4de' : '1616784754051-4769c7a8cf5f'}?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60&h=500&fit=crop`} alt={`${product.name} - Side View`} className="w-full h-full object-top object-cover" />
-                  </div>
-                  <div className="aspect-square rounded-md overflow-hidden cursor-pointer">
-                    <img src={`https://images.unsplash.com/photo-${productIdNum === 1 ? '1611000226964-c6e96070fcc3' : productIdNum === 2 ? '1593482892290-f54927ae2b7b' : productIdNum === 3 ? '1616500163246-0ffbb872f4de' : '1616784754051-4769c7a8cf5f'}?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60&h=500&fit=crop`} alt={`${product.name} - Detail View`} className="w-full h-full object-top object-cover" />
-                  </div>
-                  <div className="aspect-square rounded-md overflow-hidden cursor-pointer">
-                    <img src={`https://images.unsplash.com/photo-${productIdNum === 1 ? '1620127518526-c0712f189bf6' : productIdNum === 2 ? '1593482892290-f54927ae2b7b' : productIdNum === 3 ? '1616500163246-0ffbb872f4de' : '1616784754051-4769c7a8cf5f'}?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60&h=500&fit=crop`} alt={`${product.name} - Lifestyle View`} className="w-full h-full object-top object-cover" />
-                  </div>
-                </div>
-              </div>
-              {/* Product Info */}
-              <div className="mt-10 lg:mt-0 lg:col-start-2">
-                <div>
-                  <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
-                    {product.name}
-                  </h1>
-                  {/* Price */}
-                  <div className="mt-3">
-                    <h2 className="sr-only">Product information</h2>
-                    <p className="text-3xl text-gray-900">
-                      ${product.price.toFixed(2)}
-                    </p>
-                  </div>
-                  {/* Rating */}
-                  <div className="mt-3">
-                    <div className="flex items-center">
-                      {[0, 1, 2, 3, 4].map(rating => <StarIcon key={rating} className={`${product.rating > rating ? 'text-yellow-400' : 'text-gray-300'} h-5 w-5 flex-shrink-0`} aria-hidden="true" />)}
-                    </div>
-                    <p className="ml-3 text-sm text-gray-500">
-                      {product.reviews.length} reviews
-                    </p>
-                  </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+  {/* Product Image Column */}
+  <div className="w-full">
+    <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 mb-4">
+      <img 
+        src={product.image} 
+        alt={product.name} 
+        className="w-full h-full object-cover object-center" 
+      />
+    </div>
+    {/* Thumbnail Images */}
+    <div className="grid grid-cols-4 gap-2">
+      <div className="aspect-square rounded-md overflow-hidden cursor-pointer border-2 border-green-600">
+        <img 
+          src={product.image} 
+          alt={`${product.name} - Main View`} 
+          className="w-full h-full object-cover object-center" 
+        />
+      </div>
+      <div className="aspect-square rounded-md overflow-hidden cursor-pointer border border-gray-200">
+        <img 
+          src={`https://images.unsplash.com/photo-${productIdNum === 1 ? '1614594975525-e45190c55d0b' : productIdNum === 2 ? '1593482892290-f54927ae2b7b' : productIdNum === 3 ? '1616500163246-0ffbb872f4de' : '1616784754051-4769c7a8cf5f'}?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60&h=500&fit=crop`} 
+          alt={`${product.name} - Side View`} 
+          className="w-full h-full object-cover object-center" 
+        />
+      </div>
+      <div className="aspect-square rounded-md overflow-hidden cursor-pointer border border-gray-200">
+        <img 
+          src={`https://images.unsplash.com/photo-${productIdNum === 1 ? '1611000226964-c6e96070fcc3' : productIdNum === 2 ? '1593482892290-f54927ae2b7b' : productIdNum === 3 ? '1616500163246-0ffbb872f4de' : '1616784754051-4769c7a8cf5f'}?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60&h=500&fit=crop`} 
+          alt={`${product.name} - Detail View`} 
+          className="w-full h-full object-cover object-center" 
+        />
+      </div>
+      <div className="aspect-square rounded-md overflow-hidden cursor-pointer border border-gray-200">
+        <img 
+          src={`https://images.unsplash.com/photo-${productIdNum === 1 ? '1620127518526-c0712f189bf6' : productIdNum === 2 ? '1593482892290-f54927ae2b7b' : productIdNum === 3 ? '1616500163246-0ffbb872f4de' : '1616784754051-4769c7a8cf5f'}?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60&h=500&fit=crop`} 
+          alt={`${product.name} - Lifestyle View`} 
+          className="w-full h-full object-cover object-center" 
+        />
+      </div>
+    </div>
+  </div>
+
+  {/* Product Info Column */}
+  <div className="w-full">
+    <div className="sticky top-8">
+      {/* Product Title */}
+      <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 mb-4">
+        {product.name}
+      </h1>
+      
+      {/* Price */}
+      <div className="mb-4">
+        <p className="text-3xl font-bold text-gray-900">
+          ${product.price.toFixed(2)}
+        </p>
+      </div>
+      
+      {/* Rating */}
+      <div className="flex items-center mb-4">
+        <div className="flex items-center">
+          {[0, 1, 2, 3, 4].map(rating => (
+            <StarIcon 
+              key={rating} 
+              className={`${product.rating > rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'} h-5 w-5 flex-shrink-0`} 
+              aria-hidden="true" 
+            />
+          ))}
+        </div>
+        <p className="ml-3 text-sm text-gray-500">
+          {product.reviews.length} reviews
+        </p>
+      </div>
                   {/* Badges */}
                   <div className="mt-4 flex flex-wrap gap-2">
                     {product.isNew && <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
