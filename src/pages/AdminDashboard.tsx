@@ -14,7 +14,7 @@
 import React, { useState } from 'react';
 import { addProduct, getAllProducts } from '../firebaseHelpers';
 import { useEffect } from 'react';
-import { collection, getDocs, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Link } from 'react-router-dom';
 import { LayoutDashboardIcon, ShoppingBagIcon, PackageIcon, UsersIcon, BarChartIcon, SettingsIcon, MenuIcon, XIcon, SearchIcon, BellIcon, ChevronDownIcon, TrendingUpIcon, ClockIcon, UserCheckIcon, DollarSignIcon, ChevronRightIcon, FilterIcon, AlertCircleIcon, PlusIcon, TagIcon, BoxIcon, CreditCardIcon, TruckIcon, TrashIcon, EditIcon, DownloadIcon, PrinterIcon, CheckCircleIcon, UserPlusIcon, StarIcon, MessageCircleIcon, RefreshCwIcon, EyeIcon, KeyIcon, RepeatIcon, HeartIcon } from 'lucide-react';
@@ -165,7 +165,9 @@ export const AdminDashboard = () => {
       inStock: Boolean(editProductForm.inStock),
       isBestSeller: Boolean(editProductForm.isBestSeller),
       rating: Number(editProductForm.rating),
-      relatedProducts: editProductForm.relatedProducts.filter(Boolean),
+      relatedProducts: editProductForm.relatedProducts
+  .filter(Boolean)
+  .map((refId: string) => doc(collection(db, 'products'), refId)),
     };
     try {
       // Update Firestore document
