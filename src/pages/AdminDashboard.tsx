@@ -1376,7 +1376,11 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                         'Pet Friendly': product.specifications?.['Pet Friendly'] || '',
                         'Pot Size': product.specifications?.['Pot Size'] || '',
                       },
-                      relatedProducts: product.relatedProducts || ['', '', ''],
+                      relatedProducts: Array.isArray(product.relatedProducts)
+                        ? product.relatedProducts.map((ref: any) =>
+                            typeof ref === 'object' && ref.id ? ref.id : ref // or ref.path if using path
+                          )
+                        : ['', '', ''],
                       reviews: product.reviews || '',
                     });
                     setSelectedProduct(null); // Hide the detail popup
