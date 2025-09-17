@@ -1376,9 +1376,11 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                         'Pet Friendly': product.specifications?.['Pet Friendly'] || '',
                         'Pot Size': product.specifications?.['Pot Size'] || '',
                       },
-                      relatedProducts: product.relatedProducts
+                      relatedProducts: product.relatedProducts 
                         ? product.relatedProducts.map((ref: any) =>
-                            typeof ref === 'string' ? ref : ref.id || ref.path || ''
+                            typeof ref === 'string'
+                              ? ref
+                              : ref.id?.value || ref.path?.value || String(ref.id || ref.path || '')
                           )
                         : ['', '', ''],
                       reviews: product.reviews || '',
@@ -2469,7 +2471,13 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                                 'Pet Friendly': typeof product.specifications?.['Pet Friendly'] === 'string' ? product.specifications['Pet Friendly'] : '',
                                 'Pot Size': typeof product.specifications?.['Pot Size'] === 'string' ? product.specifications['Pot Size'] : '',
                               },
-                              relatedProducts: Array.isArray(product.relatedProducts) ? product.relatedProducts : ['', '', ''],
+                              relatedProducts: Array.isArray(product.relatedProducts)
+                                ? product.relatedProducts.map((ref: any) =>
+                                    typeof ref === "string"
+                                      ? ref
+                                      : String(ref.id || ref.path || "")
+                                  )
+                                : ['', '', ''],
                               reviews: typeof product.reviews === 'string' ? product.reviews : '',
                             });
                             setShowEditProductModal(true);
