@@ -191,14 +191,14 @@ export const Shop = () => {
               Discover our curated collection of beautiful plants and garden
               supplies for your indoor and outdoor spaces.
             </p>
-            <button
+            {/* <button
               onClick={() => {
                 productGridRef.current?.scrollIntoView({ behavior: 'smooth' });
               }}
               className="inline-block mt-8 px-6 py-3 bg-white text-green-700 font-semibold rounded-lg shadow hover:bg-green-100 transition"
             >
               Shop Plants
-            </button>
+            </button> */}
           </div>
         </div>
         {/* Breadcrumbs */}
