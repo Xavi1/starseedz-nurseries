@@ -330,12 +330,6 @@ export const Shop = () => {
                             ${product.price}
                           </div>
                         </div>
-                        <Link
-                          to={`/product/${product.id}`}
-                          className="mt-2 inline-block text-green-700 hover:text-green-800 text-base font-medium"
-                        >
-                          View Product →
-                        </Link>
                       </div>
                     </div>
                   ))}
