@@ -305,7 +305,39 @@ export const Shop = () => {
               ) : (
                 <div className="grid grid-cols-2 gap-3 sm:mt-0 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {currentProducts.map(product => (
-                    <ProductCard key={product.id} product={product} />
+                    <div
+                      key={product.id}
+                      className="group relative bg-white rounded-2xl shadow-lg border border-gray-200 flex flex-col hover:shadow-2xl transition-shadow duration-300"
+                    >
+                      <div className="relative w-full aspect-square rounded-t-2xl overflow-hidden bg-gray-100">
+                        <Link to={`/product/${product.id}`} className="block w-full h-full">
+                          <img
+                            src={product.image}
+                            alt={product.name}
+                            className="w-full h-full object-center object-cover group-hover:opacity-90 transition-opacity duration-300"
+                          />
+                        </Link>
+                      </div>
+                      <div className="flex-1 flex flex-col justify-between px-6 pb-6 pt-4 text-center gap-2">
+                        <div>
+                          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                            {product.name}
+                          </h3>
+                          <p className="mb-3 text-base text-gray-500 min-h-[48px]">
+                            {product.description}
+                          </p>
+                          <div className="text-green-700 font-bold text-lg mb-2">
+                            ${product.price}
+                          </div>
+                        </div>
+                        <Link
+                          to={`/product/${product.id}`}
+                          className="mt-2 inline-block text-green-700 hover:text-green-800 text-base font-medium"
+                        >
+                          View Product →
+                        </Link>
+                      </div>
+                    </div>
                   ))}
                 </div>
               )}
