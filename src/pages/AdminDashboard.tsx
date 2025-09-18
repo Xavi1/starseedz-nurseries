@@ -114,6 +114,8 @@ export const AdminDashboard = () => {
     specifications?: { [key: string]: string };
   } | null>(null);
   const [editProductId, setEditProductId] = useState<string | null>(null);
+  // Confirmation popup state for edit product modal
+  const [showEditConfirm, setShowEditConfirm] = useState(false);
 
   // Edit product form change handler
   const handleEditProductChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -155,6 +157,12 @@ export const AdminDashboard = () => {
   // Edit product submit handler
   const handleEditProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Show confirmation popup before saving
+    setShowEditConfirm(true);
+  };
+
+  // Handler for confirming save changes
+  const handleConfirmEditSave = async () => {
     if (!editProductForm || !editProductId) return;
     const updatedProduct = {
       ...editProductForm,
@@ -166,8 +174,8 @@ export const AdminDashboard = () => {
       isBestSeller: Boolean(editProductForm.isBestSeller),
       rating: Number(editProductForm.rating),
       relatedProducts: editProductForm.relatedProducts
-  .filter(Boolean)
-  .map((refId: string) => doc(collection(db, 'products'), refId)),
+        .filter(Boolean)
+        .map((refId: string) => doc(collection(db, 'products'), refId)),
     };
     try {
       // Update Firestore document
@@ -182,6 +190,12 @@ export const AdminDashboard = () => {
     setShowEditProductModal(false);
     setEditProductForm(null);
     setEditProductId(null);
+    setShowEditConfirm(false);
+  };
+
+  // Handler for cancelling confirmation
+  const handleCancelEditSave = () => {
+    setShowEditConfirm(false);
   };
 
   // Products from Firebase
@@ -2491,7 +2505,20 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                       </div>
       {/* Edit Product Modal */}
     {showEditProductModal && editProductForm && (
-  <div className="fixed inset-0 z-100 flex items-center justify-center">
+  <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+    {/* Confirmation Popup */}
+    {showEditConfirm && (
+      <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-40">
+        <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full border border-gray-200">
+          <h3 className="text-lg font-semibold mb-4 text-gray-800">Confirm Save Changes</h3>
+          <p className="mb-6 text-gray-700">Are you sure you want to save changes to this product?</p>
+          <div className="flex justify-end gap-3">
+            <button onClick={handleCancelEditSave} className="px-4 py-2 rounded bg-gray-200 text-gray-800 hover:bg-gray-300">Cancel</button>
+            <button onClick={handleConfirmEditSave} className="px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800">Confirm</button>
+          </div>
+        </div>
+      </div>
+    )}
           <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-8 relative border border-gray-200 bg-opacity-40">
             <button
               className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
