@@ -326,9 +326,17 @@ export const Shop = () => {
                           <p className="mb-3 text-base text-gray-500 min-h-[48px]">
                             {product.description}
                           </p>
+                        </div>
+                        <div className="flex flex-col items-center mt-auto">
                           <div className="text-green-700 font-bold text-lg mb-2">
                             ${product.price}
                           </div>
+                          <Link
+                            to={`/product/${product.id}`}
+                            className="inline-block text-green-700 hover:text-green-800 text-base font-medium"
+                          >
+                            View Product →
+                          </Link>
                         </div>
                       </div>
                     </div>
