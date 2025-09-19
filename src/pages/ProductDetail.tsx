@@ -156,32 +156,41 @@ useEffect(() => {
         //  Fetch related product data
         const relatedRefs = data.relatedProducts || [];
         const relatedDocs = await Promise.all(
-  relatedRefs.map(async (ref: any) => {
-    if (!ref?.referencePath) return null;
-    try {
-      const productSnap = await getDoc(doc(db, ref.referencePath));
-      const pd = productSnap.data();
-      return productSnap.exists()
-        ? {
-            id: productSnap.id,
-            name: pd?.name || "",
-            price: pd?.price || 0,
-            category: pd?.category || [],
-            image: pd?.image || "",
-            rating: pd?.rating || 0,
-            isNew: pd?.isNew || false,
-            isBestSeller: pd?.isBestSeller || false
-          }
-        : null;
-    } catch (err) {
-      console.warn("Failed to fetch related product:", err);
-      return null;
-    }
-  })
-);
+          relatedRefs.map(async (ref: any) => {
+            // Support both {referencePath: ...} and string IDs
+            let refPath = null;
+            if (typeof ref === 'string') {
+              refPath = `products/${ref}`;
+            } else if (ref?.referencePath) {
+              refPath = ref.referencePath;
+            } else if (ref?.id) {
+              refPath = `products/${ref.id}`;
+            }
+            if (!refPath) return null;
+            try {
+              const productSnap = await getDoc(doc(db, refPath));
+              const pd = productSnap.data();
+              return productSnap.exists()
+                ? {
+                    id: productSnap.id,
+                    name: pd?.name || "",
+                    price: pd?.price || 0,
+                    category: pd?.category || [],
+                    image: pd?.image || "",
+                    rating: pd?.rating || 0,
+                    isNew: pd?.isNew || false,
+                    isBestSeller: pd?.isBestSeller || false
+                  }
+                : null;
+            } catch (err) {
+              console.warn("Failed to fetch related product:", err);
+              return null;
+            }
+          })
+        );
 
-// Remove nulls just in case
-setRelatedProducts(relatedDocs.filter(Boolean));
+        // Remove nulls just in case
+        setRelatedProducts(relatedDocs.filter(Boolean));
 
 
         //  Fetch reviews from global collection
