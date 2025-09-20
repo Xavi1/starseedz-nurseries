@@ -1,3 +1,4 @@
+
 // =============================
 // AdminDashboard.tsx
 // =============================
@@ -48,6 +49,9 @@ export const AdminDashboard = () => {
   const [activeSettingsTab, setActiveSettingsTab] = useState('store');
   // Modal state for add product
   const [showAddProductModal, setShowAddProductModal] = useState(false);
+   // State for delete confirmation modal
+  const [showDeleteProductModal, setShowDeleteProductModal] = useState(false);
+  const [deleteProductId, setDeleteProductId] = useState<string | null>(null);
   type ProductForm = {
     name: string;
     description: string;
@@ -2500,18 +2504,40 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                           <EditIcon className="h-5 w-5" />
                         </button>
                         <button className="text-gray-500 hover:text-red-700">
-                          <TrashIcon className="h-5 w-5" onClick={async (e) => {
+                          <TrashIcon className="h-5 w-5" onClick={e => {
                             e.stopPropagation();
-                            if (!window.confirm('Are you sure you want to delete this product?')) return;
-                            try {
-                              const { doc, deleteDoc, collection } = await import('firebase/firestore');
-                              await deleteDoc(doc(collection(db, 'products'), product.id));
-                              setProducts((prev: any[]) => prev.filter(p => p.id !== product.id));
-                            } catch (err) {
-                              alert('Failed to delete product.');
-                              console.error('Delete error:', err);
-                            }
+                            setDeleteProductId(product.id);
+                            setShowDeleteProductModal(true);
                           }} />
+  {/* Delete Product Modal */}
+  {showDeleteProductModal && deleteProductId && (
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-40">
+      <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full border border-gray-200">
+        <h3 className="text-lg font-semibold mb-4 text-gray-800">Confirm Delete Product</h3>
+        <p className="mb-6 text-gray-700">Are you sure you want to delete this product? This action cannot be undone.</p>
+        <div className="flex justify-end gap-3">
+          <button onClick={() => { setShowDeleteProductModal(false); setDeleteProductId(null); }} className="px-4 py-2 rounded bg-gray-200 text-gray-800 hover:bg-gray-300">Cancel</button>
+          <button
+            onClick={async () => {
+              try {
+                const { doc, deleteDoc, collection } = await import('firebase/firestore');
+                await deleteDoc(doc(collection(db, 'products'), deleteProductId));
+                setProducts((prev: any[]) => prev.filter(p => p.id !== deleteProductId));
+                setShowDeleteProductModal(false);
+                setDeleteProductId(null);
+              } catch (err) {
+                alert('Failed to delete product.');
+                console.error('Delete error:', err);
+              }
+            }}
+            className="px-4 py-2 rounded bg-red-700 text-white hover:bg-red-800"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  )}
                         </button>
                       </div>
       {/* Edit Product Modal */}
