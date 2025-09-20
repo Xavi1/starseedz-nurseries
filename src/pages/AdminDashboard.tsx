@@ -2511,7 +2511,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                           }} />
   {/* Delete Product Modal */}
   {showDeleteProductModal && deleteProductId && (
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-40">
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-10">
       <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full border border-gray-200">
         <h3 className="text-lg font-semibold mb-4 text-gray-800">Confirm Delete Product</h3>
         <p className="mb-6 text-gray-700">Are you sure you want to delete this product? This action cannot be undone.</p>
