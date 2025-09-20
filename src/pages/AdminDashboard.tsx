@@ -2500,7 +2500,18 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                           <EditIcon className="h-5 w-5" />
                         </button>
                         <button className="text-gray-500 hover:text-red-700">
-                          <TrashIcon className="h-5 w-5" />
+                          <TrashIcon className="h-5 w-5" onClick={async (e) => {
+                            e.stopPropagation();
+                            if (!window.confirm('Are you sure you want to delete this product?')) return;
+                            try {
+                              const { doc, deleteDoc, collection } = await import('firebase/firestore');
+                              await deleteDoc(doc(collection(db, 'products'), product.id));
+                              setProducts((prev: any[]) => prev.filter(p => p.id !== product.id));
+                            } catch (err) {
+                              alert('Failed to delete product.');
+                              console.error('Delete error:', err);
+                            }
+                          }} />
                         </button>
                       </div>
       {/* Edit Product Modal */}
