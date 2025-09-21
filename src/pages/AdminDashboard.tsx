@@ -1,4 +1,5 @@
 
+
 // =============================
 // AdminDashboard.tsx
 // =============================
@@ -52,6 +53,8 @@ export const AdminDashboard = () => {
    // State for delete confirmation modal
   const [showDeleteProductModal, setShowDeleteProductModal] = useState(false);
   const [deleteProductId, setDeleteProductId] = useState<string | null>(null);
+    // State for delete feedback
+  const [deleteFeedback, setDeleteFeedback] = useState<string | null>(null);
   type ProductForm = {
     name: string;
     description: string;
@@ -2511,7 +2514,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                           }} />
   {/* Delete Product Modal */}
   {showDeleteProductModal && deleteProductId && (
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-10">
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-40">
       <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full border border-gray-200">
         <h3 className="text-lg font-semibold mb-4 text-gray-800 text-center">Confirm Delete Product</h3>
         <p className="mb-6 text-gray-700 text-center break-words whitespace-pre-line">
@@ -2529,6 +2532,8 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                 setProducts((prev: any[]) => prev.filter(p => p.id !== deleteProductId));
                 setShowDeleteProductModal(false);
                 setDeleteProductId(null);
+                setDeleteFeedback('Product deleted successfully.');
+                setTimeout(() => setDeleteFeedback(null), 3000);
               } catch (err) {
                 alert('Failed to delete product.');
                 console.error('Delete error:', err);
@@ -2539,6 +2544,11 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
             Delete
           </button>
         </div>
+        {deleteFeedback && (
+          <div className="mt-4 text-green-700 text-center text-sm font-medium">
+            {deleteFeedback}
+          </div>
+        )}
       </div>
     </div>
   )}
