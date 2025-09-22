@@ -2547,8 +2547,10 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                                 <button
                                   onClick={async () => {
                                     try {
-                                      const { doc, deleteDoc, collection } = await import('firebase/firestore');
-                                      await deleteDoc(doc(collection(db, 'products'), deleteProductId));
+                                      // Use Firestore instance from firebaseHelpers.js
+                                      const { doc, deleteDoc } = await import('firebase/firestore');
+                                      const { db } = await import('../firebase');
+                                      await deleteDoc(doc(db, 'products', deleteProductId));
                                       setProducts((prev: any[]) => prev.filter(p => p.id !== deleteProductId));
                                       setShowDeleteProductModal(false);
                                       setDeleteProductId(null);

@@ -21,6 +21,7 @@ import {
   Timestamp
 } from "firebase/firestore";
 import { db } from "./firebaseConfig";
+export { db };
 
 // USERS
 export const createUser = async (user) => {
