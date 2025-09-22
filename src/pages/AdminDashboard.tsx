@@ -2514,7 +2514,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                           }} />
   {/* Delete Product Modal */}
   {showDeleteProductModal && deleteProductId && (
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-40">
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-10">
       <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full border border-gray-200">
         <h3 className="text-lg font-semibold mb-4 text-gray-800 text-center">Confirm Delete Product</h3>
         <p className="mb-6 text-gray-700 text-center break-words whitespace-pre-line">
@@ -2522,7 +2522,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
           <br />
           <span className="font-semibold text-red-700">This action cannot be undone.</span>
         </p>
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-center gap-3">
           <button onClick={() => { setShowDeleteProductModal(false); setDeleteProductId(null); }} className="px-4 py-2 rounded bg-gray-200 text-gray-800 hover:bg-gray-300">Cancel</button>
           <button
             onClick={async () => {
