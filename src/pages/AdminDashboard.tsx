@@ -947,7 +947,23 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
   const filteredCustomers = customerSegmentFilter === 'all' ? customers : customers.filter(customer => customer.segment === customerSegmentFilter);
   // filteredCustomers: customers filtered by segment
   // Get product categories for filter
-  const productCategories = ['all', ...new Set(products.map(product => product.category))];
+  // Ensure unique keys for dropdown (handle duplicate category names)
+  const rawCategories = products.map(product => product.category);
+  const uniqueCategories: string[] = [];
+  const seen: Record<string, number> = {};
+  rawCategories.forEach(cat => {
+    if (cat && typeof cat === 'string') {
+      if (!seen[cat]) {
+        uniqueCategories.push(cat);
+        seen[cat] = 1;
+      } else {
+        // If duplicate, append count for uniqueness
+        uniqueCategories.push(`${cat} (${seen[cat]})`);
+        seen[cat]++;
+      }
+    }
+  });
+  const productCategories = ['all', ...uniqueCategories];
   // productCategories: unique product categories for filter dropdown
   // Get current report data based on type
   const getReportData = () => {
@@ -2270,7 +2286,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                 <div className="flex items-center">
                   <span className="text-sm text-gray-500 mr-2">Category:</span>
                   <select className="text-sm border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500" value={productCategoryFilter} onChange={e => setProductCategoryFilter(e.target.value)}>
-                    {productCategories.map(category => <option key={category} value={category}>
+                    {productCategories.map((category, i) => <option key={category + '-' + i} value={category.replace(/ \(\d+\)$/, '')}>
                         {category === 'all' ? 'All Categories' : category}
                       </option>)}
                   </select>
@@ -2506,12 +2522,15 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                         >
                           <EditIcon className="h-5 w-5" />
                         </button>
-                        <button className="text-gray-500 hover:text-red-700">
-                          <TrashIcon className="h-5 w-5" onClick={e => {
+                        <button
+                          className="text-gray-500 hover:text-red-700"
+                          onClick={e => {
                             e.stopPropagation();
                             setDeleteProductId(product.id);
                             setShowDeleteProductModal(true);
-                          }} />
+                          }}
+                        >
+                          <TrashIcon className="h-5 w-5" />
   {/* Delete Product Modal */}
   {showDeleteProductModal && deleteProductId && (
     <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-10">
