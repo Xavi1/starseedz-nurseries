@@ -2531,47 +2531,47 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                           }}
                         >
                           <TrashIcon className="h-5 w-5" />
-  {/* Delete Product Modal */}
-  {showDeleteProductModal && deleteProductId && (
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-10">
-      <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full border border-gray-200">
-        <h3 className="text-lg font-semibold mb-4 text-gray-800 text-center">Confirm Delete Product</h3>
-        <p className="mb-6 text-gray-700 text-center break-words whitespace-pre-line">
-          Are you sure you want to delete this product?
-          <br />
-          <span className="font-semibold text-red-700">This action cannot be undone.</span>
-        </p>
-        <div className="flex justify-center gap-3">
-          <button onClick={() => { setShowDeleteProductModal(false); setDeleteProductId(null); }} className="px-4 py-2 rounded bg-gray-200 text-gray-800 hover:bg-gray-300">Cancel</button>
-          <button
-            onClick={async () => {
-              try {
-                const { doc, deleteDoc, collection } = await import('firebase/firestore');
-                await deleteDoc(doc(collection(db, 'products'), deleteProductId));
-                setProducts((prev: any[]) => prev.filter(p => p.id !== deleteProductId));
-                setShowDeleteProductModal(false);
-                setDeleteProductId(null);
-                setDeleteFeedback('Product deleted successfully.');
-                setTimeout(() => setDeleteFeedback(null), 3000);
-              } catch (err) {
-                alert('Failed to delete product.');
-                console.error('Delete error:', err);
-              }
-            }}
-            className="px-4 py-2 rounded bg-red-700 text-white hover:bg-red-800"
-          >
-            Delete
-          </button>
-        </div>
-        {deleteFeedback && (
-          <div className="mt-4 text-green-700 text-center text-sm font-medium">
-            {deleteFeedback}
-          </div>
-        )}
-      </div>
-    </div>
-  )}
                         </button>
+                        {/* Delete Product Modal (rendered outside button) */}
+                        {showDeleteProductModal && deleteProductId && (
+                          <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-10">
+                            <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full border border-gray-200">
+                              <h3 className="text-lg font-semibold mb-4 text-gray-800 text-center">Confirm Delete Product</h3>
+                              <p className="mb-6 text-gray-700 text-center break-words whitespace-pre-line">
+                                Are you sure you want to delete this product?
+                                <br />
+                                <span className="font-semibold text-red-700">This action cannot be undone.</span>
+                              </p>
+                              <div className="flex justify-center gap-3">
+                                <button onClick={() => { setShowDeleteProductModal(false); setDeleteProductId(null); }} className="px-4 py-2 rounded bg-gray-200 text-gray-800 hover:bg-gray-300">Cancel</button>
+                                <button
+                                  onClick={async () => {
+                                    try {
+                                      const { doc, deleteDoc, collection } = await import('firebase/firestore');
+                                      await deleteDoc(doc(collection(db, 'products'), deleteProductId));
+                                      setProducts((prev: any[]) => prev.filter(p => p.id !== deleteProductId));
+                                      setShowDeleteProductModal(false);
+                                      setDeleteProductId(null);
+                                      setDeleteFeedback('Product deleted successfully.');
+                                      setTimeout(() => setDeleteFeedback(null), 3000);
+                                    } catch (err) {
+                                      alert('Failed to delete product.');
+                                      console.error('Delete error:', err);
+                                    }
+                                  }}
+                                  className="px-4 py-2 rounded bg-red-700 text-white hover:bg-red-800"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                              {deleteFeedback && (
+                                <div className="mt-4 text-green-700 text-center text-sm font-medium">
+                                  {deleteFeedback}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
       {/* Edit Product Modal */}
     {showEditProductModal && editProductForm && (
