@@ -14,6 +14,41 @@
 // - Inline documentation for maintainability and onboarding
 // =============================
 import React, { useState } from 'react';
+
+// Product type for all usages
+type Product = {
+  id: string;
+  sku: string;
+  name: string;
+  description: string;
+  longDescription: string;
+  price: number;
+  category: string;
+  image: string;
+  imageUrl?: string;
+  inStock: boolean;
+  isBestSeller: boolean;
+  rating: number;
+  stock: number;
+  careInstructions: {
+    light: string;
+    temperature: string;
+    warnings: string;
+    water: string;
+  };
+  specifications: {
+    Difficulty: string;
+    'Growth Rate': string;
+    'Light Requirements': string;
+    'Mature Height': string;
+    'Pet Friendly': string;
+    'Pot Size': string;
+  };
+  relatedProducts: string[];
+  reviews: string;
+  featured?: boolean;
+  lowStockThreshold?: number;
+};
 import { addProduct, getAllProducts } from '../firebaseHelpers';
 import { useEffect } from 'react';
 import { collection, getDocs, updateDoc, doc } from 'firebase/firestore';
@@ -167,6 +202,23 @@ export const AdminDashboard = () => {
     // Show confirmation popup before saving
     setShowEditConfirm(true);
   };
+
+  function deleteProductFromFirestore(productId: string) {
+  throw new Error('Function not implemented.');
+}
+
+  // Delete product handler
+  const handleDeleteProduct = async (productId: string) => {
+  try {
+    await deleteProductFromFirestore(productId); // your delete function
+    setAllProducts(prev => prev.filter(p => p.id !== productId));
+    setDeleteFeedback('Product deleted successfully.');
+    setTimeout(() => setDeleteFeedback(null), 4000); // Hide after 4s
+  } catch (err) {
+    setDeleteFeedback('Error deleting product. Please try again.');
+    setTimeout(() => setDeleteFeedback(null), 4000);
+  }
+};
 
   // Handler for confirming save changes
   const handleConfirmEditSave = async () => {
@@ -2063,6 +2115,12 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
               View all orders
             </a>
           </div>
+          {/* Feedback message for product deletion */}
+          {deleteFeedback && (
+            <div className="mb-4 px-4 py-2 rounded bg-green-100 text-green-800 border border-green-300 text-center">
+              {deleteFeedback}
+            </div>
+          )}
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -2551,7 +2609,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                                       const { doc, deleteDoc } = await import('firebase/firestore');
                                       const { db } = await import('../firebase');
                                       await deleteDoc(doc(db, 'products', deleteProductId));
-                                      setProducts((prev: any[]) => prev.filter(p => p.id !== deleteProductId));
+                                      setProducts((prev: Product[]) => prev.filter(p => p.id !== deleteProductId));
                                       setShowDeleteProductModal(false);
                                       setDeleteProductId(null);
                                       setDeleteFeedback('Product deleted successfully.');
@@ -2566,14 +2624,14 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                                   Delete
                                 </button>
                               </div>
-                              {deleteFeedback && (
-                                <div className="mt-4 text-green-700 text-center text-sm font-medium">
-                                  {deleteFeedback}
-                                </div>
-                              )}
                             </div>
                           </div>
                         )}
+                        {deleteFeedback && (
+                                <div className="fixed top-5 right-5 bg-green-100 text-green-800 px-4 py-2 rounded-lg shadow-lg z-50">
+                                  {deleteFeedback}
+                                </div>
+                              )}
                       </div>
       {/* Edit Product Modal */}
     {showEditProductModal && editProductForm && (
@@ -4227,3 +4285,5 @@ Trinidad and Tobago" className="shadow-sm focus:ring-green-500 focus:border-gree
       </div>
     </div>;
 };
+
+
