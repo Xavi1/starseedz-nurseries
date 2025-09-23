@@ -2773,24 +2773,57 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                   Apply
                 </button>
               </div>
+              /**
+              * PRODUCT LIST PAGINATION CONTROLS COMPONENT
+              * 
+              * Displays pagination information and navigation controls for a product list.
+              * Shows current range of displayed items and provides Previous/Next buttons with page numbers.
+              * 
+              * Features:
+              * - Current results range display (e.g., "Showing 1 to 10 of 50 results")
+              * - Previous/Next navigation buttons with ChevronRightIcon
+              * - Page number buttons with active state styling
+              * - Accessible labels for screen readers
+              * 
+              * Current State:
+              * - Static implementation (non-functional navigation)
+              * - Hard-coded values for demonstration
+              * - Active page highlighted with green background
+              * 
+              * TODO/Improvements Needed:
+              * - Connect to actual pagination logic (dynamic page numbers)
+              * - Implement click handlers for navigation
+              * - Calculate actual showing range based on current page
+              * - Add disabled states for first/last page
+              * - Make page numbers dynamic based on total pages
+              */
               <div className="flex items-center">
+                {/* Results Count Display */}
                 <span className="text-sm text-gray-700 mr-4">
                   Showing <span className="font-medium">1</span> to{' '}
                   <span className="font-medium">10</span> of{' '}
                   <span className="font-medium">{filteredProducts.length}</span>{' '}
                   results
                 </span>
+
+                {/* Pagination Navigation */}
                 <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                  {/* Previous Page Button */}
                   <a href="#" className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                     <span className="sr-only">Previous</span>
                     <ChevronRightIcon className="h-5 w-5 transform rotate-180" />
                   </a>
+
+                  {/* Page Numbers */}
+                  {/* Current Active Page */}
                   <a href="#" className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-green-50 text-sm font-medium text-green-700">
                     1
                   </a>
+                  {/* Inactive Page */}
                   <a href="#" className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
                     2
                   </a>
+                   {/* Next Page Button */}
                   <a href="#" className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                     <span className="sr-only">Next</span>
                     <ChevronRightIcon className="h-5 w-5" />
