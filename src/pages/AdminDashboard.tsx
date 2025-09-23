@@ -393,6 +393,7 @@ export const AdminDashboard = () => {
       relatedProducts: ['', '', ''],
       reviews: '',
     });
+    window.location.reload();
   };
 
   // Dashboard Firebase Data
