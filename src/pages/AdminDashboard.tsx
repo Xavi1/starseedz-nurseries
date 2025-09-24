@@ -2774,32 +2774,6 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                   Apply
                 </button>
               </div>
-              /**
-              * PRODUCT LIST PAGINATION CONTROLS COMPONENT
-              * 
-              * Displays pagination information and navigation controls for a product list.
-              * Shows current range of displayed items and provides Previous/Next buttons with page numbers.
-              * 
-              * Features:
-              * - Current results range display (e.g., "Showing 1 to 10 of 50 results")
-              * - Previous/Next navigation buttons with ChevronRightIcon
-              * - Page number buttons with active state styling
-              * - Accessible labels for screen readers
-              * 
-              * Current State:
-              * - Static implementation (non-functional navigation)
-              * - Hard-coded values for demonstration
-              * - Active page highlighted with green background
-              * 
-              * TODO/Improvements Needed: [DONE]
-              * - Connect to actual pagination logic (dynamic page numbers)
-              * - Implement click handlers for navigation
-              * - Calculate actual showing range based on current page
-              * - Add disabled states for first/last page
-              * - Make page numbers dynamic based on total pages
-              *
-              * Pagination is now dynamic and functional.
-              */
               <div className="flex items-center">
                 {/* Pagination State and Logic */}
                 {/* ...existing code... */}
