@@ -57,6 +57,85 @@ import { Link } from 'react-router-dom';
 import { LayoutDashboardIcon, ShoppingBagIcon, PackageIcon, UsersIcon, BarChartIcon, SettingsIcon, MenuIcon, XIcon, SearchIcon, BellIcon, ChevronDownIcon, TrendingUpIcon, ClockIcon, UserCheckIcon, DollarSignIcon, ChevronRightIcon, FilterIcon, AlertCircleIcon, PlusIcon, TagIcon, BoxIcon, CreditCardIcon, TruckIcon, TrashIcon, EditIcon, DownloadIcon, PrinterIcon, CheckCircleIcon, UserPlusIcon, StarIcon, MessageCircleIcon, RefreshCwIcon, EyeIcon, KeyIcon, RepeatIcon, HeartIcon } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 export const AdminDashboard = () => {
+  // Bulk selection state for products
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [productBulkAction, setProductBulkAction] = useState<string>("Bulk Actions");
+
+  // Handler for selecting/deselecting all products
+  const handleSelectAllProducts = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedProductIds(filteredProducts.map((p: any) => p.id));
+    } else {
+      setSelectedProductIds([]);
+    }
+  };
+
+  // Handler for selecting/deselecting a single product
+  const handleSelectProduct = (productId: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedProductIds(prev => [...prev, productId]);
+    } else {
+      setSelectedProductIds(prev => prev.filter(id => id !== productId));
+    }
+  };
+
+  // Handler for bulk actions (delete, mark as featured, update stock)
+  const handleProductBulkAction = async () => {
+    if (productBulkAction === "Delete Selected") {
+      if (!window.confirm(`Delete ${selectedProductIds.length} selected products? This cannot be undone.`)) return;
+      try {
+        const { doc, deleteDoc } = await import('firebase/firestore');
+        const { db } = await import('../firebase');
+        for (const id of selectedProductIds) {
+          await deleteDoc(doc(db, 'products', id));
+        }
+        setProducts((prev: Product[]) => prev.filter(p => !selectedProductIds.includes(p.id)));
+        setDeleteFeedback('Selected products deleted successfully.');
+        setTimeout(() => setDeleteFeedback(null), 3000);
+        setSelectedProductIds([]);
+      } catch (err) {
+        alert('Failed to delete selected products.');
+        console.error('Bulk delete error:', err);
+      }
+    } else if (productBulkAction === "Mark as Featured") {
+      try {
+        const { doc, updateDoc } = await import('firebase/firestore');
+        const { db } = await import('../firebase');
+        for (const id of selectedProductIds) {
+          await updateDoc(doc(db, 'products', id), { featured: true });
+        }
+        setProducts((prev: Product[]) => prev.map(p => selectedProductIds.includes(p.id) ? { ...p, featured: true } : p));
+        setDeleteFeedback('Selected products marked as featured.');
+        setTimeout(() => setDeleteFeedback(null), 3000);
+        setSelectedProductIds([]);
+      } catch (err) {
+        alert('Failed to mark as featured.');
+        console.error('Bulk feature error:', err);
+      }
+    } else if (productBulkAction === "Update Stock") {
+      const newStockStr = window.prompt('Enter new stock quantity for selected products:');
+      if (newStockStr === null) return;
+      const newStock = parseInt(newStockStr);
+      if (isNaN(newStock) || newStock < 0) {
+        alert('Invalid stock value.');
+        return;
+      }
+      try {
+        const { doc, updateDoc } = await import('firebase/firestore');
+        const { db } = await import('../firebase');
+        for (const id of selectedProductIds) {
+          await updateDoc(doc(db, 'products', id), { stock: newStock });
+        }
+        setProducts((prev: Product[]) => prev.map(p => selectedProductIds.includes(p.id) ? { ...p, stock: newStock } : p));
+        setDeleteFeedback('Stock updated for selected products.');
+        setTimeout(() => setDeleteFeedback(null), 3000);
+        setSelectedProductIds([]);
+      } catch (err) {
+        alert('Failed to update stock.');
+        console.error('Bulk stock update error:', err);
+      }
+    }
+  };
   // Type for dashboard recent orders
   type DashboardOrder = {
     id: string;
@@ -2470,7 +2549,15 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                 <tr>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <div className="flex items-center">
-                      <input id="select-all-products" name="select-all-products" type="checkbox" className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded" />
+                      <input
+                        id="select-all-products"
+                        name="select-all-products"
+                        type="checkbox"
+                        className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                        checked={selectedProductIds.length === filteredProducts.length && filteredProducts.length > 0}
+                        onChange={handleSelectAllProducts}
+                        ref={el => { if (el) el.indeterminate = selectedProductIds.length > 0 && selectedProductIds.length < filteredProducts.length; }}
+                      />
                     </div>
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -2500,7 +2587,14 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                 {filteredProducts.map(product => <tr key={product.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <input id={`select-product-${product.id}`} name={`select-product-${product.id}`} type="checkbox" className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded" />
+                        <input
+                          id={`select-product-${product.id}`}
+                          name={`select-product-${product.id}`}
+                          type="checkbox"
+                          className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                          checked={selectedProductIds.includes(product.id)}
+                          onChange={handleSelectProduct(product.id)}
+                        />
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -2764,13 +2858,23 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
           <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 sm:px-6">
             <div className="flex flex-col sm:flex-row items-center justify-between">
               <div className="flex items-center mb-4 sm:mb-0">
-                <select className="mr-2 text-sm border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500">
+                <select
+                  className="mr-2 text-sm border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
+                  value={productBulkAction}
+                  onChange={e => setProductBulkAction(e.target.value)}
+                  aria-label="Bulk actions"
+                  disabled={selectedProductIds.length === 0}
+                >
                   <option>Bulk Actions</option>
                   <option>Mark as Featured</option>
                   <option>Update Stock</option>
                   <option>Delete Selected</option>
                 </select>
-                <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                <button
+                  className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  onClick={handleProductBulkAction}
+                  disabled={selectedProductIds.length === 0 || productBulkAction === "Bulk Actions"}
+                >
                   Apply
                 </button>
               </div>
