@@ -2971,43 +2971,77 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
               </tbody>
             </table>
           </div>
-          <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 sm:px-6">
-            <div className="flex flex-col sm:flex-row items-center justify-between">
-              <div className="flex items-center mb-4 sm:mb-0">
-                <select className="mr-2 text-sm border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500">
-                  <option>Bulk Actions</option>
-                  <option>Export Selected</option>
-                  <option>Send Email</option>
-                </select>
-                <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                  Apply
-                </button>
-              </div>
-              <div className="flex items-center">
-                <span className="text-sm text-gray-700 mr-4">
-                  Showing <span className="font-medium">1</span> to{' '}
-                  <span className="font-medium">
-                    {filteredCustomers.length}
-                  </span>{' '}
-                  of <span className="font-medium">{customers.length}</span>{' '}
-                  results
-                </span>
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                  <a href="#" className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                    <span className="sr-only">Previous</span>
-                    <ChevronRightIcon className="h-5 w-5 transform rotate-180" />
-                  </a>
-                  <a href="#" className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-green-50 text-sm font-medium text-green-700">
-                    1
-                  </a>
-                  <a href="#" className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                    <span className="sr-only">Next</span>
-                    <ChevronRightIcon className="h-5 w-5" />
-                  </a>
-                </nav>
-              </div>
-            </div>
-          </div>
+          /**
+ * Table/List Management Footer Component
+ * 
+ * Purpose: Provides bulk action controls and pagination for data tables/lists
+ * 
+ * Features:
+ * - Bulk action controls (dropdown with export/email options + apply button)
+ * - Pagination with previous/next navigation
+ * - Results summary showing current view range and total items
+ * - Responsive design that stacks vertically on mobile devices
+ * 
+ * Props/Dependencies:
+ * - customers: Array - Total dataset of all items
+ * - filteredCustomers: Array - Currently filtered/displayed items subset
+ * - ChevronRightIcon: Component - Required icon for pagination arrows
+ * 
+ * Accessibility:
+ * - Screen reader labels for pagination buttons (sr-only)
+ * - ARIA labels for navigation elements
+ * - Focus management with visible focus rings
+ * 
+ * Usage: Typically placed below data tables where bulk operations and navigation are needed
+ */
+<div className="px-4 py-3 bg-gray-50 border-t border-gray-200 sm:px-6">
+  <div className="flex flex-col sm:flex-row items-center justify-between">
+    {/* Bulk Actions Section - Left side */}
+    <div className="flex items-center mb-4 sm:mb-0">
+      <select 
+        className="mr-2 text-sm border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
+        aria-label="Bulk actions"
+      >
+        <option>Bulk Actions</option>
+        <option>Export Selected</option>
+        <option>Send Email</option>
+      </select>
+      <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+        Apply
+      </button>
+    </div>
+
+    {/* Pagination & Results Section - Right side */}
+    <div className="flex items-center">
+      {/* Results Summary */}
+      <span className="text-sm text-gray-700 mr-4">
+        Showing <span className="font-medium">1</span> to{' '}
+        <span className="font-medium">{filteredCustomers.length}</span>{' '}
+        of <span className="font-medium">{customers.length}</span> results
+      </span>
+      
+      {/* Pagination Controls */}
+      <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+        {/* Previous Page Button */}
+        <a href="#" className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+          <span className="sr-only">Previous</span>
+          <ChevronRightIcon className="h-5 w-5 transform rotate-180" />
+        </a>
+        
+        {/* Current Page Indicator */}
+        <a href="#" className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-green-50 text-sm font-medium text-green-700">
+          1
+        </a>
+        
+        {/* Next Page Button */}
+        <a href="#" className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+          <span className="sr-only">Next</span>
+          <ChevronRightIcon className="h-5 w-5" />
+        </a>
+      </nav>
+    </div>
+  </div>
+</div>
         </div>}
     </>;
   // Render reports content
