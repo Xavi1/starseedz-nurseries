@@ -1109,8 +1109,19 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
   // filteredCustomers: customers filtered by segment
   // Get product categories for filter (normalize to avoid duplicates)
   // Merge categories from products and allCategories (from Firebase)
+  // Normalize for uniqueness, but prettify for display
   const normalizeCategoryKey = (cat: string) => cat.replace(/\s+/g, '').toLowerCase();
-  const prettifyCategory = (cat: string) => cat.trim().replace(/\s+/g, ' ');
+  // Prettify: insert spaces before capital letters (except first), trim, single spaces
+  const prettifyCategory = (cat: string) => {
+    let s = cat.trim().replace(/\s+/g, ' ');
+    // If no spaces, but multiple capitals, insert spaces before capitals
+    if (!s.includes(' ')) {
+      s = s.replace(/([a-z])([A-Z])/g, '$1 $2');
+    }
+    // Capitalize first letter of each word
+    s = s.replace(/\b\w/g, c => c.toUpperCase());
+    return s;
+  };
   const categoryMap: Record<string, string> = {};
   [...products.map(p => p.category), ...allCategories].forEach(cat => {
     if (typeof cat === 'string') {
