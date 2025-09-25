@@ -1079,23 +1079,18 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
   // Filter customers by segment
   const filteredCustomers = customerSegmentFilter === 'all' ? customers : customers.filter(customer => customer.segment === customerSegmentFilter);
   // filteredCustomers: customers filtered by segment
-  // Get product categories for filter
-  // Ensure unique keys for dropdown (handle duplicate category names)
-  const rawCategories = products.map(product => product.category);
-  const uniqueCategories: string[] = [];
-  const seen: Record<string, number> = {};
-  rawCategories.forEach(cat => {
-    if (cat && typeof cat === 'string') {
-      if (!seen[cat]) {
-        uniqueCategories.push(cat);
-        seen[cat] = 1;
-      } else {
-        // If duplicate, append count for uniqueness
-        uniqueCategories.push(`${cat} (${seen[cat]})`);
-        seen[cat]++;
+  // Get product categories for filter (normalize to avoid duplicates)
+  const rawCategories = products.map(product => typeof product.category === 'string' ? product.category.trim().toLowerCase() : '');
+  const categoryMap: Record<string, string> = {};
+  products.forEach(product => {
+    if (typeof product.category === 'string') {
+      const normalized = product.category.trim().toLowerCase();
+      if (!categoryMap[normalized]) {
+        categoryMap[normalized] = product.category.trim();
       }
     }
   });
+  const uniqueCategories = Object.values(categoryMap);
   const productCategories = ['all', ...uniqueCategories];
   // productCategories: unique product categories for filter dropdown
   // Get current report data based on type
