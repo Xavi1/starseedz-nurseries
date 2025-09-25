@@ -1107,15 +1107,10 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
   // Filter orders by status
   const filteredOrders = orderStatusFilter === 'all' ? allOrders : allOrders.filter(order => order.status.toLowerCase() === orderStatusFilter.toLowerCase());
   // filteredOrders: orders filtered by status
-  // Filter products by category
-  const filteredProducts = productCategoryFilter === 'all' ? products : products.filter(product => product.category === productCategoryFilter);
-  // filteredProducts: products filtered by category
-  // Filter customers by segment
-  const filteredCustomers = customerSegmentFilter === 'all' ? customers : customers.filter(customer => customer.segment === customerSegmentFilter);
-  // filteredCustomers: customers filtered by segment
   // Get product categories for filter (normalize to avoid duplicates)
   // Merge categories from products and allCategories (from Firebase)
   // Normalize for uniqueness, but prettify for display
+  // Utility helpers for category normalization and prettifying
   const normalizeCategoryKey = (cat: string) => cat.replace(/\s+/g, '').toLowerCase();
   // Prettify: insert spaces before capital letters (except first), trim, single spaces
   const prettifyCategory = (cat: string) => {
@@ -1128,8 +1123,30 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
     s = s.replace(/\b\w/g, c => c.toUpperCase());
     return s;
   };
+
+  // Filter products by category
+  // Filtering: match if any category in product matches the selected filter
+  const filteredProducts = productCategoryFilter === 'all'
+    ? products
+    : products.filter(product =>
+        Array.isArray(product.category)
+          ? product.category.some((cat: string) => normalizeCategoryKey(cat) === normalizeCategoryKey(productCategoryFilter))
+          : normalizeCategoryKey(product.category) === normalizeCategoryKey(productCategoryFilter)
+      );
+  // filteredProducts: products filtered by category
+  // Filter customers by segment
+  const filteredCustomers = customerSegmentFilter === 'all' ? customers : customers.filter(customer => customer.segment === customerSegmentFilter);
+  // filteredCustomers: customers filtered by segment
+  // Get product categories for filter (normalize to avoid duplicates)
+  // Merge categories from products and allCategories (from Firebase)
+  // Normalize for uniqueness, but prettify for display
   const categoryMap: Record<string, string> = {};
-  [...products.map(p => p.category), ...allCategories].forEach(cat => {
+  // Flatten all categories from products and allCategories
+  const allCatsFlat = [
+    ...products.flatMap(p => Array.isArray(p.category) ? p.category : [p.category]),
+    ...allCategories
+  ];
+  allCatsFlat.forEach(cat => {
     if (typeof cat === 'string') {
       const key = normalizeCategoryKey(cat);
       if (!categoryMap[key]) {
