@@ -1080,13 +1080,15 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
   const filteredCustomers = customerSegmentFilter === 'all' ? customers : customers.filter(customer => customer.segment === customerSegmentFilter);
   // filteredCustomers: customers filtered by segment
   // Get product categories for filter (normalize to avoid duplicates)
-  const rawCategories = products.map(product => typeof product.category === 'string' ? product.category.trim().toLowerCase() : '');
+  // Normalize category names: trim, collapse spaces, lowercase
+  const normalizeCategory = (cat: string) => cat.trim().replace(/\s+/g, ' ').toLowerCase();
   const categoryMap: Record<string, string> = {};
   products.forEach(product => {
     if (typeof product.category === 'string') {
-      const normalized = product.category.trim().toLowerCase();
+      const normalized = normalizeCategory(product.category);
       if (!categoryMap[normalized]) {
-        categoryMap[normalized] = product.category.trim();
+        // Store the prettified version (trimmed, single spaces, original case)
+        categoryMap[normalized] = product.category.trim().replace(/\s+/g, ' ');
       }
     }
   });
