@@ -45,6 +45,8 @@ export const addProduct = async (product) => {
   const productRef = doc(db, "products", product.id);
   await setDoc(productRef, {
     ...product,
+    // Ensure category is always stored as array
+    category: Array.isArray(product.category) ? product.category : [product.category],
     createdAt: Timestamp.now()
   });
   return product.id;
@@ -53,7 +55,15 @@ export const addProduct = async (product) => {
 export const getAllProducts = async () => {
   const productsRef = collection(db, "products");
   const querySnapshot = await getDocs(productsRef);
-  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  return querySnapshot.docs.map(doc => {
+    const data = doc.data();
+    // Ensure category is always array
+    return {
+      id: doc.id,
+      ...data,
+      category: Array.isArray(data.category) ? data.category : [data.category]
+    };
+  });
 };
 
 export const getProductById = async (productId) => {

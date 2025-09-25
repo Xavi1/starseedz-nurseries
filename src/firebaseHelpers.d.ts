@@ -22,7 +22,7 @@ interface Product {
   price: number;
   description: string;
   imageUrl: string;
-  category: string;
+  category: string[];
   stock: number;
   createdAt: Timestamp;
 }

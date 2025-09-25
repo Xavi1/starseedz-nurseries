@@ -23,7 +23,7 @@ type Product = {
   description: string;
   longDescription: string;
   price: number;
-  category: string;
+  category: string[];
   image: string;
   imageUrl?: string;
   inStock: boolean;
@@ -64,21 +64,22 @@ export const AdminDashboard = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        // If you have a 'categories' collection, use that:
-        // const { getDocs, collection } = await import('firebase/firestore');
-        // const { db } = await import('../firebase');
-        // const snap = await getDocs(collection(db, 'categories'));
-        // const cats = snap.docs.map(doc => doc.data().name);
-        // If not, scan all products for their categories:
+        // Scan all products for their categories (array or string)
         const { getDocs, collection } = await import('firebase/firestore');
         const { db } = await import('../firebase');
         const snap = await getDocs(collection(db, 'products'));
         const cats: string[] = [];
         snap.forEach(doc => {
           const data = doc.data();
-          if (typeof data.category === 'string') cats.push(data.category);
+          if (Array.isArray(data.category)) {
+            cats.push(...data.category);
+          } else if (typeof data.category === 'string') {
+            cats.push(data.category);
+          }
         });
-        setAllCategories(cats);
+        // Normalize and deduplicate
+        const normalized = Array.from(new Set(cats.map(cat => cat.trim()).filter(Boolean)));
+        setAllCategories(normalized);
       } catch (err) {
         console.error('Error fetching categories:', err);
       }
@@ -203,7 +204,7 @@ export const AdminDashboard = () => {
     description: string;
     longDescription: string;
     price: string;
-    category: string;
+    category: string[];
     image: string;
     inStock: boolean;
     isBestSeller: boolean;
@@ -232,7 +233,7 @@ export const AdminDashboard = () => {
     description: '',
     longDescription: '',
     price: '',
-    category: '',
+    category: [],
     image: '',
     inStock: true,
     isBestSeller: false,
@@ -396,6 +397,10 @@ export const AdminDashboard = () => {
         arr[idx] = value;
         return { ...f, relatedProducts: arr };
       });
+    } else if (name === 'category') {
+      // Accept comma-separated string and convert to array
+      const categoriesArr = value.split(',').map(cat => cat.trim()).filter(Boolean);
+      setAddProductForm(f => ({ ...f, category: categoriesArr }));
     } else if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
       setAddProductForm(f => ({ ...f, [name]: checked }));
@@ -434,7 +439,8 @@ export const AdminDashboard = () => {
 
   const handleAddProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const prefix = getSkuPrefix(addProductForm.category.trim());
+    // Use first category for SKU prefix, fallback to 'GEN'
+    const prefix = getSkuPrefix(addProductForm.category[0] || '');
     const newId = getNextSku(prefix);
     const productToAdd = {
       id: newId,
@@ -443,7 +449,7 @@ export const AdminDashboard = () => {
       description: addProductForm.description,
       longDescription: addProductForm.longDescription,
       price: parseFloat(addProductForm.price),
-      category: addProductForm.category.trim(),
+      category: addProductForm.category,
       imageUrl: addProductForm.image,
       inStock: Boolean(addProductForm.inStock),
       isBestSeller: Boolean(addProductForm.isBestSeller),
@@ -478,7 +484,7 @@ export const AdminDashboard = () => {
       description: '',
       longDescription: '',
       price: '',
-      category: '',
+      category: [],
       image: '',
       inStock: true,
       isBestSeller: false,
