@@ -57,6 +57,34 @@ import { Link } from 'react-router-dom';
 import { LayoutDashboardIcon, ShoppingBagIcon, PackageIcon, UsersIcon, BarChartIcon, SettingsIcon, MenuIcon, XIcon, SearchIcon, BellIcon, ChevronDownIcon, TrendingUpIcon, ClockIcon, UserCheckIcon, DollarSignIcon, ChevronRightIcon, FilterIcon, AlertCircleIcon, PlusIcon, TagIcon, BoxIcon, CreditCardIcon, TruckIcon, TrashIcon, EditIcon, DownloadIcon, PrinterIcon, CheckCircleIcon, UserPlusIcon, StarIcon, MessageCircleIcon, RefreshCwIcon, EyeIcon, KeyIcon, RepeatIcon, HeartIcon } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 export const AdminDashboard = () => {
+  // State for all categories (from Firebase)
+  const [allCategories, setAllCategories] = useState<string[]>([]);
+
+  // Fetch all categories from Firebase on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        // If you have a 'categories' collection, use that:
+        // const { getDocs, collection } = await import('firebase/firestore');
+        // const { db } = await import('../firebase');
+        // const snap = await getDocs(collection(db, 'categories'));
+        // const cats = snap.docs.map(doc => doc.data().name);
+        // If not, scan all products for their categories:
+        const { getDocs, collection } = await import('firebase/firestore');
+        const { db } = await import('../firebase');
+        const snap = await getDocs(collection(db, 'products'));
+        const cats: string[] = [];
+        snap.forEach(doc => {
+          const data = doc.data();
+          if (typeof data.category === 'string') cats.push(data.category);
+        });
+        setAllCategories(cats);
+      } catch (err) {
+        console.error('Error fetching categories:', err);
+      }
+    };
+    fetchCategories();
+  }, []);
   // Bulk selection state for products
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [productBulkAction, setProductBulkAction] = useState<string>("Bulk Actions");
@@ -1080,15 +1108,15 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
   const filteredCustomers = customerSegmentFilter === 'all' ? customers : customers.filter(customer => customer.segment === customerSegmentFilter);
   // filteredCustomers: customers filtered by segment
   // Get product categories for filter (normalize to avoid duplicates)
-  // Normalize category names for uniqueness: remove all spaces, lowercase
+  // Merge categories from products and allCategories (from Firebase)
   const normalizeCategoryKey = (cat: string) => cat.replace(/\s+/g, '').toLowerCase();
   const prettifyCategory = (cat: string) => cat.trim().replace(/\s+/g, ' ');
   const categoryMap: Record<string, string> = {};
-  products.forEach(product => {
-    if (typeof product.category === 'string') {
-      const key = normalizeCategoryKey(product.category);
+  [...products.map(p => p.category), ...allCategories].forEach(cat => {
+    if (typeof cat === 'string') {
+      const key = normalizeCategoryKey(cat);
       if (!categoryMap[key]) {
-        categoryMap[key] = prettifyCategory(product.category);
+        categoryMap[key] = prettifyCategory(cat);
       }
     }
   });
