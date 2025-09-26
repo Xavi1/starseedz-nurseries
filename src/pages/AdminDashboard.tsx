@@ -57,6 +57,9 @@ import { Link } from 'react-router-dom';
 import { LayoutDashboardIcon, ShoppingBagIcon, PackageIcon, UsersIcon, BarChartIcon, SettingsIcon, MenuIcon, XIcon, SearchIcon, BellIcon, ChevronDownIcon, TrendingUpIcon, ClockIcon, UserCheckIcon, DollarSignIcon, ChevronRightIcon, FilterIcon, AlertCircleIcon, PlusIcon, TagIcon, BoxIcon, CreditCardIcon, TruckIcon, TrashIcon, EditIcon, DownloadIcon, PrinterIcon, CheckCircleIcon, UserPlusIcon, StarIcon, MessageCircleIcon, RefreshCwIcon, EyeIcon, KeyIcon, RepeatIcon, HeartIcon } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 export const AdminDashboard = () => {
+  // Pagination state for Orders and Customers
+  const [ordersCurrentPage, setOrdersCurrentPage] = useState(1);
+  const [customersCurrentPage, setCustomersCurrentPage] = useState(1);
   // State for all categories (from Firebase)
   const [allCategories, setAllCategories] = useState<string[]>([]);
 
@@ -1166,7 +1169,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
       case 'customers':
         return customerReportData;
       case 'inventory':
-        return inventoryReportData;
+        return inventoryReportData;             
       default:
         return salesReportData;
     }
@@ -2439,28 +2442,71 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                 </button>
               </div>
               <div className="flex items-center">
-                <span className="text-sm text-gray-700 mr-4">
-                  Showing <span className="font-medium">1</span> to{' '}
-                  <span className="font-medium">10</span> of{' '}
-                  <span className="font-medium">{filteredOrders.length}</span>{' '}
-                  results
-                </span>
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                  <a href="#" className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                    <span className="sr-only">Previous</span>
-                    <ChevronRightIcon className="h-5 w-5 transform rotate-180" />
-                  </a>
-                  <a href="#" className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-green-50 text-sm font-medium text-green-700">
-                    1
-                  </a>
-                  <a href="#" className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                    2
-                  </a>
-                  <a href="#" className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                    <span className="sr-only">Next</span>
-                    <ChevronRightIcon className="h-5 w-5" />
-                  </a>
-                </nav>
+                {(() => {
+                  // --- Pagination logic for Orders ---
+                  const pageSize = 10;
+                  const totalOrders = filteredOrders.length;
+                  const totalPages = Math.ceil(totalOrders / pageSize) || 1;
+                  const startIdx = (ordersCurrentPage - 1) * pageSize;
+                  const endIdx = Math.min(startIdx + pageSize, totalOrders);
+                  let pageNumbers = [];
+                  if (totalPages <= 5) {
+                    pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+                  } else {
+                    if (ordersCurrentPage <= 3) {
+                      pageNumbers = [1, 2, 3, 4, '...', totalPages];
+                    } else if (ordersCurrentPage >= totalPages - 2) {
+                      pageNumbers = [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+                    } else {
+                      pageNumbers = [1, '...', ordersCurrentPage - 1, ordersCurrentPage, ordersCurrentPage + 1, '...', totalPages];
+                    }
+                  }
+                  return <>
+                    <span className="text-sm text-gray-700 mr-4">
+                      Showing <span className="font-medium">{totalOrders === 0 ? 0 : startIdx + 1}</span> to{' '}
+                      <span className="font-medium">{endIdx}</span> of{' '}
+                      <span className="font-medium">{totalOrders}</span>{' '}
+                      results
+                    </span>
+                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                      <button
+                        type="button"
+                        className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${ordersCurrentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
+                        onClick={() => setOrdersCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={ordersCurrentPage === 1}
+                        aria-label="Previous"
+                      >
+                        <span className="sr-only">Previous</span>
+                        <ChevronRightIcon className="h-5 w-5 transform rotate-180" />
+                      </button>
+                      {pageNumbers.map((num, idx) =>
+                        typeof num === 'number' ? (
+                          <button
+                            key={num}
+                            type="button"
+                            className={`relative inline-flex items-center px-4 py-2 border border-gray-300 ${num === ordersCurrentPage ? 'bg-green-50 text-green-700' : 'bg-white text-gray-700 hover:bg-gray-50'} text-sm font-medium`}
+                            onClick={() => setOrdersCurrentPage(num)}
+                            aria-current={num === ordersCurrentPage ? 'page' : undefined}
+                          >
+                            {num}
+                          </button>
+                        ) : (
+                          <span key={idx} className="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-400 select-none">…</span>
+                        )
+                      )}
+                      <button
+                        type="button"
+                        className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${ordersCurrentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
+                        onClick={() => setOrdersCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={ordersCurrentPage === totalPages}
+                        aria-label="Next"
+                      >
+                        <span className="sr-only">Next</span>
+                        <ChevronRightIcon className="h-5 w-5" />
+                      </button>
+                    </nav>
+                  </>;
+                })()}
               </div>
             </div>
           </div>
@@ -3176,32 +3222,71 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
 
     {/* Pagination & Results Section - Right side */}
     <div className="flex items-center">
-      {/* Results Summary */}
-      <span className="text-sm text-gray-700 mr-4">
-        Showing <span className="font-medium">1</span> to{' '}
-        <span className="font-medium">{filteredCustomers.length}</span>{' '}
-        of <span className="font-medium">{customers.length}</span> results
-      </span>
-      
-      {/* Pagination Controls */}
-      <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-        {/* Previous Page Button */}
-        <a href="#" className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-          <span className="sr-only">Previous</span>
-          <ChevronRightIcon className="h-5 w-5 transform rotate-180" />
-        </a>
-        
-        {/* Current Page Indicator */}
-        <a href="#" className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-green-50 text-sm font-medium text-green-700">
-          1
-        </a>
-        
-        {/* Next Page Button */}
-        <a href="#" className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-          <span className="sr-only">Next</span>
-          <ChevronRightIcon className="h-5 w-5" />
-        </a>
-      </nav>
+      {(() => {
+        // --- Pagination logic for Customers ---
+        const pageSize = 10;
+        const totalCustomers = customers.length;
+        const totalPages = Math.ceil(totalCustomers / pageSize) || 1;
+        const startIdx = (customersCurrentPage - 1) * pageSize;
+        const endIdx = Math.min(startIdx + pageSize, totalCustomers);
+        let pageNumbers = [];
+        if (totalPages <= 5) {
+          pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+        } else {
+          if (customersCurrentPage <= 3) {
+            pageNumbers = [1, 2, 3, 4, '...', totalPages];
+          } else if (customersCurrentPage >= totalPages - 2) {
+            pageNumbers = [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+          } else {
+            pageNumbers = [1, '...', customersCurrentPage - 1, customersCurrentPage, customersCurrentPage + 1, '...', totalPages];
+          }
+        }
+        return <>
+          <span className="text-sm text-gray-700 mr-4">
+            Showing <span className="font-medium">{totalCustomers === 0 ? 0 : startIdx + 1}</span> to{' '}
+            <span className="font-medium">{endIdx}</span> of{' '}
+            <span className="font-medium">{totalCustomers}</span>{' '}
+            results
+          </span>
+          <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            <button
+              type="button"
+              className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${customersCurrentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
+              onClick={() => setCustomersCurrentPage(p => Math.max(1, p - 1))}
+              disabled={customersCurrentPage === 1}
+              aria-label="Previous"
+            >
+              <span className="sr-only">Previous</span>
+              <ChevronRightIcon className="h-5 w-5 transform rotate-180" />
+            </button>
+            {pageNumbers.map((num, idx) =>
+              typeof num === 'number' ? (
+                <button
+                  key={num}
+                  type="button"
+                  className={`relative inline-flex items-center px-4 py-2 border border-gray-300 ${num === customersCurrentPage ? 'bg-green-50 text-green-700' : 'bg-white text-gray-700 hover:bg-gray-50'} text-sm font-medium`}
+                  onClick={() => setCustomersCurrentPage(num)}
+                  aria-current={num === customersCurrentPage ? 'page' : undefined}
+                >
+                  {num}
+                </button>
+              ) : (
+                <span key={idx} className="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-400 select-none">…</span>
+              )
+            )}
+            <button
+              type="button"
+              className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${customersCurrentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
+              onClick={() => setCustomersCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={customersCurrentPage === totalPages}
+              aria-label="Next"
+            >
+              <span className="sr-only">Next</span>
+              <ChevronRightIcon className="h-5 w-5" />
+            </button>
+          </nav>
+        </>;
+      })()}
     </div>
   </div>
 </div>
