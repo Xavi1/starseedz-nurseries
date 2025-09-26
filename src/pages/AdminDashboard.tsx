@@ -60,6 +60,7 @@ export const AdminDashboard = () => {
   // Pagination state for Orders and Customers
   const [ordersCurrentPage, setOrdersCurrentPage] = useState(1);
   const [customersCurrentPage, setCustomersCurrentPage] = useState(1);
+  // ...existing code...
   // State for all categories (from Firebase)
   const [allCategories, setAllCategories] = useState<string[]>([]);
 
@@ -1138,7 +1139,21 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
       );
   // filteredProducts: products filtered by category
   // Filter customers by segment
+  // Paginated data for Orders
+  const ordersPageSize = 10;
+  const paginatedOrders = filteredOrders.slice(
+    (ordersCurrentPage - 1) * ordersPageSize,
+    ordersCurrentPage * ordersPageSize
+  );
+
+  // Filter customers by segment
   const filteredCustomers = customerSegmentFilter === 'all' ? customers : customers.filter(customer => customer.segment === customerSegmentFilter);
+  // Paginated data for Customers
+  const customersPageSize = 10;
+  const paginatedCustomers = filteredCustomers.slice(
+    (customersCurrentPage - 1) * customersPageSize,
+    customersCurrentPage * customersPageSize
+  );
   // filteredCustomers: customers filtered by segment
   // Get product categories for filter (normalize to avoid duplicates)
   // Merge categories from products and allCategories (from Firebase)
@@ -2389,7 +2404,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredOrders.map(order => <tr key={order.id} className="hover:bg-gray-50 transition-colors">
+                {paginatedOrders.map(order => <tr key={order.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <input id={`select-${order.id}`} name={`select-${order.id}`} type="checkbox" className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded" />
@@ -3123,7 +3138,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredCustomers.map(customer => <tr key={customer.id} className="hover:bg-gray-50 transition-colors">
+                {paginatedCustomers.map(customer => <tr key={customer.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
