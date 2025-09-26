@@ -157,9 +157,30 @@ export const AdminDashboard = () => {
         const { doc, updateDoc } = await import('firebase/firestore');
         const { db } = await import('../firebase');
         for (const id of selectedProductIds) {
-          await updateDoc(doc(db, 'products', id), { stock: newStock });
+  const product = products.find(p => p.id === id);
+  const updateData: any = { stock: newStock };
+  if (product && product.stock === 0 && newStock > 0) {
+    updateData.inStock = true;
+  }
+  await updateDoc(doc(db, 'products', id), updateData);
+}
+
+setProducts((prev: Product[]) =>
+  prev.map(p =>
+    selectedProductIds.includes(p.id)
+      ? {
+          ...p,
+          stock: newStock,
+          inStock:
+            p.stock === 0 && newStock > 0
+              ? true   // crossed from 0 → positive
+              : p.stock > 0 && newStock === 0
+              ? false  // crossed from positive → 0
+              : p.inStock, // otherwise keep it as is
         }
-        setProducts((prev: Product[]) => prev.map(p => selectedProductIds.includes(p.id) ? { ...p, stock: newStock } : p));
+      : p
+  )
+);
         setDeleteFeedback('Stock updated for selected products.');
         setTimeout(() => setDeleteFeedback(null), 3000);
         setSelectedProductIds([]);
