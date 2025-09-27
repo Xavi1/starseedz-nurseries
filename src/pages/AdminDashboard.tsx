@@ -1159,6 +1159,12 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
           : normalizeCategoryKey(product.category) === normalizeCategoryKey(productCategoryFilter)
       );
   // filteredProducts: products filtered by category
+  // Paginated data for Products
+  const productsPageSize = 10;
+  const paginatedProducts = filteredProducts.slice(
+    (currentPage - 1) * productsPageSize,
+    currentPage * productsPageSize
+  );
   // Filter customers by segment
   // Paginated data for Orders
   const ordersPageSize = 10;
@@ -2725,7 +2731,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredProducts.map(product => <tr key={product.id} className="hover:bg-gray-50 transition-colors">
+                {paginatedProducts.map(product => <tr key={product.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <input
