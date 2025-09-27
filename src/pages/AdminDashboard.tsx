@@ -3222,7 +3222,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
               </tbody>
             </table>
           </div>
-          /**
+          {/**
  * Table/List Management Footer Component
  * 
  * Purpose: Provides bulk action controls and pagination for data tables/lists
@@ -3244,7 +3244,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
  * - Focus management with visible focus rings
  * 
  * Usage: Typically placed below data tables where bulk operations and navigation are needed
- */
+ */}
 <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 sm:px-6">
   <div className="flex flex-col sm:flex-row items-center justify-between">
     {/* Bulk Actions Section - Left side */}
