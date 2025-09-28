@@ -226,6 +226,8 @@ setProducts((prev: Product[]) =>
     // State for delete feedback
   const [deleteFeedback, setDeleteFeedback] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = React.useState(1);
+    // State for product search
+  const [productSearchQuery, setProductSearchQuery] = useState("");
     // State for filter modal
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   type ProductForm = {
@@ -1155,13 +1157,25 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
 
   // Filter products by category
   // Filtering: match if any category in product matches the selected filter
-  const filteredProducts = productCategoryFilter === 'all'
+  let filteredProducts = productCategoryFilter === 'all'
     ? products
     : products.filter(product =>
         Array.isArray(product.category)
           ? product.category.some((cat: string) => normalizeCategoryKey(cat) === normalizeCategoryKey(productCategoryFilter))
           : normalizeCategoryKey(product.category) === normalizeCategoryKey(productCategoryFilter)
       );
+  // Apply product search filter
+  if (productSearchQuery.trim() !== "") {
+    const query = productSearchQuery.trim().toLowerCase();
+    filteredProducts = filteredProducts.filter(product => {
+      const name = product.name?.toLowerCase() || "";
+      const sku = product.sku?.toLowerCase() || "";
+      const category = Array.isArray(product.category)
+        ? product.category.map((cat: string) => cat.toLowerCase()).join(" ")
+        : (product.category?.toLowerCase() || "");
+      return name.includes(query) || sku.includes(query) || category.includes(query);
+    });
+  }
   // filteredProducts: products filtered by category
   // Paginated data for Products
   const productsPageSize = 10;
@@ -2572,6 +2586,13 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                     <SearchIcon className="h-5 w-5 text-gray-400" />
                   </div>
                   <input type="text" className="focus:ring-green-500 focus:border-green-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md" placeholder="Search products" />
+                  <input
+                    type="text"
+                    className="focus:ring-green-500 focus:border-green-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
+                    placeholder="Search products"
+                    value={productSearchQuery}
+                    onChange={e => setProductSearchQuery(e.target.value)}
+                  />
                 </div>
                 <div className="flex items-center">
                   <span className="text-sm text-gray-500 mr-2">Category:</span>
