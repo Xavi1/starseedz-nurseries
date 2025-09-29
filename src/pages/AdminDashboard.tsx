@@ -1342,7 +1342,14 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                   <div className="flex justify-between">
                     <p className="text-sm text-gray-600">Subtotal</p>
                     <p className="text-sm font-medium text-gray-900">
-                      ${parseFloat(order.total.replace('$', '')).toFixed(2)}
+                      {
+                        (() => {
+                          const totalNum = typeof order.total === 'number'
+                            ? order.total
+                            : parseFloat(String(order.total).replace('$', ''));
+                          return `$${totalNum.toFixed(2)}`;
+                        })()
+                      }
                     </p>
                   </div>
                   <div className="flex justify-between mt-2">
@@ -1352,15 +1359,27 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                   <div className="flex justify-between mt-2">
                     <p className="text-sm text-gray-600">Tax</p>
                     <p className="text-sm font-medium text-gray-900">
-                      $
-                      {(parseFloat(order.total.replace('$', '')) * 0.08).toFixed(2)}
+                      {
+                        (() => {
+                          const totalNum = typeof order.total === 'number'
+                            ? order.total
+                            : parseFloat(String(order.total).replace('$', ''));
+                          return `$${(totalNum * 0.08).toFixed(2)}`;
+                        })()
+                      }
                     </p>
                   </div>
                   <div className="flex justify-between mt-2 pt-2 border-t border-gray-200">
                     <p className="text-sm font-medium text-gray-900">Total</p>
                     <p className="text-sm font-medium text-gray-900">
-                      $
-                      {(parseFloat(order.total.replace('$', '')) + 5 + parseFloat(order.total.replace('$', '')) * 0.08).toFixed(2)}
+                      {
+                        (() => {
+                          const totalNum = typeof order.total === 'number'
+                            ? order.total
+                            : parseFloat(String(order.total).replace('$', ''));
+                          return `$${(totalNum + 5 + totalNum * 0.08).toFixed(2)}`;
+                        })()
+                      }
                     </p>
                   </div>
                 </div>
