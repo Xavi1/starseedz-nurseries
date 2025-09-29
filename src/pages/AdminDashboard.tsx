@@ -895,183 +895,126 @@ setProducts((prev: Product[]) =>
     image: 'https://images.unsplash.com/photo-1562847961-8f766d3b8289?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80'
   }];
   // Mock data for recent orders
-  const recentOrders = [{
-  // recentOrders: latest orders for dashboard and orders tab
-    id: 'ORD-7892',
-    customer: 'Emma Johnson',
-    date: '2023-07-15',
-    status: 'Delivered',
-    total: '$125.99',
-    paymentMethod: 'Credit Card',
-    shippingMethod: 'Standard Shipping'
-  }, {
-    id: 'ORD-7891',
-    customer: 'Michael Brown',
-    date: '2023-07-14',
-    status: 'Shipped',
-    total: '$89.50',
-    paymentMethod: 'PayPal',
-    shippingMethod: 'Express Shipping'
-  }, {
-    id: 'ORD-7890',
-    customer: 'Sarah Davis',
-    date: '2023-07-14',
-    status: 'Pending',
-    total: '$210.75',
-    paymentMethod: 'Credit Card',
-    shippingMethod: 'Standard Shipping'
-  }, {
-    id: 'ORD-7889',
-    customer: 'James Wilson',
-    date: '2023-07-13',
-    status: 'Delivered',
-    total: '$45.25',
-    paymentMethod: 'Credit Card',
-    shippingMethod: 'Standard Shipping'
-  }, {
-    id: 'ORD-7888',
-    customer: 'Patricia Moore',
-    date: '2023-07-12',
-    status: 'Cancelled',
-    total: '$178.60',
-    paymentMethod: 'PayPal',
-    shippingMethod: 'Express Shipping'
-  }];
-  // Extended orders data for Orders tab
-  const allOrders = [...recentOrders, {
-  // allOrders: extended orders for orders tab
-    id: 'ORD-7887',
-    customer: 'Robert Taylor',
-    date: '2023-07-11',
-    status: 'Delivered',
-    total: '$67.25',
-    paymentMethod: 'Credit Card',
-    shippingMethod: 'Standard Shipping'
-  }, {
-    id: 'ORD-7886',
-    customer: 'Jennifer Martinez',
-    date: '2023-07-11',
-    status: 'Processing',
-    total: '$134.50',
-    paymentMethod: 'Credit Card',
-    shippingMethod: 'Express Shipping'
-  }, {
-    id: 'ORD-7885',
-    customer: 'William Anderson',
-    date: '2023-07-10',
-    status: 'Shipped',
-    total: '$92.75',
-    paymentMethod: 'PayPal',
-    shippingMethod: 'Standard Shipping'
-  }, {
-    id: 'ORD-7884',
-    customer: 'Elizabeth Thomas',
-    date: '2023-07-09',
-    status: 'Delivered',
-    total: '$215.99',
-    paymentMethod: 'Credit Card',
-    shippingMethod: 'Express Shipping'
-  }, {
-    id: 'ORD-7883',
-    customer: 'David Rodriguez',
-    date: '2023-07-08',
-    status: 'Cancelled',
-    total: '$56.25',
-    paymentMethod: 'PayPal',
-    shippingMethod: 'Standard Shipping'
-  }];
-  // Products data for Products tab
-  // Customers data for Customers tab
-  const customers = [{
-  // customers: customer list for customers tab
-  // =============================
-  // Utility Functions
-  // =============================
-    id: 1,
-    name: 'Emma Johnson',
-    email: 'emma.johnson@example.com',
-    ordersCount: 8,
-    totalSpend: '$425.75',
-    lastActive: '2023-07-15',
-    segment: 'repeat',
-    phone: '(555) 123-4567',
-    address: '123 Main St, Portland, OR 97201',
-    createdAt: '2022-03-12',
-    notes: 'Prefers succulents and indoor plants. Interested in plant care workshops.'
-  }, {
-    id: 2,
-    name: 'Michael Brown',
-    email: 'michael.brown@example.com',
-    ordersCount: 3,
-    totalSpend: '$189.50',
-    lastActive: '2023-07-14',
-    segment: 'repeat',
-    phone: '(555) 234-5678',
-    address: '456 Oak Ave, Portland, OR 97202',
-    createdAt: '2022-06-24',
-    notes: 'Buys plants as gifts. Interested in gift wrapping services.'
-  }, {
-    id: 3,
-    name: 'Sarah Davis',
-    email: 'sarah.davis@example.com',
-    ordersCount: 12,
-    totalSpend: '$876.25',
-    lastActive: '2023-07-14',
-    segment: 'high',
-    phone: '(555) 345-6789',
-    address: '789 Pine St, Portland, OR 97203',
-    createdAt: '2021-11-05',
-    notes: 'Gardening enthusiast. Interested in rare plants and special orders.'
-  }, {
-    id: 4,
-    name: 'James Wilson',
-    email: 'james.wilson@example.com',
-    ordersCount: 2,
-    totalSpend: '$75.25',
-    lastActive: '2023-07-13',
-    segment: 'new',
-    phone: '(555) 456-7890',
-    address: '101 Cedar Rd, Portland, OR 97204',
-    createdAt: '2023-06-18',
-    notes: 'New plant parent. Interested in beginner-friendly plants.'
-  }, {
-    id: 5,
-    name: 'Patricia Moore',
-    email: 'patricia.moore@example.com',
-    ordersCount: 5,
-    totalSpend: '$312.85',
-    lastActive: '2023-07-12',
-    segment: 'repeat',
-    phone: '(555) 567-8901',
-    address: '202 Maple Dr, Portland, OR 97205',
-    createdAt: '2022-09-30',
-    notes: 'Prefers outdoor plants and garden supplies.'
-  }, {
-    id: 6,
-    name: 'Robert Taylor',
-    email: 'robert.taylor@example.com',
-    ordersCount: 1,
-    totalSpend: '$67.25',
-    lastActive: '2023-07-11',
-    segment: 'new',
-    phone: '(555) 678-9012',
-    address: '303 Birch Ln, Portland, OR 97206',
-    createdAt: '2023-07-01',
-    notes: 'First-time customer. Purchased a snake plant.'
-  }, {
-    id: 7,
-    name: 'Jennifer Martinez',
-    email: 'jennifer.martinez@example.com',
-    ordersCount: 7,
-    totalSpend: '$523.75',
-    lastActive: '2023-07-11',
-    segment: 'high',
-    phone: '(555) 789-0123',
-    address: '404 Elm St, Portland, OR 97207',
-    createdAt: '2022-01-15',
-    notes: 'Collector of rare plants. Interested in plant swaps and events.'
-  }];
+  // Orders state for Orders tab
+  const [allOrders, setAllOrders] = useState<any[]>([]);
+  useEffect(() => {
+    // Only fetch for Orders tab
+    if (activeNav !== 'orders') return;
+    const fetchOrders = async () => {
+      const ordersRef = collection(db, 'orders');
+      const ordersSnap = await getDocs(ordersRef);
+      const orders: any[] = [];
+      ordersSnap.forEach(doc => {
+        const data = doc.data();
+        orders.push({
+          id: doc.id,
+          customer: data.shippingAddress?.firstName + ' ' + data.shippingAddress?.lastName,
+          date: data.date || '',
+          status: data.status || '',
+          total: data.total || 0,
+          paymentMethod: data.paymentMethod?.type || '',
+          shippingMethod: data.shippingMethod || '',
+        });
+      });
+      setAllOrders(orders);
+    };
+    fetchOrders();
+  }, [activeNav]);
   // Status badge color mapper
+  // Customers data for Customers tab
+  const customers = [
+    {
+      id: 1,
+      name: 'Emma Johnson',
+      email: 'emma.johnson@example.com',
+      ordersCount: 8,
+      totalSpend: '$425.75',
+      lastActive: '2023-07-15',
+      segment: 'repeat',
+      phone: '(555) 123-4567',
+      address: '123 Main St, Portland, OR 97201',
+      createdAt: '2022-03-12',
+      notes: 'Prefers succulents and indoor plants. Interested in plant care workshops.'
+    },
+    {
+      id: 2,
+      name: 'Michael Brown',
+      email: 'michael.brown@example.com',
+      ordersCount: 3,
+      totalSpend: '$189.50',
+      lastActive: '2023-07-14',
+      segment: 'repeat',
+      phone: '(555) 234-5678',
+      address: '456 Oak Ave, Portland, OR 97202',
+      createdAt: '2022-06-24',
+      notes: 'Buys plants as gifts. Interested in gift wrapping services.'
+    },
+    {
+      id: 3,
+      name: 'Sarah Davis',
+      email: 'sarah.davis@example.com',
+      ordersCount: 12,
+      totalSpend: '$876.25',
+      lastActive: '2023-07-14',
+      segment: 'high',
+      phone: '(555) 345-6789',
+      address: '789 Pine St, Portland, OR 97203',
+      createdAt: '2021-11-05',
+      notes: 'Gardening enthusiast. Interested in rare plants and special orders.'
+    },
+    {
+      id: 4,
+      name: 'James Wilson',
+      email: 'james.wilson@example.com',
+      ordersCount: 2,
+      totalSpend: '$75.25',
+      lastActive: '2023-07-13',
+      segment: 'new',
+      phone: '(555) 456-7890',
+      address: '101 Cedar Rd, Portland, OR 97204',
+      createdAt: '2023-06-18',
+      notes: 'New plant parent. Interested in beginner-friendly plants.'
+    },
+    {
+      id: 5,
+      name: 'Patricia Moore',
+      email: 'patricia.moore@example.com',
+      ordersCount: 5,
+      totalSpend: '$312.85',
+      lastActive: '2023-07-12',
+      segment: 'repeat',
+      phone: '(555) 567-8901',
+      address: '202 Maple Dr, Portland, OR 97205',
+      createdAt: '2022-09-30',
+      notes: 'Prefers outdoor plants and garden supplies.'
+    },
+    {
+      id: 6,
+      name: 'Robert Taylor',
+      email: 'robert.taylor@example.com',
+      ordersCount: 1,
+      totalSpend: '$67.25',
+      lastActive: '2023-07-11',
+      segment: 'new',
+      phone: '(555) 678-9012',
+      address: '303 Birch Ln, Portland, OR 97206',
+      createdAt: '2023-07-01',
+      notes: 'First-time customer. Purchased a snake plant.'
+    },
+    {
+      id: 7,
+      name: 'Jennifer Martinez',
+      email: 'jennifer.martinez@example.com',
+      ordersCount: 7,
+      totalSpend: '$523.75',
+      lastActive: '2023-07-11',
+      segment: 'high',
+      phone: '(555) 789-0123',
+      address: '404 Elm St, Portland, OR 97207',
+      createdAt: '2022-01-15',
+      notes: 'Collector of rare plants. Interested in plant swaps and events.'
+    }
+  ];
   type OrderStatus = 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled' | string;
 
   // getStatusBadgeClass: returns CSS class for order status badge
