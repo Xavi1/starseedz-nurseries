@@ -1215,7 +1215,20 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                       Order Placed
                     </p>
                     <p className="text-xs text-gray-500">
-                      {order.date} at 10:23 AM
+                      {(() => {
+                        if (!order.date) return '';
+                        const d = new Date(order.date);
+                        if (isNaN(d.getTime())) return order.date;
+                        const yyyy = d.getFullYear();
+                        const mm = String(d.getMonth() + 1).padStart(2, '0');
+                        const dd = String(d.getDate()).padStart(2, '0');
+                        let hours = d.getHours();
+                        const minutes = String(d.getMinutes()).padStart(2, '0');
+                        const ampm = hours >= 12 ? 'PM' : 'AM';
+                        hours = hours % 12;
+                        hours = hours ? hours : 12;
+                        return `${yyyy}-${mm}-${dd} at ${hours}:${minutes} ${ampm}`;
+                      })()}
                     </p>
                   </div>
                 </div>
