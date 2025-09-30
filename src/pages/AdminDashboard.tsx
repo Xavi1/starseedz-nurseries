@@ -1,4 +1,5 @@
 import ReactModal from 'react-modal';
+import { formatDate } from '../utils/formatDate';
 
 
 
@@ -1215,20 +1216,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                       Order Placed
                     </p>
                     <p className="text-xs text-gray-500">
-                      {(() => {
-                        if (!order.date) return '';
-                        const d = new Date(order.date);
-                        if (isNaN(d.getTime())) return order.date;
-                        const yyyy = d.getFullYear();
-                        const mm = String(d.getMonth() + 1).padStart(2, '0');
-                        const dd = String(d.getDate()).padStart(2, '0');
-                        let hours = d.getHours();
-                        const minutes = String(d.getMinutes()).padStart(2, '0');
-                        const ampm = hours >= 12 ? 'PM' : 'AM';
-                        hours = hours % 12;
-                        hours = hours ? hours : 12;
-                        return `${yyyy}-${mm}-${dd} at ${hours}:${minutes} ${ampm}`;
-                      })()}
+                      {formatDate(order.date)}
                     </p>
                   </div>
                 </div>
@@ -1242,7 +1230,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                           Payment Confirmed
                         </p>
                         <p className="text-xs text-gray-500">
-                          {order.date} at 10:30 AM
+                          {formatDate(order.date)}
                         </p>
                       </div>
                     </div>
@@ -1255,7 +1243,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                           Order Processed
                         </p>
                         {order.status !== 'Pending' && order.status !== 'Processing' ? <p className="text-xs text-gray-500">
-                            {order.date} at 2:15 PM
+                            {formatDate(order.date)}
                           </p> : <p className="text-xs text-gray-500">Pending</p>}
                       </div>
                     </div>
@@ -1268,8 +1256,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                           Order Shipped
                         </p>
                         {order.status === 'Shipped' || order.status === 'Delivered' ? <p className="text-xs text-gray-500">
-                            {new Date(new Date(order.date).getTime() + 86400000).toISOString().split('T')[0]}{' '}
-                            at 9:30 AM
+                            {formatDate(new Date(new Date(order.date).getTime() + 86400000))}
                           </p> : <p className="text-xs text-gray-500">Pending</p>}
                       </div>
                     </div>
@@ -1282,8 +1269,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                           Delivered
                         </p>
                         {order.status === 'Delivered' ? <p className="text-xs text-gray-500">
-                            {new Date(new Date(order.date).getTime() + 172800000).toISOString().split('T')[0]}{' '}
-                            at 2:45 PM
+                            {formatDate(new Date(new Date(order.date).getTime() + 172800000))}
                           </p> : <p className="text-xs text-gray-500">Pending</p>}
                       </div>
                     </div>
@@ -1297,7 +1283,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                         Order Cancelled
                       </p>
                       <p className="text-xs text-gray-500">
-                        {order.date} at 11:45 AM
+                        {formatDate(order.date)}
                       </p>
                     </div>
                   </div>}
