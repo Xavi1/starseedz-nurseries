@@ -3,6 +3,8 @@ import { doc, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Link, useParams } from 'react-router-dom';
 import { ChevronRightIcon, HomeIcon, PackageIcon, TruckIcon, CreditCardIcon, CheckCircleIcon, ArrowLeftIcon, PrinterIcon, ShoppingCartIcon, XCircleIcon, ClockIcon } from 'lucide-react';
+import OrderSummaryCard from '../components/OrderSummaryCard';
+import OrderTrackingWidget from '../components/OrderTrackingWidget';
 
 // Define types
 interface OrderItem {
@@ -479,57 +481,24 @@ const updateOrderStatus = async (
               </div>
             </div>
           </div>
-          {/* Order Summary */}
-          <div className="mt-8 lg:mt-0 lg:col-span-5">
-            <div className="bg-white shadow-sm rounded-lg overflow-hidden sticky top-20">
-              <div className="p-6 border-b border-gray-200">
-                <h2 className="text-lg font-medium text-gray-900">
-                  Order Summary
-                </h2>
-              </div>
-              <div className="p-6">
-                <dl className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <dt className="text-base text-gray-600">Subtotal</dt>
-                    <dd className="text-base font-medium text-gray-900">
-                      ${order.subtotal.toFixed(2)}
-                    </dd>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <dt className="text-base text-gray-600">Shipping</dt>
-                    <dd className="text-base font-medium text-gray-900">
-                      {order.shipping === 0 ? 'Free' : `$${order.shipping.toFixed(2)}`}
-                    </dd>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <dt className="text-base text-gray-600">Tax</dt>
-                    <dd className="text-base font-medium text-gray-900">
-                      ${order.tax.toFixed(2)}
-                    </dd>
-                  </div>
-                  <div className="border-t border-gray-200 pt-4 flex items-center justify-between">
-                    <dt className="text-lg font-medium text-gray-900">
-                      Order Total
-                    </dt>
-                    <dd className="text-lg font-bold text-green-700">
-                      ${order.total.toFixed(2)}
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-              <div className="p-6 border-t border-gray-200 bg-gray-50">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-gray-500">Need Help?</p>
-                  <Link to="/contact" className="text-sm font-medium text-green-700 hover:text-green-800">
-                    Contact Support
-                  </Link>
-                </div>
-              </div>
-            </div>
-            <div className="mt-6">
+          {/* Order Summary & Tracking Card */}
+          <div className="mt-8 lg:mt-0 lg:col-span-5 flex flex-col gap-6">
+            <OrderSummaryCard
+              items={order.items}
+              subtotal={order.subtotal}
+              shipping={order.shipping}
+              tax={order.tax}
+              total={order.total}
+            />
+            <OrderTrackingWidget
+              status={order.status}
+              estimatedDelivery={order.timeline && order.timeline.length > 0 ? order.timeline[order.timeline.length - 1].date : ''}
+              trackingUrl={order.trackingNumber ? `https://track.aftership.com/${order.trackingNumber}` : undefined}
+            />
+            <div className="mt-2">
               <Link to="/account" className="flex items-center text-sm font-medium text-green-700 hover:text-green-800" onClick={() => {
-              localStorage.setItem('accountActiveTab', 'orders');
-            }}>
+                localStorage.setItem('accountActiveTab', 'orders');
+              }}>
                 <ArrowLeftIcon className="h-4 w-4 mr-2" />
                 Back to Orders
               </Link>
