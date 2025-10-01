@@ -1190,7 +1190,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
     return <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="px-4 py-5 border-b border-gray-200 flex justify-between items-center">
           <h3 className="text-lg leading-6 font-medium text-gray-900">
-            Order {order.id}
+            Order: {order.id}
           </h3>
           <button onClick={() => setSelectedOrder(null)} className="text-gray-400 hover:text-gray-500">
             <XIcon className="h-5 w-5" />
