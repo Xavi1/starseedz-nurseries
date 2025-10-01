@@ -1,5 +1,7 @@
 import ReactModal from 'react-modal';
 import { formatDate } from '../utils/formatDate';
+import OrderSummaryCard from '../components/OrderSummaryCard';
+import OrderTrackingWidget from '../components/OrderTrackingWidget';
 
 
 
@@ -57,7 +59,7 @@ import { useEffect } from 'react';
 import { collection, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Link } from 'react-router-dom';
-import { LayoutDashboardIcon, ShoppingBagIcon, PackageIcon, UsersIcon, BarChartIcon, SettingsIcon, MenuIcon, XIcon, SearchIcon, BellIcon, ChevronDownIcon, TrendingUpIcon, ClockIcon, UserCheckIcon, DollarSignIcon, ChevronRightIcon, FilterIcon, AlertCircleIcon, PlusIcon, TagIcon, BoxIcon, CreditCardIcon, TruckIcon, TrashIcon, EditIcon, DownloadIcon, PrinterIcon, CheckCircleIcon, UserPlusIcon, StarIcon, MessageCircleIcon, RefreshCwIcon, EyeIcon, KeyIcon, RepeatIcon, HeartIcon } from 'lucide-react';
+import { LayoutDashboardIcon, ShoppingBagIcon,ArrowLeftIcon, PackageIcon, UsersIcon, BarChartIcon, SettingsIcon, MenuIcon, XIcon, SearchIcon, BellIcon, ChevronDownIcon, TrendingUpIcon, ClockIcon, UserCheckIcon, DollarSignIcon, ChevronRightIcon, FilterIcon, AlertCircleIcon, PlusIcon, TagIcon, BoxIcon, CreditCardIcon, TruckIcon, TrashIcon, EditIcon, DownloadIcon, PrinterIcon, CheckCircleIcon, UserPlusIcon, StarIcon, MessageCircleIcon, RefreshCwIcon, EyeIcon, KeyIcon, RepeatIcon, HeartIcon } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 export const AdminDashboard = () => {
   // Pagination state for Orders and Customers
@@ -1288,6 +1290,26 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                     </div>
                   </div>}
               </div>
+              {/* Order Summary And Tracking */}
+          <div className="flex flex-col gap-6">
+            <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
+              Order Summary and Tracking
+            </h4>
+            <div className="mt-8 lg:mt-0 lg:col-span-5 flex flex-col gap-6">
+              <OrderSummaryCard
+                items={order.items}
+                subtotal={order.subtotal}
+                shipping={order.shipping}
+                tax={order.tax}
+                total={order.total}
+              />
+              <OrderTrackingWidget
+                status={order.status}
+                estimatedDelivery={order.timeline && order.timeline.length > 0 ? order.timeline[order.timeline.length - 1].date : ''}
+                trackingUrl={order.trackingNumber ? `https://track.aftership.com/${order.trackingNumber}` : undefined}
+              />
+            </div>
+          </div>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
