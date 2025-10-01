@@ -5,6 +5,7 @@ import { Link, useParams } from 'react-router-dom';
 import { ChevronRightIcon, HomeIcon, PackageIcon, TruckIcon, CreditCardIcon, CheckCircleIcon, ArrowLeftIcon, PrinterIcon, ShoppingCartIcon, XCircleIcon, ClockIcon } from 'lucide-react';
 import OrderSummaryCard from '../components/OrderSummaryCard';
 import OrderTrackingWidget from '../components/OrderTrackingWidget';
+import { formatDate } from '../utils/formatDate';
 
 // Define types
 interface OrderItem {
@@ -247,7 +248,7 @@ const updateOrderStatus = async (
             <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
               Order #{order.id}
             </h1>
-            <p className="mt-1 text-sm text-gray-500">Placed on {order.date}</p>
+            <p className="mt-1 text-sm text-gray-500">Placed on {formatDate(order.date)}</p>
           </div>
           <div className="flex space-x-3">
             <button 
