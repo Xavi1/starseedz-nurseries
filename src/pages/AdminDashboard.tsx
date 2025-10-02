@@ -1297,11 +1297,11 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
             </h4>
             <div className="mt-8 lg:mt-0 lg:col-span-5 flex flex-col gap-6">
               <OrderSummaryCard
-                items={order.items}
-                subtotal={order.subtotal}
-                shipping={order.shipping}
-                tax={order.tax}
-                total={order.total}
+                items={order.items || []}
+                subtotal={order.subtotal || 0}
+                shipping={order.shipping || 0}
+                tax={order.tax || 0}
+                total={order.total || 0}
               />
               <OrderTrackingWidget
                 status={order.status}
