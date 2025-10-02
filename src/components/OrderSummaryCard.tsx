@@ -1,5 +1,6 @@
 
 import React from "react";
+import { DollarSignIcon, TruckIcon, ReceiptCentIcon, CheckCircleIcon } from 'lucide-react';
 
 interface OrderItem {
   id?: number;
@@ -48,19 +49,19 @@ export const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({ items = [], 
     </ul>
     <div className="px-5 pt-4 pb-2 space-y-2 border-t border-gray-100">
       <div className="flex items-center justify-between text-sm">
-        <span className="text-gray-600">Subtotal</span>
+        <span className="flex items-center gap-1 text-gray-600"><DollarSignIcon className="w-4 h-4 mr-1" />Subtotal</span>
         <span className="font-medium text-gray-900">${subtotal.toFixed(2)}</span>
       </div>
       <div className="flex items-center justify-between text-sm">
-        <span className="text-gray-600">Shipping</span>
+        <span className="flex items-center gap-1 text-gray-600"><TruckIcon className="w-4 h-4 mr-1" />Shipping</span>
         <span className="font-medium text-gray-900">{shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}</span>
       </div>
       <div className="flex items-center justify-between text-sm">
-        <span className="text-gray-600">Tax</span>
+  <span className="flex items-center gap-1 text-gray-600"><ReceiptCentIcon className="w-4 h-4 mr-1" />Tax</span>
         <span className="font-medium text-gray-900">${tax.toFixed(2)}</span>
       </div>
       <div className="flex items-center justify-between text-base font-bold border-t border-gray-200 pt-3 mt-2">
-        <span className="text-gray-900">Total</span>
+        <span className="flex items-center gap-1 text-gray-900"><CheckCircleIcon className="w-5 h-5 mr-1 text-green-600" />Total</span>
         <span className="text-green-700">${total.toFixed(2)}</span>
       </div>
     </div>
