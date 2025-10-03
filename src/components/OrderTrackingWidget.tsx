@@ -1,5 +1,6 @@
 import React from "react";
-import { CheckCircleIcon, TruckIcon, ClockIcon, XCircleIcon, ChevronRightIcon } from "lucide-react";
+import { CheckCircleIcon, ClockIcon, ChevronRightIcon } from "lucide-react";
+import { format } from "date-fns";
 
 interface TrackingStep {
   label: string;
@@ -12,12 +13,7 @@ interface OrderTrackingWidgetProps {
   trackingUrl?: string;
 }
 
-const steps: TrackingStep[] = [
-  { label: "Placed", status: "complete" },
-  { label: "Processed", status: "complete" },
-  { label: "Shipped", status: "complete" },
-  { label: "Delivered", status: "complete" },
-];
+
 
 const getStepIndex = (status: string) => {
   switch (status) {
@@ -31,6 +27,15 @@ const getStepIndex = (status: string) => {
 
 export const OrderTrackingWidget: React.FC<OrderTrackingWidgetProps> = ({ status, estimatedDelivery, trackingUrl }) => {
   const currentStep = getStepIndex(status);
+  let readableDelivery = estimatedDelivery;
+  try {
+    const date = new Date(estimatedDelivery);
+    if (!isNaN(date.getTime())) {
+      readableDelivery = format(date, "EEEE, MMMM d, yyyy 'at' h:mm a");
+    }
+  } catch {
+    // Ignore invalid date format
+  }
   return (
     <div className="bg-white shadow-md rounded-xl overflow-hidden border border-gray-100 mt-6">
       <div className="p-5 border-b border-gray-100">
@@ -59,7 +64,7 @@ export const OrderTrackingWidget: React.FC<OrderTrackingWidgetProps> = ({ status
         <div className="mt-6 flex items-center justify-between">
           <div>
             <p className="text-xs text-gray-500">Estimated Delivery</p>
-            <p className="text-sm font-medium text-gray-900">{estimatedDelivery}</p>
+            <p className="text-sm font-medium text-gray-900">{readableDelivery}</p>
           </div>
           {trackingUrl && (
             <a href={trackingUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-4 py-2 bg-green-700 text-white text-xs font-semibold rounded-md shadow hover:bg-green-800 transition">
