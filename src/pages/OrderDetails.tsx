@@ -6,6 +6,7 @@ import { ChevronRightIcon, HomeIcon, PackageIcon, TruckIcon, CreditCardIcon, Che
 import OrderSummaryCard from '../components/OrderSummaryCard';
 import OrderTrackingWidget from '../components/OrderTrackingWidget';
 import { formatDate } from '../utils/formatDate';
+import { format } from "date-fns";
 
 // Define types
 interface OrderItem {
@@ -338,7 +339,7 @@ const updateOrderStatus = async (
                               {event.status}
                             </span>
                             <span className="mx-2 text-gray-400">•</span>
-                            <time dateTime={event.date}>{event.date}</time>
+                            <time dateTime={event.date}>{format(new Date(event.date), "EEEE, MMMM d, yyyy 'at' h:mm a")}</time>
                           </div>
                           <div className="mt-1 text-sm text-gray-500">
                             {event.description}
