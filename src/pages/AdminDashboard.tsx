@@ -1290,6 +1290,8 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                     </div>
                   </div>}
               </div>
+            </div>
+          </div>
               {/* Order Summary And Tracking */}
           <div className="flex flex-col gap-6">
             <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
@@ -1308,8 +1310,6 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                 estimatedDelivery={order.timeline && order.timeline.length > 0 ? order.timeline[order.timeline.length - 1].date : ''}
                 trackingUrl={order.trackingNumber ? `https://track.aftership.com/${order.trackingNumber}` : undefined}
               />
-            </div>
-          </div>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
