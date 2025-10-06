@@ -914,11 +914,16 @@ setProducts((prev: Product[]) =>
       const orders: any[] = [];
       ordersSnap.forEach(doc => {
         const data = doc.data();
+        // Get the latest status from the timeline if it exists
+        const timeline = data.timeline || [];
+        const latestStatus = timeline.length > 0 ? timeline[timeline.length - 1].status : 'Order Placed';
+        
         orders.push({
           id: doc.id,
           customer: data.shippingAddress?.firstName + ' ' + data.shippingAddress?.lastName,
           date: data.date || '',
-          status: data.status || '',
+          status: latestStatus,
+          timeline: timeline,
           total: data.total || 0,
           paymentMethod: data.paymentMethod?.type || '',
           shippingMethod: data.shippingMethod || '',
@@ -1023,12 +1028,12 @@ setProducts((prev: Product[]) =>
       notes: 'Collector of rare plants. Interested in plant swaps and events.'
     }
   ];
-  type OrderStatus = 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled' | string;
+  type OrderStatus = 'Order Placed' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled' | string;
 
   // getStatusBadgeClass: returns CSS class for order status badge
 const getStatusBadgeClass = (status: OrderStatus): string => {
   switch (status) {
-    case 'Pending':
+    case 'Order Placed':
       return 'bg-yellow-100 text-yellow-800';
     case 'Processing':
       return 'bg-blue-100 text-blue-800';
@@ -1087,7 +1092,15 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
     icon: <SettingsIcon className="w-5 h-5" />
   }];
   // Filter orders by status
-  const filteredOrders = orderStatusFilter === 'all' ? allOrders : allOrders.filter(order => order.status === orderStatusFilter);
+  const filteredOrders = orderStatusFilter === 'all' 
+    ? allOrders 
+    : allOrders.filter(order => {
+        // Get the latest status from the timeline array
+        const latestStatus = order.timeline && order.timeline.length > 0 
+          ? order.timeline[order.timeline.length - 1].status 
+          : 'Order Placed';
+        return latestStatus === orderStatusFilter;
+      });
   // filteredOrders: orders filtered by status
   // Get product categories for filter (normalize to avoid duplicates)
   // Merge categories from products and allCategories (from Firebase)
@@ -2384,11 +2397,11 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                   <span className="text-sm text-gray-500 mr-2">Status:</span>
                   <select className="text-sm border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500" value={orderStatusFilter} onChange={e => setOrderStatusFilter(e.target.value)}>
                     <option value="all">All Orders</option>
-                    <option value="pending">Pending</option>
-                    <option value="processing">Processing</option>
-                    <option value="shipped">Shipped</option>
-                    <option value="delivered">Delivered</option>
-                    <option value="cancelled">Cancelled</option>
+                    <option value="Order Placed">Order Placed</option>
+                    <option value="Processing">Processing</option>
+                    <option value="Shipped">Shipped</option>
+                    <option value="Delivered">Delivered</option>
+                    <option value="Cancelled">Cancelled</option>
                   </select>
                 </div>
                 <div className="flex space-x-2">
