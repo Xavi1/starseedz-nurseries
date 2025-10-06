@@ -607,11 +607,16 @@ setProducts((prev: Product[]) =>
         }
         // Use case-insensitive comparison for 'pending'
         if (typeof data.status === 'string' && data.status.toLowerCase() === 'pending') pendingOrders++;
+        // Get the latest status from timeline
+        const latestStatus = Array.isArray(data.timeline) && data.timeline.length > 0
+          ? data.timeline[data.timeline.length - 1].status
+          : 'Order Placed';
+
         recentOrders.push({
           id: doc.id,
           customer: data.shippingAddress?.firstName + ' ' + data.shippingAddress?.lastName,
           date: data.date || '',
-          status: data.status || '',
+          status: latestStatus,
           total: data.total || 0,
           paymentMethod: data.paymentMethod?.type || '',
           shippingMethod: data.shippingMethod || '',
@@ -1082,7 +1087,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
     icon: <SettingsIcon className="w-5 h-5" />
   }];
   // Filter orders by status
-  const filteredOrders = orderStatusFilter === 'all' ? allOrders : allOrders.filter(order => order.status.toLowerCase() === orderStatusFilter.toLowerCase());
+  const filteredOrders = orderStatusFilter === 'all' ? allOrders : allOrders.filter(order => order.status === orderStatusFilter);
   // filteredOrders: orders filtered by status
   // Get product categories for filter (normalize to avoid duplicates)
   // Merge categories from products and allCategories (from Firebase)
