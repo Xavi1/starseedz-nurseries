@@ -99,6 +99,10 @@ export const AdminDashboard = () => {
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [productBulkAction, setProductBulkAction] = useState<string>("Bulk Actions");
 
+  // Bulk selection state for orders
+  const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
+  const [orderBulkAction, setOrderBulkAction] = useState<string>('Bulk Actions');
+
   // Handler for selecting/deselecting all products
   const handleSelectAllProducts = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
@@ -114,6 +118,74 @@ export const AdminDashboard = () => {
       setSelectedProductIds(prev => [...prev, productId]);
     } else {
       setSelectedProductIds(prev => prev.filter(id => id !== productId));
+    }
+  };
+
+  // Handler for selecting/deselecting all orders (uses filteredOrders defined later)
+  const handleSelectAllOrders = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      // filteredOrders is declared later in the file; this mirrors products behavior
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      setSelectedOrderIds(filteredOrders.map((o: any) => o.id));
+    } else {
+      setSelectedOrderIds([]);
+    }
+  };
+
+  // Handler for selecting/deselecting a single order row
+  const handleSelectOrder = (orderId: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedOrderIds(prev => [...prev, orderId]);
+    } else {
+      setSelectedOrderIds(prev => prev.filter(id => id !== orderId));
+    }
+  };
+
+  // Handler for bulk actions on orders (delete, update status)
+  const handleOrderBulkAction = async () => {
+    if (orderBulkAction === 'Delete Selected') {
+      if (!window.confirm(`Delete ${selectedOrderIds.length} selected orders? This cannot be undone.`)) return;
+      try {
+        const { doc, deleteDoc } = await import('firebase/firestore');
+        const { db } = await import('../firebase');
+        for (const id of selectedOrderIds) {
+          await deleteDoc(doc(db, 'orders', id));
+        }
+        setAllOrders((prev: any[]) => prev.filter(o => !selectedOrderIds.includes(o.id)));
+        setDeleteFeedback('Selected orders deleted successfully.');
+        setTimeout(() => setDeleteFeedback(null), 3000);
+        setSelectedOrderIds([]);
+      } catch (err) {
+        alert('Failed to delete selected orders.');
+        console.error('Bulk delete orders error:', err);
+      }
+    } else if (orderBulkAction === 'Update Status') {
+      const newStatus = window.prompt('Enter new status (e.g. Processing, Shipped, Delivered, Cancelled):');
+      if (newStatus === null) return;
+      const trimmed = newStatus.trim();
+      if (!trimmed) return;
+      try {
+        const { doc, updateDoc } = await import('firebase/firestore');
+        const { db } = await import('../firebase');
+        const timestamp = new Date().toISOString();
+        for (const id of selectedOrderIds) {
+          const order = allOrders.find((o: any) => o.id === id);
+          const timeline = Array.isArray(order?.timeline) ? [...order.timeline] : [];
+          const newEntry = { status: trimmed, date: timestamp, description: `Status updated to ${trimmed} by admin` };
+          const updatedTimeline = [...timeline, newEntry];
+          await updateDoc(doc(db, 'orders', id), { timeline: updatedTimeline, status: trimmed });
+        }
+        // Update local state to reflect changes
+        setAllOrders((prev: any[]) => prev.map(o => selectedOrderIds.includes(o.id) ? { ...o, timeline: [...(o.timeline || []), { status: trimmed, date: timestamp, description: `Status updated to ${trimmed} by admin` }], status: trimmed } : o));
+        setDeleteFeedback('Order statuses updated.');
+        setTimeout(() => setDeleteFeedback(null), 3000);
+        setSelectedOrderIds([]);
+        setOrderBulkAction('Bulk Actions');
+      } catch (err) {
+        alert('Failed to update selected orders.');
+        console.error('Bulk update orders error:', err);
+      }
     }
   };
 
@@ -2423,7 +2495,15 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                 <tr>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <div className="flex items-center">
-                      <input id="select-all" name="select-all" type="checkbox" className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded" />
+                      <input
+                        id="select-all"
+                        name="select-all"
+                        type="checkbox"
+                        className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                        checked={selectedOrderIds.length === filteredOrders.length && filteredOrders.length > 0}
+                        onChange={handleSelectAllOrders}
+                        ref={el => { if (el) el.indeterminate = selectedOrderIds.length > 0 && selectedOrderIds.length < filteredOrders.length; }}
+                      />
                     </div>
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -2453,7 +2533,14 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                 {paginatedOrders.map(order => <tr key={order.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <input id={`select-${order.id}`} name={`select-${order.id}`} type="checkbox" className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded" />
+                        <input
+                          id={`select-${order.id}`}
+                          name={`select-${order.id}`}
+                          type="checkbox"
+                          className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                          checked={selectedOrderIds.includes(order.id)}
+                          onChange={handleSelectOrder(order.id)}
+                        />
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -2493,12 +2580,22 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
           <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 sm:px-6">
             <div className="flex flex-col sm:flex-row items-center justify-between">
               <div className="flex items-center mb-4 sm:mb-0">
-                <select className="mr-2 text-sm border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500">
+                <select
+                  className="mr-2 text-sm border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
+                  value={orderBulkAction}
+                  onChange={e => setOrderBulkAction(e.target.value)}
+                  aria-label="Bulk actions"
+                  disabled={selectedOrderIds.length === 0}
+                >
                   <option>Bulk Actions</option>
                   <option>Update Status</option>
                   <option>Delete Selected</option>
                 </select>
-                <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                <button
+                  className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  onClick={handleOrderBulkAction}
+                  disabled={selectedOrderIds.length === 0 || orderBulkAction === 'Bulk Actions'}
+                >
                   Apply
                 </button>
               </div>
