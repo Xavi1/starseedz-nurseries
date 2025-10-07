@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import ReactModal from 'react-modal';
 import { formatDate } from '../utils/formatDate';
 import OrderSummaryCard from '../components/OrderSummaryCard';
@@ -54,219 +55,26 @@ type Product = {
   featured?: boolean;
   lowStockThreshold?: number;
 };
+type Order = {
+  id: string;
+  customer?: string;
+  date?: string;
+  status?: string;
+  timeline?: { status: string; date?: string; description?: string }[];
+  total?: number;
+  paymentMethod?: string;
+  shippingMethod?: string;
+  items?: any[];
+};
 import { addProduct, getAllProducts } from '../firebaseHelpers';
 import { useEffect } from 'react';
-import { collection, getDocs, updateDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Link } from 'react-router-dom';
-import { LayoutDashboardIcon, ShoppingBagIcon,ArrowLeftIcon, PackageIcon, UsersIcon, BarChartIcon, SettingsIcon, MenuIcon, XIcon, SearchIcon, BellIcon, ChevronDownIcon, TrendingUpIcon, ClockIcon, UserCheckIcon, DollarSignIcon, ChevronRightIcon, FilterIcon, AlertCircleIcon, PlusIcon, TagIcon, BoxIcon, CreditCardIcon, TruckIcon, TrashIcon, EditIcon, DownloadIcon, PrinterIcon, CheckCircleIcon, UserPlusIcon, StarIcon, MessageCircleIcon, RefreshCwIcon, EyeIcon, KeyIcon, RepeatIcon, HeartIcon } from 'lucide-react';
+import { LayoutDashboardIcon, ShoppingBagIcon,ArrowLeftIcon, PackageIcon, UsersIcon, BarChartIcon, SettingsIcon, MenuIcon, XIcon, SearchIcon, BellIcon, ChevronDownIcon, TrendingUpIcon, ClockIcon, UserCheckIcon, DollarSignIcon, ChevronRightIcon, FilterIcon, AlertCircleIcon, PlusIcon, TagIcon, BoxIcon, CreditCardIcon, TrashIcon, EditIcon, DownloadIcon, PrinterIcon, CheckCircleIcon, UserPlusIcon, StarIcon, MessageCircleIcon, RefreshCwIcon, EyeIcon, KeyIcon, RepeatIcon, HeartIcon, TruckIcon } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
+
 export const AdminDashboard = () => {
-  // Pagination state for Orders and Customers
-  const [ordersCurrentPage, setOrdersCurrentPage] = useState(1);
-  const [customersCurrentPage, setCustomersCurrentPage] = useState(1);
-  // ...existing code...
-  // State for all categories (from Firebase)
-  const [allCategories, setAllCategories] = useState<string[]>([]);
-
-  // Fetch all categories from Firebase on mount
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        // Scan all products for their categories (array or string)
-        const { getDocs, collection } = await import('firebase/firestore');
-        const { db } = await import('../firebase');
-        const snap = await getDocs(collection(db, 'products'));
-        const cats: string[] = [];
-        snap.forEach(doc => {
-          const data = doc.data();
-          if (Array.isArray(data.category)) {
-            cats.push(...data.category);
-          } else if (typeof data.category === 'string') {
-            cats.push(data.category);
-          }
-        });
-        // Normalize and deduplicate
-        const normalized = Array.from(new Set(cats.map(cat => cat.trim()).filter(Boolean)));
-        setAllCategories(normalized);
-      } catch (err) {
-        console.error('Error fetching categories:', err);
-      }
-    };
-    fetchCategories();
-  }, []);
-  // Bulk selection state for products
-  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
-  const [productBulkAction, setProductBulkAction] = useState<string>("Bulk Actions");
-
-  // Bulk selection state for orders
-  const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
-  const [orderBulkAction, setOrderBulkAction] = useState<string>('Bulk Actions');
-
-  // Handler for selecting/deselecting all products
-  const handleSelectAllProducts = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.checked) {
-      setSelectedProductIds(filteredProducts.map((p: any) => p.id));
-    } else {
-      setSelectedProductIds([]);
-    }
-  };
-
-  // Handler for selecting/deselecting a single product
-  const handleSelectProduct = (productId: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.checked) {
-      setSelectedProductIds(prev => [...prev, productId]);
-    } else {
-      setSelectedProductIds(prev => prev.filter(id => id !== productId));
-    }
-  };
-
-  // Handler for selecting/deselecting all orders (uses filteredOrders defined later)
-  const handleSelectAllOrders = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.checked) {
-      // filteredOrders is declared later in the file; this mirrors products behavior
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      setSelectedOrderIds(filteredOrders.map((o: any) => o.id));
-    } else {
-      setSelectedOrderIds([]);
-    }
-  };
-
-  // Handler for selecting/deselecting a single order row
-  const handleSelectOrder = (orderId: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.checked) {
-      setSelectedOrderIds(prev => [...prev, orderId]);
-    } else {
-      setSelectedOrderIds(prev => prev.filter(id => id !== orderId));
-    }
-  };
-
-  // Handler for bulk actions on orders (delete, update status)
-  const handleOrderBulkAction = async () => {
-    if (orderBulkAction === 'Delete Selected') {
-      if (!window.confirm(`Delete ${selectedOrderIds.length} selected orders? This cannot be undone.`)) return;
-      try {
-        const { doc, deleteDoc } = await import('firebase/firestore');
-        const { db } = await import('../firebase');
-        for (const id of selectedOrderIds) {
-          await deleteDoc(doc(db, 'orders', id));
-        }
-        setAllOrders((prev: any[]) => prev.filter(o => !selectedOrderIds.includes(o.id)));
-        setDeleteFeedback('Selected orders deleted successfully.');
-        setTimeout(() => setDeleteFeedback(null), 3000);
-        setSelectedOrderIds([]);
-      } catch (err) {
-        alert('Failed to delete selected orders.');
-        console.error('Bulk delete orders error:', err);
-      }
-    } else if (orderBulkAction === 'Update Status') {
-      const newStatus = window.prompt('Enter new status (e.g. Processing, Shipped, Delivered, Cancelled):');
-      if (newStatus === null) return;
-      const trimmed = newStatus.trim();
-      if (!trimmed) return;
-      try {
-        const { doc, updateDoc } = await import('firebase/firestore');
-        const { db } = await import('../firebase');
-        const timestamp = new Date().toISOString();
-        for (const id of selectedOrderIds) {
-          const order = allOrders.find((o: any) => o.id === id);
-          const timeline = Array.isArray(order?.timeline) ? [...order.timeline] : [];
-          const newEntry = { status: trimmed, date: timestamp, description: `Status updated to ${trimmed} by admin` };
-          const updatedTimeline = [...timeline, newEntry];
-          await updateDoc(doc(db, 'orders', id), { timeline: updatedTimeline, status: trimmed });
-        }
-        // Update local state to reflect changes
-        setAllOrders((prev: any[]) => prev.map(o => selectedOrderIds.includes(o.id) ? { ...o, timeline: [...(o.timeline || []), { status: trimmed, date: timestamp, description: `Status updated to ${trimmed} by admin` }], status: trimmed } : o));
-        setDeleteFeedback('Order statuses updated.');
-        setTimeout(() => setDeleteFeedback(null), 3000);
-        setSelectedOrderIds([]);
-        setOrderBulkAction('Bulk Actions');
-      } catch (err) {
-        alert('Failed to update selected orders.');
-        console.error('Bulk update orders error:', err);
-      }
-    }
-  };
-
-  // Handler for bulk actions (delete, mark as featured, update stock)
-  const handleProductBulkAction = async () => {
-    if (productBulkAction === "Delete Selected") {
-      if (!window.confirm(`Delete ${selectedProductIds.length} selected products? This cannot be undone.`)) return;
-      try {
-        const { doc, deleteDoc } = await import('firebase/firestore');
-        const { db } = await import('../firebase');
-        for (const id of selectedProductIds) {
-          await deleteDoc(doc(db, 'products', id));
-        }
-        setProducts((prev: Product[]) => prev.filter(p => !selectedProductIds.includes(p.id)));
-        setDeleteFeedback('Selected products deleted successfully.');
-        setTimeout(() => setDeleteFeedback(null), 3000);
-        setSelectedProductIds([]);
-      } catch (err) {
-        alert('Failed to delete selected products.');
-        console.error('Bulk delete error:', err);
-      }
-    } else if (productBulkAction === "Mark as Featured") {
-      try {
-        const { doc, updateDoc } = await import('firebase/firestore');
-        const { db } = await import('../firebase');
-        for (const id of selectedProductIds) {
-          await updateDoc(doc(db, 'products', id), { featured: true });
-        }
-        setProducts((prev: Product[]) => prev.map(p => selectedProductIds.includes(p.id) ? { ...p, featured: true } : p));
-        setDeleteFeedback('Selected products marked as featured.');
-        setTimeout(() => setDeleteFeedback(null), 3000);
-        setSelectedProductIds([]);
-      } catch (err) {
-        alert('Failed to mark as featured.');
-        console.error('Bulk feature error:', err);
-      }
-    } else if (productBulkAction === "Update Stock") {
-      const newStockStr = window.prompt('Enter new stock quantity for selected products:');
-      if (newStockStr === null) return;
-      const newStock = parseInt(newStockStr);
-      if (isNaN(newStock) || newStock < 0) {
-        alert('Invalid stock value.');
-        return;
-      }
-      try {
-        const { doc, updateDoc } = await import('firebase/firestore');
-        const { db } = await import('../firebase');
-        for (const id of selectedProductIds) {
-  const product = products.find(p => p.id === id);
-  const updateData: any = { stock: newStock };
-  if (product && product.stock === 0 && newStock > 0) {
-    updateData.inStock = true;
-  }
-  await updateDoc(doc(db, 'products', id), updateData);
-}
-
-setProducts((prev: Product[]) =>
-  prev.map(p =>
-    selectedProductIds.includes(p.id)
-      ? {
-          ...p,
-          stock: newStock,
-          inStock:
-            p.stock === 0 && newStock > 0
-              ? true   // crossed from 0 → positive
-              : p.stock > 0 && newStock === 0
-              ? false  // crossed from positive → 0
-              : p.inStock, // otherwise keep it as is
-        }
-      : p
-  )
-);
-        setDeleteFeedback('Stock updated for selected products.');
-        setTimeout(() => setDeleteFeedback(null), 3000);
-        setSelectedProductIds([]);
-      } catch (err) {
-        alert('Failed to update stock.');
-        console.error('Bulk stock update error:', err);
-      }
-    }
-  };
   // Type for dashboard recent orders
   type DashboardOrder = {
     id: string;
@@ -305,6 +113,148 @@ setProducts((prev: Product[]) =>
   const [productSearchQuery, setProductSearchQuery] = useState("");
     // State for filter modal
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  // Pagination state for orders and customers
+  const [ordersCurrentPage, setOrdersCurrentPage] = useState(1);
+  const [customersCurrentPage, setCustomersCurrentPage] = useState(1);
+  // Bulk selection state for orders and products
+  const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
+  const [orderBulkAction, setOrderBulkAction] = useState('Bulk Actions');
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [productBulkAction, setProductBulkAction] = useState('Bulk Actions');
+
+  // Select / deselect handlers for orders
+  const handleSelectAllOrders = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      // select all currently filtered orders
+      setSelectedOrderIds((filteredOrders as Order[]).map((o: Order) => o.id));
+    } else {
+      setSelectedOrderIds([]);
+    }
+  };
+
+  const handleSelectOrder = (orderId: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedOrderIds(prev => [...prev, orderId]);
+    } else {
+      setSelectedOrderIds(prev => prev.filter(id => id !== orderId));
+    }
+  };
+
+  // Select / deselect handlers for products (used in products table)
+  const handleSelectAllProducts = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedProductIds(filteredProducts.map((p: any) => String(p.id)));
+    } else {
+      setSelectedProductIds([]);
+    }
+  };
+
+  const handleSelectProduct = (productId: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedProductIds(prev => [...prev, productId]);
+    } else {
+      setSelectedProductIds(prev => prev.filter(id => id !== productId));
+    }
+  };
+
+  // Bulk action for orders
+  const handleOrderBulkAction = async () => {
+    if (orderBulkAction === 'Delete Selected') {
+      if (!window.confirm(`Delete ${selectedOrderIds.length} selected orders? This cannot be undone.`)) return;
+      try {
+        for (const id of selectedOrderIds) {
+          await deleteDoc(doc(db, 'orders', id));
+        }
+        setAllOrders((prev: Order[]) => prev.filter(o => !selectedOrderIds.includes(o.id)));
+        setDeleteFeedback('Selected orders deleted successfully.');
+        setTimeout(() => setDeleteFeedback(null), 3000);
+        setSelectedOrderIds([]);
+      } catch (err) {
+        alert('Failed to delete selected orders.');
+        console.error('Bulk delete orders error:', err);
+      }
+    } else if (orderBulkAction === 'Update Status') {
+      const newStatus = window.prompt('Enter new status (e.g. Processing, Shipped, Delivered, Cancelled):');
+      if (newStatus === null) return;
+      const trimmed = newStatus.trim();
+      if (!trimmed) return;
+      try {
+        const timestamp = new Date().toISOString();
+        for (const id of selectedOrderIds) {
+          const order = (allOrders as Order[]).find((o: Order) => o.id === id);
+          const timeline = Array.isArray(order?.timeline) ? [...order.timeline] : [];
+          const newEntry = { status: trimmed, date: timestamp, description: `Status updated to ${trimmed} by admin` };
+          const updatedTimeline = [...timeline, newEntry];
+          await updateDoc(doc(db, 'orders', id), { timeline: updatedTimeline, status: trimmed });
+        }
+        setAllOrders((prev: Order[]) => prev.map(o => selectedOrderIds.includes(o.id) ? { ...o, timeline: [...(o.timeline || []), { status: trimmed, date: timestamp, description: `Status updated to ${trimmed} by admin` }], status: trimmed } as Order : o));
+        setDeleteFeedback('Order statuses updated.');
+        setTimeout(() => setDeleteFeedback(null), 3000);
+        setSelectedOrderIds([]);
+        setOrderBulkAction('Bulk Actions');
+      } catch (err) {
+        alert('Failed to update selected orders.');
+        console.error('Bulk update orders error:', err);
+      }
+    }
+  };
+
+  // Product bulk action (simple implementation similar to orders)
+  const handleProductBulkAction = async () => {
+    if (productBulkAction === 'Delete Selected') {
+      if (!window.confirm(`Delete ${selectedProductIds.length} selected products? This cannot be undone.`)) return;
+      try {
+        for (const id of selectedProductIds) {
+          await deleteDoc(doc(db, 'products', id));
+        }
+        setProducts((prev: Product[]) => prev.filter(p => !selectedProductIds.includes(p.id)));
+        setDeleteFeedback('Selected products deleted successfully.');
+        setTimeout(() => setDeleteFeedback(null), 3000);
+        setSelectedProductIds([]);
+      } catch (err) {
+        alert('Failed to delete selected products.');
+        console.error('Bulk delete error:', err);
+      }
+    } else if (productBulkAction === 'Mark as Featured') {
+      try {
+        for (const id of selectedProductIds) {
+          await updateDoc(doc(db, 'products', id), { featured: true });
+        }
+        setProducts((prev: Product[]) => prev.map(p => selectedProductIds.includes(p.id) ? { ...p, featured: true } : p));
+        setDeleteFeedback('Selected products marked as featured.');
+        setTimeout(() => setDeleteFeedback(null), 3000);
+        setSelectedProductIds([]);
+      } catch (err) {
+        alert('Failed to mark as featured.');
+        console.error('Bulk feature error:', err);
+      }
+    } else if (productBulkAction === 'Update Stock') {
+      const newStockStr = window.prompt('Enter new stock quantity for selected products:');
+      if (newStockStr === null) return;
+      const newStock = parseInt(newStockStr);
+      if (isNaN(newStock) || newStock < 0) {
+        alert('Invalid stock value.');
+        return;
+      }
+      try {
+        for (const id of selectedProductIds) {
+          const product = products.find(p => p.id === id);
+          const updateData: Record<string, unknown> = { stock: newStock };
+          if (product && product.stock === 0 && newStock > 0) {
+            (updateData as any).inStock = true;
+          }
+          await updateDoc(doc(db, 'products', id), updateData as any);
+        }
+        setProducts((prev: Product[]) => prev.map(p => selectedProductIds.includes(p.id) ? { ...p, stock: newStock, inStock: p.stock === 0 && newStock > 0 ? true : p.stock > 0 && newStock === 0 ? false : p.inStock } : p));
+        setDeleteFeedback('Stock updated for selected products.');
+        setTimeout(() => setDeleteFeedback(null), 3000);
+        setSelectedProductIds([]);
+      } catch (err) {
+        alert('Failed to update stock.');
+        console.error('Bulk stock update error:', err);
+      }
+    }
+  };
   type ProductForm = {
     name: string;
     description: string;
@@ -1243,7 +1193,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
   // Flatten all categories from products and allCategories
   const allCatsFlat = [
     ...products.flatMap(p => Array.isArray(p.category) ? p.category : [p.category]),
-    ...allCategories
+    ...((typeof window !== 'undefined' && Array.isArray((window as any).allCategories)) ? (window as any).allCategories : [])
   ];
   allCatsFlat.forEach(cat => {
     if (typeof cat === 'string') {
@@ -4856,7 +4806,9 @@ Trinidad and Tobago" className="shadow-sm focus:ring-green-500 focus:border-gree
           </div>
         </main>
       </div>
-    </div>;
+  </div>;
 };
+
+export default AdminDashboard;
 
 
