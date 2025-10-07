@@ -1550,8 +1550,8 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                     Category
                   </h4>
                   <p className="mt-1 text-sm text-gray-900">
-                    {product.category}
-                  </p>
++                    {Array.isArray(product.category) ? product.category.join(' ') : product.category}
++                  </p>
                 </div>
                 <div>
                   <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -2785,7 +2785,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                       {product.sku}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      {product.category}
+                      {Array.isArray(product.category) ? product.category.join(' ') : product.category}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                       ${product.price.toFixed(2)}
