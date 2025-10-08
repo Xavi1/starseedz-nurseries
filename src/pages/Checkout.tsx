@@ -188,7 +188,7 @@ export const Checkout = () => {
   const tax = subtotal * 0.07; // 7% tax rate
   // tax: 7% of subtotal
   // Tax calculation (7%)
-  const total = subtotal + shipping + tax;
+  const total = Number((subtotal + shipping + tax).toFixed(2));
   // total: final order cost
   // =============================
   // Form Validation Functions
