@@ -42,22 +42,22 @@ const Header = () => {
     <header className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <div className="flex-shrink-0 flex items-center">
-            <h1 className="text-xl font-bold text-green-700">
-              <Link to="/">Starseedz Nurseries</Link>
-            </h1>
-          </div>
+            {/* Logo */}
+            <div className="flex-shrink-0 flex items-center">
+              <h1 className="text-xl font-bold text-green-700">
+                <Link to="/">Starseedz Nurseries</Link>
+              </h1>
+            </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:ml-6 md:flex md:space-x-8">
-            <Link to="/" className="text-gray-700 hover:text-green-700 px-3 py-2 text-sm font-medium">Home</Link>
-            <Link to="/shop" className="text-gray-700 hover:text-green-700 px-3 py-2 text-sm font-medium">Shop</Link>
-            <Link to="/about" className="text-gray-700 hover:text-green-700 px-3 py-2 text-sm font-medium">About</Link>
-            <Link to="/contact" className="text-gray-700 hover:text-green-700 px-3 py-2 text-sm font-medium">Contact</Link>
-          </nav>
+            {/* Desktop Navigation */}
+            <nav className="hidden md:ml-6 md:flex md:space-x-8">
+              <Link to="/" className="text-gray-700 hover:text-green-700 px-3 py-2 text-sm font-medium">Home</Link>
+              <Link to="/shop" className="text-gray-700 hover:text-green-700 px-3 py-2 text-sm font-medium">Shop</Link>
+              <Link to="/about" className="text-gray-700 hover:text-green-700 px-3 py-2 text-sm font-medium">About</Link>
+              <Link to="/contact" className="text-gray-700 hover:text-green-700 px-3 py-2 text-sm font-medium">Contact</Link>
+            </nav>
 
-          {/* Desktop Icons */}
+            {/* Desktop Icons */}
           <div className="hidden md:flex items-center space-x-4">
             {showSearch ? (
               <input
@@ -149,6 +149,9 @@ const Header = () => {
           <div className="border-t border-gray-200 my-2"></div>
         </div>
       )}
+
+      {/* Desktop Bottom Divider */}
+      <div className="hidden md:block border-t border-gray-200"></div>
     </header>
   );
 };
