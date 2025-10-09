@@ -159,7 +159,40 @@ export const AdminDashboard = () => {
 
   // Bulk action for orders
   const handleOrderBulkAction = async () => {
-    if (orderBulkAction === 'Delete Selected') {
+    if (orderBulkAction === 'Export Selected') {
+      // Get selected orders
+      const selectedOrders = allOrders.filter(o => selectedOrderIds.includes(o.id));
+      
+      // Convert orders to CSV format
+      const headers = ['Order ID', 'Customer', 'Date', 'Status', 'Total', 'Payment Method', 'Shipping Method'];
+      const csvRows = [headers];
+
+      selectedOrders.forEach(order => {
+        csvRows.push([
+          order.id,
+          order.customer || '',
+          order.date ? new Date(order.date).toLocaleDateString() : '',
+          order.status || '',
+          order.total?.toString() || '',
+          order.paymentMethod || '',
+          order.shippingMethod || ''
+        ]);
+      });
+
+      // Convert to CSV string
+      const csvContent = csvRows.map(row => row.join(',')).join('\n');
+
+      // Create and download the file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `orders_export_${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+
+      setSelectedOrderIds([]);
+      setOrderBulkAction('Bulk Actions');
+    } else if (orderBulkAction === 'Delete Selected') {
       if (!window.confirm(`Delete ${selectedOrderIds.length} selected orders? This cannot be undone.`)) return;
       try {
         for (const id of selectedOrderIds) {
@@ -2538,6 +2571,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                   disabled={selectedOrderIds.length === 0}
                 >
                   <option>Bulk Actions</option>
+                  <option>Export Selected</option>
                   <option>Update Status</option>
                   <option>Delete Selected</option>
                 </select>
