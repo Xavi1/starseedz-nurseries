@@ -958,6 +958,46 @@ export const AdminDashboard = () => {
     image: 'https://images.unsplash.com/photo-1562847961-8f766d3b8289?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80'
   }];
   // Mock data for recent orders
+  // Handle CSV Export
+  const handleExportCSV = (orders: any[]) => {
+    // Define the headers for the CSV
+    const headers = [
+      'Order ID',
+      'Customer',
+      'Date',
+      'Status',
+      'Total',
+      'Payment Method',
+    ];
+
+    // Convert orders to CSV rows
+    const rows = orders.map(order => [
+      order.id,
+      order.customer,
+      new Date(order.date).toLocaleDateString(),
+      order.status,
+      order.total,
+      order.paymentMethod,
+    ]);
+
+    // Combine headers and rows
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `orders_export_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Orders state for Orders tab
   const [allOrders, setAllOrders] = useState<any[]>([]);
   useEffect(() => {
@@ -2460,7 +2500,9 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                   </select>
                 </div>
                 <div className="flex space-x-2">
-                  <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                  <button 
+                    onClick={() => handleExportCSV(filteredOrders)}
+                    className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                     <DownloadIcon className="h-4 w-4 mr-1.5" />
                     Export CSV
                   </button>
