@@ -998,6 +998,89 @@ export const AdminDashboard = () => {
     document.body.removeChild(link);
   };
 
+  // Print orders: render a temporary print-only container in-page and call window.print()
+  // This avoids popup blockers by not opening a new window.
+  const handlePrintOrders = (orders: any[]) => {
+    if (!orders || orders.length === 0) {
+      window.alert('No orders to print');
+      return;
+    }
+
+    // Create container
+    const container = document.createElement('div');
+    container.className = 'print-only-container';
+    container.setAttribute('aria-hidden', 'true');
+
+    // Basic styles for printable table
+    const content = `
+      <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial; padding:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <h2 style="margin:0;">Orders</h2>
+          <div>${new Date().toLocaleString()}</div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr>
+              <th style="border:1px solid #e5e7eb;padding:6px;text-align:left;background:#f9fafb;">Order ID</th>
+              <th style="border:1px solid #e5e7eb;padding:6px;text-align:left;background:#f9fafb;">Customer</th>
+              <th style="border:1px solid #e5e7eb;padding:6px;text-align:left;background:#f9fafb;">Date</th>
+              <th style="border:1px solid #e5e7eb;padding:6px;text-align:left;background:#f9fafb;">Status</th>
+              <th style="border:1px solid #e5e7eb;padding:6px;text-align:left;background:#f9fafb;">Total</th>
+              <th style="border:1px solid #e5e7eb;padding:6px;text-align:left;background:#f9fafb;">Payment</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${orders.map(o => `
+              <tr>
+                <td style="border:1px solid #e5e7eb;padding:6px;">${String(o.id ?? '')}</td>
+                <td style="border:1px solid #e5e7eb;padding:6px;">${String(o.customer ?? '')}</td>
+                <td style="border:1px solid #e5e7eb;padding:6px;">${o.date ? new Date(o.date).toLocaleString() : ''}</td>
+                <td style="border:1px solid #e5e7eb;padding:6px;">${String(o.status ?? '')}</td>
+                <td style="border:1px solid #e5e7eb;padding:6px;">${String(o.total ?? '')}</td>
+                <td style="border:1px solid #e5e7eb;padding:6px;">${String(o.paymentMethod ?? '')}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    container.innerHTML = content;
+
+    // Create print-only style to hide the rest of the page during print
+    const style = document.createElement('style');
+    style.type = 'text/css';
+    style.id = 'print-only-style';
+    style.appendChild(document.createTextNode(`
+      @media print {
+        body * { visibility: hidden !important; }
+        .print-only-container, .print-only-container * { visibility: visible !important; }
+        .print-only-container { position: absolute; left: 0; top: 0; width: 100%; }
+      }
+      /* Keep container hidden on screen */
+      .print-only-container { display: none; }
+      @media print { .print-only-container { display: block; } }
+    `));
+
+    document.body.appendChild(style);
+    document.body.appendChild(container);
+
+    // Trigger print
+    try {
+      window.print();
+    } catch (err) {
+      console.error('Print failed', err);
+      window.alert('Print failed: ' + String(err));
+    }
+
+    // Cleanup after a short delay to ensure print dialog has been triggered
+    setTimeout(() => {
+      const s = document.getElementById('print-only-style');
+      if (s) s.remove();
+      if (container && container.parentNode) container.parentNode.removeChild(container);
+    }, 500);
+  };
+
   // Orders state for Orders tab
   const [allOrders, setAllOrders] = useState<any[]>([]);
   useEffect(() => {
@@ -2506,7 +2589,9 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                     <DownloadIcon className="h-4 w-4 mr-1.5" />
                     Export CSV
                   </button>
-                  <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                  <button
+                    onClick={() => handlePrintOrders(filteredOrders)}
+                    className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                     <PrinterIcon className="h-4 w-4 mr-1.5" />
                     Print
                   </button>
