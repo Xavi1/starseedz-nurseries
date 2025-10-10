@@ -93,6 +93,9 @@ export const AdminDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeNav, setActiveNav] = useState('dashboard');
   const [orderStatusFilter, setOrderStatusFilter] = useState('all');
+  // Sorting for orders (used by Filter modal)
+  const [orderSortField, setOrderSortField] = useState<'none' | 'date' | 'customer' | 'total' | 'payment'>('none');
+  const [orderSortDir, setOrderSortDir] = useState<'asc' | 'desc'>('desc');
   const [productCategoryFilter, setProductCategoryFilter] = useState('all');
   const [customerSegmentFilter, setCustomerSegmentFilter] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
@@ -1270,15 +1273,50 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
     icon: <SettingsIcon className="w-5 h-5" />
   }];
   // Filter orders by status
-  const filteredOrders = orderStatusFilter === 'all' 
-    ? allOrders 
+  // Apply status filtering first (if any), then apply sorting based on selected field/direction
+  const filteredOrders = orderStatusFilter === 'all'
+    ? [...allOrders]
     : allOrders.filter(order => {
-        // Get the latest status from the timeline array
-        const latestStatus = order.timeline && order.timeline.length > 0 
-          ? order.timeline[order.timeline.length - 1].status 
+        const latestStatus = order.timeline && order.timeline.length > 0
+          ? order.timeline[order.timeline.length - 1].status
           : 'Order Placed';
         return latestStatus === orderStatusFilter;
       });
+
+  // Sorting helper
+  const compareOrders = (a: any, b: any) => {
+    if (orderSortField === 'none') return 0;
+    let va: any = '';
+    let vb: any = '';
+    switch (orderSortField) {
+      case 'date':
+        va = a.date ? new Date(a.date).getTime() : 0;
+        vb = b.date ? new Date(b.date).getTime() : 0;
+        break;
+      case 'customer':
+        va = (a.customer || '').toString().toLowerCase();
+        vb = (b.customer || '').toString().toLowerCase();
+        break;
+      case 'total':
+        va = Number(a.total || 0);
+        vb = Number(b.total || 0);
+        break;
+      case 'payment':
+        va = (a.paymentMethod || '').toString().toLowerCase();
+        vb = (b.paymentMethod || '').toString().toLowerCase();
+        break;
+      default:
+        return 0;
+    }
+
+    if (va < vb) return orderSortDir === 'asc' ? -1 : 1;
+    if (va > vb) return orderSortDir === 'asc' ? 1 : -1;
+    return 0;
+  };
+
+  if (orderSortField !== 'none') {
+    filteredOrders.sort(compareOrders);
+  }
   // filteredOrders: orders filtered by status
   // Get product categories for filter (normalize to avoid duplicates)
   // Merge categories from products and allCategories (from Firebase)
@@ -4912,18 +4950,29 @@ Trinidad and Tobago" className="shadow-sm focus:ring-green-500 focus:border-gree
                 )}
                 {activeNav === 'orders' && (
                   <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2">Order Status</label>
-                    <select
-                      value={orderStatusFilter}
-                      onChange={e => setOrderStatusFilter(e.target.value)}
-                      className="w-full border border-gray-300 rounded px-2 py-1"
-                    >
-                      <option value="all">All</option>
-                      <option value="pending">Pending</option>
-                      <option value="shipped">Shipped</option>
-                      <option value="delivered">Delivered</option>
-                      <option value="cancelled">Cancelled</option>
-                    </select>
+                    <label className="block text-sm font-medium mb-2">Sort Orders</label>
+                    <div className="flex space-x-2 mb-2">
+                      <select
+                        value={orderSortField}
+                        onChange={e => setOrderSortField(e.target.value as any)}
+                        className="flex-1 w-full border border-gray-300 rounded px-2 py-1"
+                      >
+                        <option value="none">None</option>
+                        <option value="date">Date</option>
+                        <option value="customer">Customer</option>
+                        <option value="total">Total</option>
+                        <option value="payment">Payment Method</option>
+                      </select>
+                      <select
+                        value={orderSortDir}
+                        onChange={e => setOrderSortDir(e.target.value as 'asc' | 'desc')}
+                        className="w-32 border border-gray-300 rounded px-2 py-1"
+                      >
+                        <option value="desc">Desc</option>
+                        <option value="asc">Asc</option>
+                      </select>
+                    </div>
+                    <div className="text-sm text-gray-500">Note: Sorting is applied on the currently loaded orders.</div>
                   </div>
                 )}
                 {activeNav === 'customers' && (
