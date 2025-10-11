@@ -1435,15 +1435,15 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
         <div className="px-4 py-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Order Timeline */}
-            <div className="max-w-sm">
+            <div className="w-full">
               <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
                 Order Timeline
               </h4>
-              <div className="relative">
+              <div className="relative px-4">
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="h-full w-0.5 bg-gray-200"></div>
                 </div>
-                <div className="relative flex flex-col space-y-6">
+                <div className="relative flex flex-col space-y-8">
                   <div className="flex items-center">
                     <div className="bg-green-500 rounded-full h-8 w-8 flex items-center justify-center z-10">
                       <CheckCircleIcon className="h-5 w-5 text-white" />
