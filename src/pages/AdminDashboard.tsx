@@ -1433,117 +1433,120 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
           </button>
         </div>
         <div className="px-4 py-5">
-          {/* Order Timeline */}
-          <div className="mb-6">
-            <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
-              Order Timeline
-            </h4>
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="h-full w-0.5 bg-gray-200"></div>
-              </div>
-              <div className="relative flex flex-col space-y-6">
-                <div className="flex items-center">
-                  <div className="bg-green-500 rounded-full h-8 w-8 flex items-center justify-center z-10">
-                    <CheckCircleIcon className="h-5 w-5 text-white" />
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-900">
-                      Order Placed
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {formatDate(order.date)}
-                    </p>
-                  </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Order Timeline */}
+            <div className="max-w-sm">
+              <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
+                Order Timeline
+              </h4>
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="h-full w-0.5 bg-gray-200"></div>
                 </div>
-                {order.status !== 'Cancelled' && <>
-                    <div className="flex items-center">
-                      <div className={`${order.status === 'Pending' ? 'bg-yellow-500' : 'bg-green-500'} rounded-full h-8 w-8 flex items-center justify-center z-10`}>
-                        <CreditCardIcon className="h-5 w-5 text-white" />
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-900">
-                          Payment Confirmed
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {formatDate(order.date)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center">
-                      <div className={`${order.status === 'Pending' || order.status === 'Processing' ? 'bg-gray-300' : 'bg-green-500'} rounded-full h-8 w-8 flex items-center justify-center z-10`}>
-                        <BoxIcon className="h-5 w-5 text-white" />
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-900">
-                          Order Processed
-                        </p>
-                        {order.status !== 'Pending' && order.status !== 'Processing' ? <p className="text-xs text-gray-500">
-                            {formatDate(order.date)}
-                          </p> : <p className="text-xs text-gray-500">Pending</p>}
-                      </div>
-                    </div>
-                    <div className="flex items-center">
-                      <div className={`${order.status === 'Shipped' || order.status === 'Delivered' ? 'bg-green-500' : 'bg-gray-300'} rounded-full h-8 w-8 flex items-center justify-center z-10`}>
-                        <TruckIcon className="h-5 w-5 text-white" />
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-900">
-                          Order Shipped
-                        </p>
-                        {order.status === 'Shipped' || order.status === 'Delivered' ? <p className="text-xs text-gray-500">
-                            {formatDate(new Date(new Date(order.date).getTime() + 86400000))}
-                          </p> : <p className="text-xs text-gray-500">Pending</p>}
-                      </div>
-                    </div>
-                    <div className="flex items-center">
-                      <div className={`${order.status === 'Delivered' ? 'bg-green-500' : 'bg-gray-300'} rounded-full h-8 w-8 flex items-center justify-center z-10`}>
-                        <CheckCircleIcon className="h-5 w-5 text-white" />
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-900">
-                          Delivered
-                        </p>
-                        {order.status === 'Delivered' ? <p className="text-xs text-gray-500">
-                            {formatDate(new Date(new Date(order.date).getTime() + 172800000))}
-                          </p> : <p className="text-xs text-gray-500">Pending</p>}
-                      </div>
-                    </div>
-                  </>}
-                {order.status === 'Cancelled' && <div className="flex items-center">
-                    <div className="bg-red-500 rounded-full h-8 w-8 flex items-center justify-center z-10">
-                      <XIcon className="h-5 w-5 text-white" />
+                <div className="relative flex flex-col space-y-6">
+                  <div className="flex items-center">
+                    <div className="bg-green-500 rounded-full h-8 w-8 flex items-center justify-center z-10">
+                      <CheckCircleIcon className="h-5 w-5 text-white" />
                     </div>
                     <div className="ml-4">
                       <p className="text-sm font-medium text-gray-900">
-                        Order Cancelled
+                        Order Placed
                       </p>
                       <p className="text-xs text-gray-500">
                         {formatDate(order.date)}
                       </p>
                     </div>
-                  </div>}
+                  </div>
+                  {order.status !== 'Cancelled' && <>
+                      <div className="flex items-center">
+                        <div className={`${order.status === 'Pending' ? 'bg-yellow-500' : 'bg-green-500'} rounded-full h-8 w-8 flex items-center justify-center z-10`}>
+                          <CreditCardIcon className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="ml-4">
+                          <p className="text-sm font-medium text-gray-900">
+                            Payment Confirmed
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {formatDate(order.date)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        <div className={`${order.status === 'Pending' || order.status === 'Processing' ? 'bg-gray-300' : 'bg-green-500'} rounded-full h-8 w-8 flex items-center justify-center z-10`}>
+                          <BoxIcon className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="ml-4">
+                          <p className="text-sm font-medium text-gray-900">
+                            Order Processed
+                          </p>
+                          {order.status !== 'Pending' && order.status !== 'Processing' ? <p className="text-xs text-gray-500">
+                              {formatDate(order.date)}
+                            </p> : <p className="text-xs text-gray-500">Pending</p>}
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        <div className={`${order.status === 'Shipped' || order.status === 'Delivered' ? 'bg-green-500' : 'bg-gray-300'} rounded-full h-8 w-8 flex items-center justify-center z-10`}>
+                          <TruckIcon className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="ml-4">
+                          <p className="text-sm font-medium text-gray-900">
+                            Order Shipped
+                          </p>
+                          {order.status === 'Shipped' || order.status === 'Delivered' ? <p className="text-xs text-gray-500">
+                              {formatDate(new Date(new Date(order.date).getTime() + 86400000))}
+                            </p> : <p className="text-xs text-gray-500">Pending</p>}
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        <div className={`${order.status === 'Delivered' ? 'bg-green-500' : 'bg-gray-300'} rounded-full h-8 w-8 flex items-center justify-center z-10`}>
+                          <CheckCircleIcon className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="ml-4">
+                          <p className="text-sm font-medium text-gray-900">
+                            Delivered
+                          </p>
+                          {order.status === 'Delivered' ? <p className="text-xs text-gray-500">
+                              {formatDate(new Date(new Date(order.date).getTime() + 172800000))}
+                            </p> : <p className="text-xs text-gray-500">Pending</p>}
+                        </div>
+                      </div>
+                    </>}
+                  {order.status === 'Cancelled' && <div className="flex items-center">
+                      <div className="bg-red-500 rounded-full h-8 w-8 flex items-center justify-center z-10">
+                        <XIcon className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-gray-900">
+                          Order Cancelled
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {formatDate(order.date)}
+                        </p>
+                      </div>
+                    </div>}
+                </div>
               </div>
             </div>
-          </div>
-              {/* Order Summary And Tracking */}
-          <div className="flex flex-col gap-6">
-            <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
-              Order Summary and Tracking
-            </h4>
-            <div className="mt-8 lg:mt-0 lg:col-span-5 flex flex-col gap-6">
-              <OrderSummaryCard
-                items={order.items || []}
-                subtotal={order.subtotal || 0}
-                shipping={order.shipping || 0}
-                tax={order.tax || 0}
-                total={order.total || 0}
-              />
-              <OrderTrackingWidget
-                status={order.status}
-                estimatedDelivery={order.timeline && order.timeline.length > 0 ? order.timeline[order.timeline.length - 1].date : ''}
-                trackingUrl={order.trackingNumber ? `https://track.aftership.com/${order.trackingNumber}` : undefined}
-              />
+
+            {/* Order Summary And Tracking */}
+            <div className="flex flex-col space-y-4">
+              <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+                ORDER SUMMARY AND TRACKING
+              </h4>
+              <div className="flex flex-col space-y-4">
+                <OrderSummaryCard
+                  items={order.items || []}
+                  subtotal={order.subtotal || 0}
+                  shipping={order.shipping || 0}
+                  tax={order.tax || 0}
+                  total={order.total || 0}
+                />
+                <OrderTrackingWidget
+                  status={order.status}
+                  estimatedDelivery={order.timeline && order.timeline.length > 0 ? order.timeline[order.timeline.length - 1].date : ''}
+                  trackingUrl={order.trackingNumber ? `https://track.aftership.com/${order.trackingNumber}` : undefined}
+                />
+              </div>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
