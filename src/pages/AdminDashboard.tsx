@@ -461,79 +461,124 @@ export const AdminDashboard = () => {
   };
 
   // Handler for dowloading pdf
-const handleDownloadPDF = async (order: any) => {
-  try {
-    const orderSummary = {
-      orderId: order.id,
-      orderDate: formatDate(order.date),
-      customer: order.customer,
-      items: order.items || [],
-      subtotal: order.subtotal || 0,
-      shipping: order.shipping || 5.00,
-      tax: (order.total || 0) * 0.08,
-      total: (order.total || 0) + 5 + ((order.total || 0) * 0.08),
-      status: order.status,
-      shippingAddress: "123 Main Street, Portland, OR 97201",
-      trackingNumber: `TRK-${order.id.split('-')[1]}`
-    };
+const handleDownloadPDF = (order: any) => {
+  const doc = new jsPDF({
+    orientation: 'p',
+    unit: 'pt',
+    format: 'a4'
+  });
 
-    const pdf = new jsPDF();
-    
-    // Title
-    pdf.setFontSize(20);
-    pdf.text('ORDER INVOICE', 105, 20, { align: 'center' });
-    
-    // Order Information
-    pdf.setFontSize(12);
-    pdf.text(`Order ID: ${orderSummary.orderId}`, 20, 40);
-    pdf.text(`Order Date: ${orderSummary.orderDate}`, 20, 48);
-    pdf.text(`Status: ${orderSummary.status.toUpperCase()}`, 20, 56);
-    
-    // Customer Information
-    pdf.text(`Customer: ${orderSummary.customer.name}`, 20, 70);
-    pdf.text(`Email: ${orderSummary.customer.email}`, 20, 78);
-    
-    // Items Table using AutoTable
-    const tableColumn = ['Item', 'Quantity', 'Price', 'Total'];
-    const tableRows = orderSummary.items.map((item: any) => [
-      item.name || 'Unnamed Item',
-      item.quantity || 1,
-      `$${(item.price || 0).toFixed(2)}`,
-      `$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}`
+  // === Company Header ===
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(20);
+  doc.setTextColor(22, 101, 52); // green
+  doc.text('Starseedz Nurseries', 40, 60);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(55, 65, 81);
+  doc.text('123 Garden Street, Portland, OR 97201', 40, 80);
+  doc.text('Tel: (555) 123-4567 | contact@starseedz.com', 40, 95);
+
+  // === Invoice & Customer Info ===
+  const subtotal =
+    typeof order.total === 'number'
+      ? order.total
+      : parseFloat(String(order.total).replace('$', ''));
+  const shipping = 5.0;
+  const tax = subtotal * 0.08;
+  const total = subtotal + shipping + tax;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.setTextColor(17, 24, 39);
+  doc.text('INVOICE', 40, 130);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(55, 65, 81);
+  doc.text(`Order #: ${order.id}`, 40, 150);
+  doc.text(`Date: ${formatDate(order.date)}`, 40, 165);
+
+  // Bill To section (right side)
+  const billX = 360;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.setTextColor(17, 24, 39);
+  doc.text('Bill To:', billX, 130);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(55, 65, 81);
+  doc.text(order.customer, billX, 150);
+  doc.text('123 Main Street', billX, 165);
+  doc.text('Portland, OR 97201', billX, 180);
+
+  // === Items Table ===
+  const tableColumn = ['Product', 'Quantity', 'Price', 'Total'];
+  const tableRows: string[][] = [];
+
+  (order.items || []).forEach((item: any) => {
+    tableRows.push([
+      item.name,
+      item.quantity.toString(),
+      `$${item.price.toFixed(2)}`,
+      `$${(item.quantity * item.price).toFixed(2)}`
     ]);
+  });
 
-    autoTable(pdf, {
-      head: [tableColumn],
-      body: tableRows,
-      startY: 90,
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [66, 135, 245] }
-    });
+  autoTable(doc, {
+    startY: 210,
+    head: [tableColumn],
+    body: tableRows,
+    theme: 'grid',
+    styles: {
+      font: 'helvetica',
+      fontSize: 10,
+      textColor: [17, 24, 39],
+      lineColor: [229, 231, 235],
+      lineWidth: 0.5
+    },
+    headStyles: {
+      fillColor: [249, 250, 251],
+      textColor: [17, 24, 39],
+      fontStyle: 'bold'
+    },
+    alternateRowStyles: {
+      fillColor: [255, 255, 255]
+    },
+    margin: { left: 40, right: 40 }
+  });
 
-    // Get the final Y position after the table
-    const finalY = (pdf as any).lastAutoTable.finalY + 10;
+  // === Totals Section ===
+  const finalY = (doc as any).lastAutoTable.finalY + 20;
+  const rightEdge = 555;
 
-    // Pricing Summary
-    pdf.setFontSize(12);
-    pdf.text('Pricing Summary:', 20, finalY);
-    pdf.text(`Subtotal: $${orderSummary.subtotal.toFixed(2)}`, 30, finalY + 10);
-    pdf.text(`Shipping: $${orderSummary.shipping.toFixed(2)}`, 30, finalY + 18);
-    pdf.text(`Tax: $${orderSummary.tax.toFixed(2)}`, 30, finalY + 26);
-    pdf.setFont('', 'bold');
-    pdf.text(`Total: $${orderSummary.total.toFixed(2)}`, 30, finalY + 36);
-    pdf.setFont('', 'normal');
+  const totals = [
+    ['Subtotal:', `$${subtotal.toFixed(2)}`],
+    ['Shipping:', `$${shipping.toFixed(2)}`],
+    ['Tax (8%):', `$${tax.toFixed(2)}`],
+    ['Total:', `$${total.toFixed(2)}`]
+  ];
 
-    // Shipping Info
-    pdf.text(`Shipping Address: ${orderSummary.shippingAddress}`, 20, finalY + 50);
-    pdf.text(`Tracking Number: ${orderSummary.trackingNumber}`, 20, finalY + 58);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  totals.forEach(([label, value], index) => {
+    const y = finalY + index * 20;
+    doc.text(label, rightEdge - 120, y);
+    doc.setFont('helvetica', label === 'Total:' ? 'bold' : 'normal');
+    doc.text(value, rightEdge, y, { align: 'right' });
+  });
 
-    // Save PDF
-    pdf.save(`order-${orderSummary.orderId}.pdf`);
-    
-  } catch (error) {
-    console.error('Error generating PDF:', error);
-    alert('Failed to generate PDF. Please try again.');
-  }
+  // === Footer ===
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(55, 65, 81);
+  doc.text('Thank you for your business!', 40, finalY + 100);
+  doc.text(`Payment processed via ${order.paymentMethod}`, 40, finalY + 115);
+
+  // === Save PDF ===
+  doc.save(`invoice-${order.id}.pdf`);
 };
 
   // Products from Firebase
