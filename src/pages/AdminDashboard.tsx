@@ -458,6 +458,38 @@ export const AdminDashboard = () => {
     setShowEditConfirm(false);
   };
 
+  // Handler for dowloading pdf
+  const handleDownloadPDF = async (order: any) => {
+  // Create a formatted order summary for PDF
+  const orderSummary = {
+    orderId: order.id,
+    orderDate: formatDate(order.date),
+    customer: order.customer,
+    items: order.items || [],
+    subtotal: order.subtotal || 0,
+    shipping: order.shipping || 5.00,
+    tax: (order.total || 0) * 0.08,
+    total: (order.total || 0) + 5 + ((order.total || 0) * 0.08),
+    status: order.status,
+    shippingAddress: "123 Main Street, Portland, OR 97201",
+    trackingNumber: `TRK-${order.id.split('-')[1]}`
+  };
+
+  // Convert order summary to a formatted string
+  const content = JSON.stringify(orderSummary, null, 2);
+  
+  // Create and download the file
+  const blob = new Blob([content], { type: 'application/pdf' });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `order-${order.id}.pdf`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+};
+
   // Products from Firebase
   const [products, setProducts] = useState<any[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
@@ -1844,10 +1876,13 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
               <PrinterIcon className="h-4 w-4 mr-2" />
               Print Invoice
             </button>
-            <button className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+            <button 
+              onClick={() => handleDownloadPDF(order)}
+              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
               <DownloadIcon className="h-4 w-4 mr-2" />
               Download PDF
             </button>
+            
           </div>
         </div>
       </div>;
