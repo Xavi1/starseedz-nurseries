@@ -1001,6 +1001,127 @@ export const AdminDashboard = () => {
     document.body.removeChild(link);
   };
 
+  // Print an individual order invoice
+  const handlePrintInvoice = (order: any) => {
+    // Create container
+    const container = document.createElement('div');
+    container.className = 'print-only-container';
+    container.setAttribute('aria-hidden', 'true');
+
+    // Calculate totals
+    const subtotal = typeof order.total === 'number' ? order.total : parseFloat(String(order.total).replace('$', ''));
+    const shipping = 5.00;
+    const tax = subtotal * 0.08;
+    const total = subtotal + shipping + tax;
+
+    // Format invoice content with company branding
+    const content = `
+      <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial; padding:20px; max-width:800px; margin:0 auto;">
+        <div style="text-align:center; margin-bottom:30px;">
+          <h1 style="margin:0; color:#166534; font-size:24px;">Starseedz Nurseries</h1>
+          <p style="margin:5px 0; color:#374151;">123 Garden Street, Portland, OR 97201</p>
+          <p style="margin:5px 0; color:#374151;">Tel: (555) 123-4567 | contact@starseedz.com</p>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; margin-bottom:30px;">
+          <div>
+            <h2 style="margin:0 0 10px; color:#111827; font-size:20px;">INVOICE</h2>
+            <p style="margin:0; color:#374151;">Order #: ${order.id}</p>
+            <p style="margin:5px 0; color:#374151;">Date: ${formatDate(order.date)}</p>
+          </div>
+          <div style="text-align:right;">
+            <h3 style="margin:0 0 10px; color:#111827;">Bill To:</h3>
+            <p style="margin:0; color:#374151;">${order.customer}</p>
+            <p style="margin:5px 0; color:#374151;">123 Main Street</p>
+            <p style="margin:5px 0; color:#374151;">Portland, OR 97201</p>
+          </div>
+        </div>
+
+        <table style="width:100%; border-collapse:collapse; margin-bottom:30px;">
+          <thead>
+            <tr>
+              <th style="border:1px solid #e5e7eb; padding:12px; text-align:left; background:#f9fafb;">Product</th>
+              <th style="border:1px solid #e5e7eb; padding:12px; text-align:right; background:#f9fafb;">Quantity</th>
+              <th style="border:1px solid #e5e7eb; padding:12px; text-align:right; background:#f9fafb;">Price</th>
+              <th style="border:1px solid #e5e7eb; padding:12px; text-align:right; background:#f9fafb;">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(order.items || []).map((item: any) => `
+              <tr>
+                <td style="border:1px solid #e5e7eb; padding:12px;">${item.name}</td>
+                <td style="border:1px solid #e5e7eb; padding:12px; text-align:right;">${item.quantity}</td>
+                <td style="border:1px solid #e5e7eb; padding:12px; text-align:right;">$${item.price.toFixed(2)}</td>
+                <td style="border:1px solid #e5e7eb; padding:12px; text-align:right;">$${(item.quantity * item.price).toFixed(2)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <div style="display:flex; justify-content:flex-end;">
+          <div style="width:300px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+              <span style="color:#374151;">Subtotal:</span>
+              <span style="font-weight:500;">$${subtotal.toFixed(2)}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+              <span style="color:#374151;">Shipping:</span>
+              <span style="font-weight:500;">$${shipping.toFixed(2)}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+              <span style="color:#374151;">Tax (8%):</span>
+              <span style="font-weight:500;">$${tax.toFixed(2)}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; padding-top:10px; border-top:2px solid #e5e7eb;">
+              <span style="font-weight:600; color:#111827;">Total:</span>
+              <span style="font-weight:600; color:#111827;">$${total.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:40px; padding-top:20px; border-top:1px solid #e5e7eb; text-align:center;">
+          <p style="margin:0; color:#374151;">Thank you for your business!</p>
+          <p style="margin:5px 0; color:#374151;">Payment processed via ${order.paymentMethod}</p>
+        </div>
+      </div>
+    `;
+
+    container.innerHTML = content;
+
+    // Create print-only style
+    const style = document.createElement('style');
+    style.type = 'text/css';
+    style.id = 'print-only-style';
+    style.appendChild(document.createTextNode(`
+      @media print {
+        body * { visibility: hidden !important; }
+        .print-only-container, .print-only-container * { visibility: visible !important; }
+        .print-only-container { position: absolute; left: 0; top: 0; width: 100%; }
+      }
+      /* Keep container hidden on screen */
+      .print-only-container { display: none; }
+      @media print { .print-only-container { display: block; } }
+    `));
+
+    document.body.appendChild(style);
+    document.body.appendChild(container);
+
+    // Trigger print
+    try {
+      window.print();
+    } catch (err) {
+      console.error('Print failed:', err);
+      window.alert('Print failed: ' + String(err));
+    }
+
+    // Cleanup after print dialog
+    setTimeout(() => {
+      const s = document.getElementById('print-only-style');
+      if (s) s.remove();
+      if (container && container.parentNode) container.parentNode.removeChild(container);
+    }, 500);
+  };
+
   // Print orders: render a temporary print-only container in-page and call window.print()
   // This avoids popup blockers by not opening a new window.
   const handlePrintOrders = (orders: any[]) => {
@@ -1716,7 +1837,10 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
           </div>
           {/* Action Buttons */}
           <div className="mt-6 flex justify-end space-x-3">
-            <button className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+            <button 
+              onClick={() => handlePrintInvoice(order)}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            >
               <PrinterIcon className="h-4 w-4 mr-2" />
               Print Invoice
             </button>
