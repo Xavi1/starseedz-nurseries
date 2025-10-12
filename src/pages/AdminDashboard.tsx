@@ -21,6 +21,7 @@ import OrderTrackingWidget from '../components/OrderTrackingWidget';
 // =============================
 import React, { useState } from 'react';
 import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 // Product type for all usages
 type Product = {
@@ -460,35 +461,79 @@ export const AdminDashboard = () => {
   };
 
   // Handler for dowloading pdf
-  const handleDownloadPDF = async (order: any) => {
-  // Create a formatted order summary for PDF
-  const orderSummary = {
-    orderId: order.id,
-    orderDate: formatDate(order.date),
-    customer: order.customer,
-    items: order.items || [],
-    subtotal: order.subtotal || 0,
-    shipping: order.shipping || 5.00,
-    tax: (order.total || 0) * 0.08,
-    total: (order.total || 0) + 5 + ((order.total || 0) * 0.08),
-    status: order.status,
-    shippingAddress: "123 Main Street, Portland, OR 97201",
-    trackingNumber: `TRK-${order.id.split('-')[1]}`
-  };
+const handleDownloadPDF = async (order: any) => {
+  try {
+    const orderSummary = {
+      orderId: order.id,
+      orderDate: formatDate(order.date),
+      customer: order.customer,
+      items: order.items || [],
+      subtotal: order.subtotal || 0,
+      shipping: order.shipping || 5.00,
+      tax: (order.total || 0) * 0.08,
+      total: (order.total || 0) + 5 + ((order.total || 0) * 0.08),
+      status: order.status,
+      shippingAddress: "123 Main Street, Portland, OR 97201",
+      trackingNumber: `TRK-${order.id.split('-')[1]}`
+    };
 
-  // Convert order summary to a formatted string
-  const content = JSON.stringify(orderSummary, null, 2);
-  
-  // Create and download the file
-  const blob = new Blob([content], { type: 'application/pdf' });
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `order-${order.id}.pdf`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  window.URL.revokeObjectURL(url);
+    const pdf = new jsPDF();
+    
+    // Title
+    pdf.setFontSize(20);
+    pdf.text('ORDER INVOICE', 105, 20, { align: 'center' });
+    
+    // Order Information
+    pdf.setFontSize(12);
+    pdf.text(`Order ID: ${orderSummary.orderId}`, 20, 40);
+    pdf.text(`Order Date: ${orderSummary.orderDate}`, 20, 48);
+    pdf.text(`Status: ${orderSummary.status.toUpperCase()}`, 20, 56);
+    
+    // Customer Information
+    pdf.text(`Customer: ${orderSummary.customer.name}`, 20, 70);
+    pdf.text(`Email: ${orderSummary.customer.email}`, 20, 78);
+    
+    // Items Table using AutoTable
+    const tableColumn = ['Item', 'Quantity', 'Price', 'Total'];
+    const tableRows = orderSummary.items.map((item: any) => [
+      item.name || 'Unnamed Item',
+      item.quantity || 1,
+      `$${(item.price || 0).toFixed(2)}`,
+      `$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}`
+    ]);
+
+    autoTable(pdf, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 90,
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [66, 135, 245] }
+    });
+
+    // Get the final Y position after the table
+    const finalY = (pdf as any).lastAutoTable.finalY + 10;
+
+    // Pricing Summary
+    pdf.setFontSize(12);
+    pdf.text('Pricing Summary:', 20, finalY);
+    pdf.text(`Subtotal: $${orderSummary.subtotal.toFixed(2)}`, 30, finalY + 10);
+    pdf.text(`Shipping: $${orderSummary.shipping.toFixed(2)}`, 30, finalY + 18);
+    pdf.text(`Tax: $${orderSummary.tax.toFixed(2)}`, 30, finalY + 26);
+    pdf.setFont('', 'bold');
+    pdf.text(`Total: $${orderSummary.total.toFixed(2)}`, 30, finalY + 36);
+    pdf.setFont('', 'normal');
+
+    // Shipping Info
+    pdf.text(`Shipping Address: ${orderSummary.shippingAddress}`, 20, finalY + 50);
+    pdf.text(`Tracking Number: ${orderSummary.trackingNumber}`, 20, finalY + 58);
+
+    // Save PDF
+    pdf.save(`order-${orderSummary.orderId}.pdf`);
+    
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    alert('Failed to generate PDF. Please try again.');
+  }
 };
 
   // Products from Firebase
