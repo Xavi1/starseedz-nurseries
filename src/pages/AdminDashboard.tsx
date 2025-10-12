@@ -20,6 +20,7 @@ import OrderTrackingWidget from '../components/OrderTrackingWidget';
 // - Inline documentation for maintainability and onboarding
 // =============================
 import React, { useState } from 'react';
+import jsPDF from 'jspdf';
 
 // Product type for all usages
 type Product = {
