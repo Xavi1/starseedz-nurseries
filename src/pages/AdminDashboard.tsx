@@ -2312,15 +2312,15 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                 <div className="flex items-center mb-4">
                   <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
                     <span className="text-lg font-medium text-green-700">
-                      {customer.firstName.charAt(0)}
+                      {customer.firstName?.charAt(0) || 'C'}
                     </span>
                   </div>
                   <div className="ml-4">
                     <h4 className="text-lg font-medium text-gray-900">
-                      {customer.firstName} {customer.lastName}
+                      {customer.firstName || 'Unknown'} {customer.lastName || ''}
                     </h4>
                     <p className="text-sm text-gray-500">
-                      Customer ID: {customer.uid}
+                      Customer ID: {customer.uid || 'N/A'}
                     </p>
                   </div>
                 </div>
