@@ -1,5 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import ReactModal from 'react-modal';
+
+interface Customer {
+  uid: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  location: string;
+  lastLogin: string;
+  createdAt: string;
+  receiveEmails: boolean;
+  ordersCount?: number;
+  segment?: 'new' | 'repeat' | 'high';
+  totalSpent?: number;
+}
 import { formatDate } from '../utils/formatDate';
 import OrderSummaryCard from '../components/OrderSummaryCard';
 import OrderTrackingWidget from '../components/OrderTrackingWidget';
@@ -102,7 +117,7 @@ export const AdminDashboard = () => {
   const [customerSegmentFilter, setCustomerSegmentFilter] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
-  const [selectedCustomer, setSelectedCustomer] = useState<number | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
   const [reportType, setReportType] = useState('sales');
   const [reportTimeframe, setReportTimeframe] = useState('month');
   const [activeSettingsTab, setActiveSettingsTab] = useState('store');
@@ -1330,6 +1345,83 @@ const handleDownloadPDF = (order: any) => {
 
   // Orders state for Orders tab
   const [allOrders, setAllOrders] = useState<any[]>([]);
+  const [allCustomers, setAllCustomers] = useState<any[]>([]);
+
+  // Fetch customers and their order data from Firebase
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      if (activeNav !== 'customers') return;
+      
+      try {
+        // Fetch customers
+        const customersCollection = collection(db, 'users');
+        const customersSnapshot = await getDocs(customersCollection);
+        
+        // Fetch all orders
+        const ordersCollection = collection(db, 'orders');
+        const ordersSnapshot = await getDocs(ordersCollection);
+        const orders = ordersSnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            userId: data.userId,
+            total: data.total,
+            shippingAddress: data.shippingAddress
+          };
+        });
+
+        // Process customer data and combine with order information
+        const customersData = await Promise.all(customersSnapshot.docs.map(async (doc) => {
+          const customerData = doc.data();
+          
+          // Get all orders for this customer
+          const customerOrders = orders.filter(order => 
+            order.userId === doc.id || 
+            (order.shippingAddress && 
+             order.shippingAddress.email === customerData.email)
+          );
+
+          // Calculate total spent
+          const totalSpent = customerOrders.reduce((sum, order) => 
+            sum + (typeof order.total === 'number' ? order.total : 0), 0);
+
+          // Determine customer segment
+          let segment: 'new' | 'repeat' | 'high' = 'new';
+          if (customerOrders.length > 0) {
+            if (totalSpent > 500) {
+              segment = 'high';
+            } else if (customerOrders.length > 1) {
+              segment = 'repeat';
+            }
+          }
+
+          return {
+            id: doc.id,
+            uid: customerData.uid,
+            firstName: customerData.firstName,
+            lastName: customerData.lastName,
+            email: customerData.email,
+            phone: customerData.phone,
+            location: customerData.location,
+            lastLogin: customerData.lastLogin,
+            createdAt: customerData.createdAt,
+            receiveEmails: customerData.receiveEmails,
+            ordersCount: customerOrders.length,
+            totalSpent,
+            segment
+          };
+        }));
+
+        setAllCustomers(customersData);
+      } catch (error) {
+        console.error('Error fetching customers:', error);
+      }
+    };
+
+    fetchCustomers();
+  }, [activeNav]);
+
+  // Fetch orders from Firebase
   useEffect(() => {
     // Only fetch for Orders tab
     if (activeNav !== 'orders') return;
@@ -1616,7 +1708,9 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
   );
 
   // Filter customers by segment
-  const filteredCustomers = customerSegmentFilter === 'all' ? customers : customers.filter(customer => customer.segment === customerSegmentFilter);
+  const filteredCustomers = customerSegmentFilter === 'all' 
+    ? allCustomers 
+    : allCustomers.filter(customer => customer.segment === customerSegmentFilter);
   // Paginated data for Customers
   const customersPageSize = 10;
   const paginatedCustomers = filteredCustomers.slice(
@@ -2193,8 +2287,14 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
   // =============================
   // Renders detailed view for a selected customer
     if (!selectedCustomer) return null;
-    const customer = customers.find(c => c.id === selectedCustomer);
+    const customer = allCustomers.find(c => c.id === selectedCustomer);
     if (!customer) return null;
+
+    // Get customer orders and metrics
+    const customerOrders = allOrders.filter(o => 
+      o.userId === customer.id || 
+      o.shippingAddress?.email === customer.email
+    );
     return <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="px-4 py-5 border-b border-gray-200 flex justify-between items-center">
           <h3 className="text-lg leading-6 font-medium text-gray-900">
@@ -2212,17 +2312,15 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                 <div className="flex items-center mb-4">
                   <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
                     <span className="text-lg font-medium text-green-700">
-                      {customer.name.charAt(0)}
+                      {customer.firstName.charAt(0)}
                     </span>
                   </div>
                   <div className="ml-4">
                     <h4 className="text-lg font-medium text-gray-900">
-                      {customer.name}
+                      {customer.firstName} {customer.lastName}
                     </h4>
                     <p className="text-sm text-gray-500">
-                      {customer.segment === 'new' && 'New Customer'}
-                      {customer.segment === 'repeat' && 'Repeat Customer'}
-                      {customer.segment === 'high' && 'High Value Customer'}
+                      Customer ID: {customer.uid}
                     </p>
                   </div>
                 </div>
@@ -2245,18 +2343,34 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                   </div>
                   <div>
                     <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Address
+                      Location
                     </h4>
                     <p className="mt-1 text-sm text-gray-900">
-                      {customer.address}
+                      {customer.location}
                     </p>
                   </div>
                   <div>
                     <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Customer Since
+                      Email Preferences
+                    </h4>
+                    <p className="mt-1 text-sm text-gray-900">
+                      {customer.receiveEmails ? 'Subscribed to emails' : 'Not subscribed to emails'}
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Account Created
                     </h4>
                     <p className="mt-1 text-sm text-gray-900">
                       {new Date(customer.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Last Login
+                    </h4>
+                    <p className="mt-1 text-sm text-gray-900">
+                      {new Date(customer.lastLogin).toLocaleString()}
                     </p>
                   </div>
                 </div>
@@ -2267,13 +2381,80 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                   <p className="mt-1 text-sm text-gray-600">{customer.notes}</p>
                 </div>
                 <div className="mt-6 flex space-x-3">
-                  <button className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                  <button 
+                    onClick={() => window.location.href = `mailto:${customer.email}`}
+                    className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  >
                     <MessageCircleIcon className="h-4 w-4 mr-2" />
                     Email
                   </button>
-                  <button className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                    <EditIcon className="h-4 w-4 mr-2" />
-                    Edit
+                  <button 
+                    onClick={async () => {
+                      try {
+                        const customerRef = doc(db, 'users', customer.id);
+                        await updateDoc(customerRef, {
+                          lastLogin: new Date().toISOString()
+                        });
+                        
+                        // Refresh customers list by refetching
+                        const customersCollection = collection(db, 'users');
+                        const customersSnapshot = await getDocs(customersCollection);
+                        
+                        // Fetch all orders again to recalculate metrics
+                        const ordersCollection = collection(db, 'orders');
+                        const ordersSnapshot = await getDocs(ordersCollection);
+                        const orders = ordersSnapshot.docs.map(doc => ({
+                          id: doc.id,
+                          userId: doc.data().userId,
+                          total: doc.data().total,
+                          shippingAddress: doc.data().shippingAddress
+                        }));
+
+                        // Recalculate customer metrics
+                        const customersData = await Promise.all(customersSnapshot.docs.map(async (doc) => {
+                          const customerData = doc.data();
+                          const customerOrders = orders.filter(order => 
+                            order.userId === doc.id || 
+                            order.shippingAddress?.email === customerData.email
+                          );
+                          const totalSpent = customerOrders.reduce((sum, order) => 
+                            sum + (typeof order.total === 'number' ? order.total : 0), 0);
+
+                          let segment: 'new' | 'repeat' | 'high' = 'new';
+                          if (customerOrders.length > 0) {
+                            if (totalSpent > 500) {
+                              segment = 'high';
+                            } else if (customerOrders.length > 1) {
+                              segment = 'repeat';
+                            }
+                          }
+
+                          return {
+                            id: doc.id,
+                            uid: customerData.uid,
+                            firstName: customerData.firstName,
+                            lastName: customerData.lastName,
+                            email: customerData.email,
+                            phone: customerData.phone,
+                            location: customerData.location,
+                            lastLogin: customerData.lastLogin,
+                            createdAt: customerData.createdAt,
+                            receiveEmails: customerData.receiveEmails,
+                            ordersCount: customerOrders.length,
+                            totalSpent,
+                            segment
+                          };
+                        }));
+
+                        setAllCustomers(customersData);
+                      } catch (error) {
+                        console.error('Error updating customer:', error);
+                      }
+                    }}
+                    className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  >
+                    <RefreshCwIcon className="h-4 w-4 mr-2" />
+                    Update Info
                   </button>
                 </div>
               </div>
@@ -2281,11 +2462,11 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
             {/* Customer Details */}
             <div className="md:col-span-2">
               {/* Stats */}
-              <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="grid grid-cols-4 gap-4 mb-6">
                 <div className="bg-gray-50 rounded-lg p-4 text-center">
                   <p className="text-sm font-medium text-gray-500">Orders</p>
                   <p className="mt-1 text-2xl font-semibold text-gray-900">
-                    {customer.ordersCount}
+                    {customer.ordersCount || 0}
                   </p>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-4 text-center">
@@ -2293,7 +2474,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                     Total Spent
                   </p>
                   <p className="mt-1 text-2xl font-semibold text-gray-900">
-                    {customer.totalSpend}
+                    ${customer.totalSpent?.toFixed(2) || '0.00'}
                   </p>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-4 text-center">
@@ -2301,7 +2482,15 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                     Last Active
                   </p>
                   <p className="mt-1 text-2xl font-semibold text-gray-900">
-                    {new Date(customer.lastActive).toLocaleDateString()}
+                    {customer.lastLogin ? new Date(customer.lastLogin).toLocaleDateString() : 'Never'}
+                  </p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-4 text-center">
+                  <p className="text-sm font-medium text-gray-500">
+                    Segment
+                  </p>
+                  <p className="mt-1 text-2xl font-semibold text-gray-900 capitalize">
+                    {customer.segment || 'new'}
                   </p>
                 </div>
               </div>
@@ -2329,29 +2518,31 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {allOrders.filter(o => o.customer === customer.name).map(order => <tr key={order.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-700 hover:text-green-900">
-                              <a href="#" onClick={e => {
-                          e.preventDefault();
-                          setSelectedCustomer(null);
-                          setSelectedOrder(order.id);
-                          setActiveNav('orders');
-                        }}>
-                                {order.id}
-                              </a>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {new Date(order.date).toLocaleDateString()}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadgeClass(order.status)}`}>
-                                {order.status}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                              {order.total}
-                            </td>
-                          </tr>)}
+                      {customerOrders.map(order => (
+                        <tr key={order.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-700 hover:text-green-900">
+                            <a href="#" onClick={e => {
+                              e.preventDefault();
+                              setSelectedCustomer(null);
+                              setSelectedOrder(order.id);
+                              setActiveNav('orders');
+                            }}>
+                              {order.id}
+                            </a>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {new Date(order.date || Date.now()).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadgeClass(order.status || 'Pending')}`}>
+                              {order.status || 'Pending'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                            ${typeof order.total === 'number' ? order.total.toFixed(2) : '0.00'}
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
@@ -3695,13 +3886,13 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                         <div className="flex-shrink-0 h-10 w-10">
                           <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
                             <span className="text-lg font-medium text-green-700">
-                              {customer.name.charAt(0)}
+                              {customer.firstName?.charAt(0) || '?'}
                             </span>
                           </div>
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">
-                            {customer.name}
+                            {`${customer.firstName || ''} ${customer.lastName || ''}`}
                           </div>
                         </div>
                       </div>
@@ -3713,10 +3904,10 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                       {customer.ordersCount}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      {customer.totalSpend}
+                      ${customer.totalSpent?.toFixed(2) || '0.00'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      {new Date(customer.lastActive).toLocaleDateString()}
+                      {customer.lastLogin ? new Date(customer.lastLogin).toLocaleDateString() : 'Never'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {customer.segment === 'new' && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
