@@ -136,6 +136,8 @@ export const AdminDashboard = () => {
   // Pagination state for orders and customers
   const [ordersCurrentPage, setOrdersCurrentPage] = useState(1);
   const [customersCurrentPage, setCustomersCurrentPage] = useState(1);
+  // Search query for customers
+  const [customerSearchQuery, setCustomerSearchQuery] = useState('');
   // Bulk selection state for orders and products
   const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
   const [orderBulkAction, setOrderBulkAction] = useState('Bulk Actions');
@@ -1708,9 +1710,18 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
   );
 
   // Filter customers by segment
-  const filteredCustomers = customerSegmentFilter === 'all' 
+  // Apply segment filter first, then apply search query filtering (name, email, uid)
+  const filteredCustomers = (customerSegmentFilter === 'all' 
     ? allCustomers 
-    : allCustomers.filter(customer => customer.segment === customerSegmentFilter);
+    : allCustomers.filter(customer => customer.segment === customerSegmentFilter))
+    .filter(customer => {
+      const q = customerSearchQuery.trim().toLowerCase();
+      if (!q) return true;
+      const fullName = `${(customer.firstName || '').toString()} ${(customer.lastName || '').toString()}`.toLowerCase();
+      const email = (customer.email || '').toString().toLowerCase();
+      const uid = (customer.uid || '').toString().toLowerCase();
+      return fullName.includes(q) || email.includes(q) || uid.includes(q);
+    });
   // Paginated data for Customers
   const customersPageSize = 10;
   const paginatedCustomers = filteredCustomers.slice(
@@ -3834,7 +3845,14 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <SearchIcon className="h-5 w-5 text-gray-400" />
                   </div>
-                  <input type="text" className="focus:ring-green-500 focus:border-green-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md" placeholder="Search customers" />
+                  <input
+                    type="text"
+                    className="focus:ring-green-500 focus:border-green-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
+                    placeholder="Search customers"
+                    value={customerSearchQuery}
+                    onChange={e => { setCustomerSearchQuery(e.target.value); setCustomersCurrentPage(1); }}
+                    aria-label="Search customers"
+                  />
                 </div>
                 <div className="flex items-center">
                   <span className="text-sm text-gray-500 mr-2">Segment:</span>
