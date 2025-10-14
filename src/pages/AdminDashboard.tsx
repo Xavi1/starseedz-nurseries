@@ -85,7 +85,7 @@ type Order = {
 };
 import { addProduct, getAllProducts } from '../firebaseHelpers';
 import { useEffect } from 'react';
-import { collection, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, updateDoc, doc, deleteDoc, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Link } from 'react-router-dom';
 import { LayoutDashboardIcon, ShoppingBagIcon,ArrowLeftIcon, PackageIcon, UsersIcon, BarChartIcon, SettingsIcon, MenuIcon, XIcon, SearchIcon, BellIcon, ChevronDownIcon, TrendingUpIcon, ClockIcon, UserCheckIcon, DollarSignIcon, ChevronRightIcon, FilterIcon, AlertCircleIcon, PlusIcon, TagIcon, BoxIcon, CreditCardIcon, TrashIcon, EditIcon, DownloadIcon, PrinterIcon, CheckCircleIcon, UserPlusIcon, StarIcon, MessageCircleIcon, RefreshCwIcon, EyeIcon, KeyIcon, RepeatIcon, HeartIcon, TruckIcon } from 'lucide-react';
@@ -1343,6 +1343,60 @@ const handleDownloadPDF = (order: any) => {
       if (s) s.remove();
       if (container && container.parentNode) container.parentNode.removeChild(container);
     }, 500);
+  };
+
+  // Add a new customer (prompt and persist to Firestore)
+  const handleAddCustomer = async () => {
+    try {
+      const firstName = (window.prompt('First name') || '').trim();
+      if (!firstName) {
+        window.alert('First name is required');
+        return;
+      }
+      const lastName = (window.prompt('Last name') || '').trim();
+      const email = (window.prompt('Email') || '').trim();
+      if (!email) {
+        window.alert('Email is required');
+        return;
+      }
+      const phone = (window.prompt('Phone (optional)') || '').trim();
+      const location = (window.prompt('Location (optional)') || '').trim();
+      const now = new Date().toISOString();
+
+      const usersRef = collection(db, 'users');
+      const docRef = await addDoc(usersRef, {
+        firstName,
+        lastName,
+        email,
+        phone: phone || '',
+        location: location || '',
+        createdAt: now,
+        lastLogin: now,
+        receiveEmails: true,
+      });
+
+      const newCustomer = {
+        id: docRef.id,
+        uid: docRef.id,
+        firstName,
+        lastName,
+        email,
+        phone: phone || '',
+        location: location || '',
+        lastLogin: now,
+        createdAt: now,
+        receiveEmails: true,
+        ordersCount: 0,
+        totalSpent: 0,
+        segment: 'new',
+      };
+
+      setAllCustomers(prev => [newCustomer, ...prev]);
+      window.alert('Customer added successfully');
+    } catch (err) {
+      console.error('Failed to add customer:', err);
+      window.alert('Failed to add customer. See console for details.');
+    }
   };
 
   // Orders state for Orders tab
@@ -3863,7 +3917,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                     <option value="high">High Value</option>
                   </select>
                 </div>
-                <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                <button onClick={handleAddCustomer} className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                   <PlusIcon className="h-4 w-4 mr-2" />
                   Add Customer
                 </button>
