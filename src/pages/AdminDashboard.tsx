@@ -36,6 +36,7 @@ import OrderTrackingWidget from '../components/OrderTrackingWidget';
 // =============================
 import React, { useState } from 'react';
 import jsPDF from 'jspdf';
+import CustomerDetail from './AdminDashboard/Customers/CustomerDetail';
 import autoTable from 'jspdf-autotable';
 
 // Product type for all usages
@@ -118,6 +119,7 @@ export const AdminDashboard = () => {
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
+  const [editingCustomer, setEditingCustomer] = useState<any | null>(null);
   const [reportType, setReportType] = useState('sales');
   const [reportTimeframe, setReportTimeframe] = useState('month');
   const [activeSettingsTab, setActiveSettingsTab] = useState('store');
@@ -3888,6 +3890,82 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
     </>;
   // Render customers content
   const renderCustomersContent = () => <>
+      {editingCustomer && (
+        <CustomerDetail 
+          customer={editingCustomer}
+          onClose={() => setEditingCustomer(null)}
+          onSave={() => {
+            // After saving, refresh the customers list
+            setEditingCustomer(null);
+            const fetchCustomers = async () => {
+              if (activeNav !== 'customers') return;
+              
+              try {
+                // Fetch customers
+                const customersCollection = collection(db, 'users');
+                const customersSnapshot = await getDocs(customersCollection);
+                
+                // Fetch all orders
+                const ordersCollection = collection(db, 'orders');
+                const ordersSnapshot = await getDocs(ordersCollection);
+                const orders = ordersSnapshot.docs.map(doc => {
+                  const data = doc.data();
+                  return {
+                    id: doc.id,
+                    userId: data.userId,
+                    total: data.total,
+                    shippingAddress: data.shippingAddress
+                  };
+                });
+
+                const customersData = await Promise.all(customersSnapshot.docs.map(async (doc) => {
+                  const customerData = doc.data();
+                  
+                  // Get all orders for this customer
+                  const customerOrders = orders.filter(order => 
+                    order.userId === doc.id || 
+                    (order.shippingAddress && 
+                     order.shippingAddress.email === customerData.email)
+                  );
+
+                  const totalSpent = customerOrders.reduce((sum, order) => 
+                    sum + (typeof order.total === 'number' ? order.total : 0), 0);
+
+                  let segment: 'new' | 'repeat' | 'high' = 'new';
+                  if (customerOrders.length > 0) {
+                    if (totalSpent > 500) {
+                      segment = 'high';
+                    } else if (customerOrders.length > 1) {
+                      segment = 'repeat';
+                    }
+                  }
+
+                  return {
+                    id: doc.id,
+                    uid: customerData.uid,
+                    firstName: customerData.firstName,
+                    lastName: customerData.lastName,
+                    email: customerData.email,
+                    phone: customerData.phone,
+                    location: customerData.location,
+                    lastLogin: customerData.lastLogin,
+                    createdAt: customerData.createdAt,
+                    receiveEmails: customerData.receiveEmails,
+                    ordersCount: customerOrders.length,
+                    totalSpent,
+                    segment
+                  };
+                }));
+
+                setAllCustomers(customersData);
+              } catch (error) {
+                console.error('Error fetching customers:', error);
+              }
+            };
+            fetchCustomers();
+          }}
+        />
+      )}
       {selectedCustomer ? renderCustomerDetail() : <div className="bg-white shadow rounded-lg">
           <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
@@ -3997,7 +4075,10 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                         <button onClick={() => setSelectedCustomer(customer.id)} className="text-green-700 hover:text-green-900">
                           <EyeIcon className="h-5 w-5" />
                         </button>
-                        <button className="text-gray-500 hover:text-gray-700">
+                        <button 
+                          onClick={() => setEditingCustomer(customer)} 
+                          className="text-gray-500 hover:text-gray-700"
+                        >
                           <EditIcon className="h-5 w-5" />
                         </button>
                         <button className="text-gray-500 hover:text-gray-700">
