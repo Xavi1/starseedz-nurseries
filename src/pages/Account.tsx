@@ -209,8 +209,22 @@ const validateCVC = (cvc: string, cardType: string): boolean => {
     return cleanCVC.length === 3;
   }
 };
+
+//Pagination useState declarations
 const [page, setPage] = useState(1);
 const itemsPerPage = 5;
+
+// Add this function to calculate paginated data
+const getPaginatedOrders = () => {
+  const startIndex = (page - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  return orders.slice(startIndex, endIndex);
+};
+
+// Add this function to calculate total pages
+const totalPages = Math.ceil(orders.length / itemsPerPage);
+
+
 // Validate name
 const validateName = (name: string): boolean => {
   return name.trim().length >= 2 && /^[a-zA-Z\s]+$/.test(name.trim());
@@ -1129,7 +1143,7 @@ const handleLogout = async () => {
     ) : (
       <div className="bg-white border border-gray-200 rounded-md overflow-hidden">
         <ul className="divide-y divide-gray-200">
-          {orders.map(order => (
+          {getPaginatedOrders().map((order) => (
             <li key={order.id}>
               <div className="px-4 py-4 sm:px-6">
                 <div className="flex items-center justify-between">
@@ -1287,86 +1301,86 @@ const handleLogout = async () => {
         
         {/* Pagination Component */}
         <div className="px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-          <div className="flex-1 flex justify-between sm:hidden">
-            <button
-              onClick={() => setPage(page - 1)}
-              disabled={page === 1}
-              className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-                page === 1 
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              Previous
-            </button>
-            <button
-              onClick={() => setPage(page + 1)}
-              disabled={page * itemsPerPage >= orders.length}
-              className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-                page * itemsPerPage >= orders.length 
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              Next
-            </button>
-          </div>
-          <div className="hidden sm:flex-1 sm:flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-700">
-                Showing <span className="font-medium">{(page - 1) * itemsPerPage + 1}</span> to{' '}
-                <span className="font-medium">
-                  {Math.min(page * itemsPerPage, orders.length)}
-                </span> of{' '}
-                <span className="font-medium">{orders.length}</span> results
-              </p>
-            </div>
-            <div>
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                <button
-                  onClick={() => setPage(page - 1)}
-                  disabled={page === 1}
-                  className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 text-sm font-medium ${
-                    page === 1 
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                      : 'bg-white text-gray-500 hover:bg-gray-50'
-                  }`}
-                >
-                  <span className="sr-only">Previous</span>
-                  <ChevronLeftIcon className="h-5 w-5" />
-                </button>
-                
-                {/* Page numbers */}
-                {Array.from({ length: Math.ceil(orders.length / itemsPerPage) }, (_, i) => (
-                  <button
-                    key={i + 1}
-                    onClick={() => setPage(i + 1)}
-                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                      page === i + 1
-                        ? 'z-10 bg-green-50 border-green-500 text-green-600'
-                        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                    }`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
-                
-                <button
-                  onClick={() => setPage(page + 1)}
-                  disabled={page * itemsPerPage >= orders.length}
-                  className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 text-sm font-medium ${
-                    page * itemsPerPage >= orders.length 
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                      : 'bg-white text-gray-500 hover:bg-gray-50'
-                  }`}
-                >
-                  <span className="sr-only">Next</span>
-                  <ChevronRightIcon className="h-5 w-5" />
-                </button>
-              </nav>
-            </div>
-          </div>
-        </div>
+  <div className="flex-1 flex justify-between sm:hidden">
+    <button
+      onClick={() => setPage(page - 1)}
+      disabled={page === 1}
+      className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+        page === 1 
+          ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+          : 'bg-white text-gray-700 hover:bg-gray-50'
+      }`}
+    >
+      Previous
+    </button>
+    <button
+      onClick={() => setPage(page + 1)}
+      disabled={page * itemsPerPage >= orders.length}
+      className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+        page * itemsPerPage >= orders.length 
+          ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+          : 'bg-white text-gray-700 hover:bg-gray-50'
+      }`}
+    >
+      Next
+    </button>
+  </div>
+  <div className="hidden sm:flex-1 sm:flex items-center justify-between">
+    <div>
+      <p className="text-sm text-gray-700">
+        Showing <span className="font-medium">{(page - 1) * itemsPerPage + 1}</span> to{' '}
+        <span className="font-medium">
+          {Math.min(page * itemsPerPage, orders.length)}
+        </span> of{' '}
+        <span className="font-medium">{orders.length}</span> results
+      </p>
+    </div>
+    <div>
+      <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+        <button
+          onClick={() => setPage(page - 1)}
+          disabled={page === 1}
+          className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 text-sm font-medium ${
+            page === 1 
+              ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+              : 'bg-white text-gray-500 hover:bg-gray-50'
+          }`}
+        >
+          <span className="sr-only">Previous</span>
+          <ChevronLeftIcon className="h-5 w-5" />
+        </button>
+        
+        {/* Page numbers */}
+        {Array.from({ length: Math.ceil(orders.length / itemsPerPage) }, (_, i) => (
+          <button
+            key={i + 1}
+            onClick={() => setPage(i + 1)}
+            className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+              page === i + 1
+                ? 'z-10 bg-green-50 border-green-500 text-green-600'
+                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+            }`}
+          >
+            {i + 1}
+          </button>
+        ))}
+        
+        <button
+          onClick={() => setPage(page + 1)}
+          disabled={page * itemsPerPage >= orders.length}
+          className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 text-sm font-medium ${
+            page * itemsPerPage >= orders.length 
+              ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+              : 'bg-white text-gray-500 hover:bg-gray-50'
+          }`}
+        >
+          <span className="sr-only">Next</span>
+          <ChevronRightIcon className="h-5 w-5" />
+        </button>
+      </nav>
+    </div>
+  </div>
+</div>
       </div>
     )}
   </div>
