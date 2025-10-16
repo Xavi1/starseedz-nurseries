@@ -13,7 +13,7 @@ function Modal({ open, onClose, children }: { open: boolean; onClose: () => void
 import React, { useState, useEffect } from 'react';
 import { query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { Link, useNavigate } from 'react-router-dom';
-import { UserIcon, PackageIcon, CreditCardIcon, HomeIcon, BellIcon, LogOutIcon, ChevronRightIcon, PencilIcon, PlusIcon, EyeIcon, MapPinIcon, ShieldIcon, ChevronDownIcon, HeartIcon } from 'lucide-react';
+import { UserIcon, PackageIcon, CreditCardIcon, HomeIcon, BellIcon, LogOutIcon,ChevronLeftIcon, ChevronRightIcon, PencilIcon, PlusIcon, EyeIcon, MapPinIcon, ShieldIcon, ChevronDownIcon, HeartIcon } from 'lucide-react';
 import { useWishlist, WishlistProvider } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
 import { auth } from '../firebase';
@@ -209,7 +209,8 @@ const validateCVC = (cvc: string, cardType: string): boolean => {
     return cleanCVC.length === 3;
   }
 };
-
+const [page, setPage] = useState(1);
+const itemsPerPage = 5;
 // Validate name
 const validateName = (name: string): boolean => {
   return name.trim().length >= 2 && /^[a-zA-Z\s]+$/.test(name.trim());
@@ -1104,7 +1105,7 @@ const handleLogout = async () => {
   </div>
 </Modal>
               {/* Orders Tab */}
-              {activeTab === 'orders' && (
+{activeTab === 'orders' && (
   <div className="p-6">
     <div className="flex items-center justify-between mb-6">
       <h2 className="text-xl font-medium text-gray-900">Order History</h2>
@@ -1283,10 +1284,94 @@ const handleLogout = async () => {
             </li>
           ))}
         </ul>
+        
+        {/* Pagination Component */}
+        <div className="px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+          <div className="flex-1 flex justify-between sm:hidden">
+            <button
+              onClick={() => setPage(page - 1)}
+              disabled={page === 1}
+              className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                page === 1 
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                  : 'bg-white text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setPage(page + 1)}
+              disabled={page * itemsPerPage >= orders.length}
+              className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                page * itemsPerPage >= orders.length 
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                  : 'bg-white text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              Next
+            </button>
+          </div>
+          <div className="hidden sm:flex-1 sm:flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-700">
+                Showing <span className="font-medium">{(page - 1) * itemsPerPage + 1}</span> to{' '}
+                <span className="font-medium">
+                  {Math.min(page * itemsPerPage, orders.length)}
+                </span> of{' '}
+                <span className="font-medium">{orders.length}</span> results
+              </p>
+            </div>
+            <div>
+              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <button
+                  onClick={() => setPage(page - 1)}
+                  disabled={page === 1}
+                  className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 text-sm font-medium ${
+                    page === 1 
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                      : 'bg-white text-gray-500 hover:bg-gray-50'
+                  }`}
+                >
+                  <span className="sr-only">Previous</span>
+                  <ChevronLeftIcon className="h-5 w-5" />
+                </button>
+                
+                {/* Page numbers */}
+                {Array.from({ length: Math.ceil(orders.length / itemsPerPage) }, (_, i) => (
+                  <button
+                    key={i + 1}
+                    onClick={() => setPage(i + 1)}
+                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                      page === i + 1
+                        ? 'z-10 bg-green-50 border-green-500 text-green-600'
+                        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+                
+                <button
+                  onClick={() => setPage(page + 1)}
+                  disabled={page * itemsPerPage >= orders.length}
+                  className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 text-sm font-medium ${
+                    page * itemsPerPage >= orders.length 
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                      : 'bg-white text-gray-500 hover:bg-gray-50'
+                  }`}
+                >
+                  <span className="sr-only">Next</span>
+                  <ChevronRightIcon className="h-5 w-5" />
+                </button>
+              </nav>
+            </div>
+          </div>
+        </div>
       </div>
     )}
   </div>
 )}
+
               {/* My Wishlist Tab*/}
               {activeTab === 'wishlist' && <div className="p-6">
     <div className="flex items-center justify-between mb-6">
