@@ -144,7 +144,7 @@ export const AdminDashboard = () => {
   const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
   const [orderBulkAction, setOrderBulkAction] = useState('Bulk Actions');
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
-  const [productBulkAction, setProductBulkAction] = useState('Bulk Actions');
+  const [productBulkAction, setProductBulkAction] = useState('');
 
   // Select / deselect handlers for orders
   const handleSelectAllOrders = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -3794,15 +3794,15 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                   aria-label="Bulk actions"
                   disabled={selectedProductIds.length === 0}
                 >
-                  <option>Bulk Actions</option>
-                  <option>Mark as Featured</option>
-                  <option>Update Stock</option>
-                  <option>Delete Selected</option>
+                  <option value="">Bulk Actions</option>
+                  <option value="Mark as Featured">Mark as Featured</option>
+                  <option value="Update Stock">Update Stock</option>
+                  <option value="Delete Selected">Delete Selected</option>
                 </select>
                 <button
                   className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                   onClick={handleProductBulkAction}
-                  disabled={selectedProductIds.length === 0 || productBulkAction === "Bulk Actions"}
+                  disabled={selectedProductIds.length === 0 || !productBulkAction}
                 >
                   Apply
                 </button>
