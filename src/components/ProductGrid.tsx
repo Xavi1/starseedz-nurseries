@@ -33,7 +33,7 @@ export function ProductGrid() {
           const data = doc.data();
           return {
             // Convert string ID to number if needed
-            id: Number(doc.id) || Date.now(), // Fallback to timestamp if conversion fails
+            id: String(doc.id) || Date.now(), // Fallback to timestamp if conversion fails
             name: data.name || '',
             price: data.price || 0,
             image: data.image || '',
