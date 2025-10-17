@@ -86,10 +86,10 @@ type Order = {
 };
 import { addProduct, getAllProducts } from '../firebaseHelpers';
 import { useEffect } from 'react';
-import { collection, getDocs, updateDoc, doc, deleteDoc, addDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, getDocs, updateDoc, doc, deleteDoc, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Link } from 'react-router-dom';
-import { LayoutDashboardIcon, ShoppingBagIcon,ArrowLeftIcon, PackageIcon, UsersIcon, BarChartIcon, SettingsIcon, MenuIcon, XIcon, SearchIcon, BellIcon, ChevronDownIcon, TrendingUpIcon, ClockIcon, UserCheckIcon, DollarSignIcon, ChevronRightIcon, FilterIcon, AlertCircleIcon, PlusIcon, TagIcon, BoxIcon, CreditCardIcon, TrashIcon, EditIcon, DownloadIcon, PrinterIcon, CheckCircleIcon, UserPlusIcon, StarIcon, MessageCircleIcon, RefreshCwIcon, EyeIcon, KeyIcon, RepeatIcon, HeartIcon, TruckIcon } from 'lucide-react';
+import { LayoutDashboardIcon, ShoppingBagIcon, PackageIcon, UsersIcon, BarChartIcon, SettingsIcon, MenuIcon, XIcon, SearchIcon, BellIcon, ChevronDownIcon, TrendingUpIcon, ClockIcon, UserCheckIcon, DollarSignIcon, ChevronRightIcon, FilterIcon, AlertCircleIcon, PlusIcon, TagIcon, BoxIcon, CreditCardIcon, TrashIcon, EditIcon, DownloadIcon, PrinterIcon, CheckCircleIcon, UserPlusIcon, StarIcon, MessageCircleIcon, RefreshCwIcon, EyeIcon, KeyIcon, RepeatIcon, TruckIcon } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 
 export const AdminDashboard = () => {
@@ -145,7 +145,74 @@ export const AdminDashboard = () => {
   const [orderBulkAction, setOrderBulkAction] = useState('Bulk Actions');
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [productBulkAction, setProductBulkAction] = useState('');
+    // Orders state for Orders tab
+  const [allOrders, setAllOrders] = useState<any[]>([]);
+  const [allCustomers, setAllCustomers] = useState<any[]>([]);
+  const [customerOrders, setCustomerOrders] = useState<any[]>([]);
+// ==========================
+// Customer Orders State + Listener
+// ==========================
 
+
+useEffect(() => {
+  if (!selectedCustomer) {
+    setCustomerOrders([]);
+    return;
+  }
+
+
+  const customer = allCustomers.find((c) => c.id === selectedCustomer);
+  if (!customer) return;
+
+  
+
+  const ordersRef = collection(db, "orders");
+  const q = query(ordersRef, where("userId", "==", customer.id));
+
+  console.log("Listening for real-time orders of:", customer.id);
+
+  const unsubscribe = onSnapshot(
+    q,
+    (snapshot) => {
+      if (snapshot.empty) {
+        console.log("No orders found for user:", customer.id);
+        setCustomerOrders([]);
+        return;
+      }
+
+      const formatted = snapshot.docs.map((doc) => {
+        const data = doc.data();
+
+        const latestTimeline =
+          Array.isArray(data.timeline) && data.timeline.length > 0
+            ? data.timeline[data.timeline.length - 1]
+            : null;
+
+        return {
+          id: doc.id,
+          date:
+            latestTimeline?.date ||
+            data.date ||
+            (data.createdAt?.seconds
+              ? new Date(data.createdAt.seconds * 1000)
+              : null),
+          status: latestTimeline?.status || data.status || "Pending",
+          total: typeof data.total === "number" ? data.total : 0,
+          timeline: data.timeline || [],
+        };
+      });
+
+      console.log("Realtime fetched orders:", formatted);
+      setCustomerOrders(formatted);
+    },
+    (error) => {
+      console.error("Error fetching orders:", error);
+      setCustomerOrders([]);
+    }
+  );
+
+  return () => unsubscribe();
+}, [selectedCustomer, allCustomers]);
   // Select / deselect handlers for orders
   const handleSelectAllOrders = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
@@ -1401,9 +1468,7 @@ const handleDownloadPDF = (order: any) => {
     }
   };
 
-  // Orders state for Orders tab
-  const [allOrders, setAllOrders] = useState<any[]>([]);
-  const [allCustomers, setAllCustomers] = useState<any[]>([]);
+
 
   // Fetch customers and their order data from Firebase
   useEffect(() => {
@@ -2348,20 +2413,15 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
     );
   };
   // Render customer detail view
-  const renderCustomerDetail = () => {
   // =============================
   // Customer Detail View
   // =============================
-  // Renders detailed view for a selected customer
-    if (!selectedCustomer) return null;
-    const customer = allCustomers.find(c => c.id === selectedCustomer);
-    if (!customer) return null;
+ const renderCustomerDetail = () => {
+  const customer = allCustomers.find((c) => c.id === selectedCustomer);
+  if (!customer) return null;
 
     // Get customer orders and metrics
-    const customerOrders = allOrders.filter(o => 
-      o.userId === customer.id || 
-      o.shippingAddress?.email === customer.email
-    );
+const orders = customerOrders;
     return <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="px-4 py-5 border-b border-gray-200 flex justify-between items-center">
           <h3 className="text-lg leading-6 font-medium text-gray-900">
@@ -2584,32 +2644,84 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                         </th>
                       </tr>
                     </thead>
+
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {customerOrders.map(order => (
-                        <tr key={order.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-700 hover:text-green-900">
-                            <a href="#" onClick={e => {
-                              e.preventDefault();
-                              setSelectedCustomer(null);
-                              setSelectedOrder(order.id);
-                              setActiveNav('orders');
-                            }}>
-                              {order.id}
-                            </a>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {new Date(order.date || Date.now()).toLocaleDateString()}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadgeClass(order.status || 'Pending')}`}>
-                              {order.status || 'Pending'}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                            ${typeof order.total === 'number' ? order.total.toFixed(2) : '0.00'}
+                      {customerOrders.length > 0 ? (
+                        customerOrders.map((order) => {
+                          // Get the latest timeline entry
+                          const latestEntry =
+                            order.timeline && order.timeline.length > 0
+                              ? order.timeline[order.timeline.length - 1]
+                              : null;
+
+                          const status = latestEntry?.status || order.status || "Pending";
+                          const date = latestEntry?.date || null;
+                          const total = typeof order.total === "number" ? order.total : 0;
+
+                          return (
+                            <tr key={order.id} className="hover:bg-gray-50">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-700 hover:text-green-900">
+                                <a
+                                  href="#"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    setSelectedCustomer(null);
+                                    setSelectedOrder(order.id);
+                                    setActiveNav("orders");
+                                  }}
+                                >
+                                  {order.id}
+                                </a>
+                              </td>
+
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {date ? new Date(date).toLocaleDateString() : "—"}
+                              </td>
+
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span
+                                  className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadgeClass(
+                                    status
+                                  )}`}
+                                >
+                                  {status}
+                                </span>
+                              </td>
+
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                                ${total.toFixed(2)}
+                              </td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td
+                            colSpan={4}
+                            className="px-6 py-12 text-center text-sm text-gray-500"
+                          >
+                            <div className="flex flex-col items-center">
+                              <svg
+                                className="w-12 h-12 text-gray-300 mb-3"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={1}
+                                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                                />
+                              </svg>
+                              <p className="font-medium text-gray-900">No orders found</p>
+                              <p className="mt-1">
+                                This customer hasn't placed any orders yet.
+                              </p>
+                            </div>
                           </td>
                         </tr>
-                      ))}
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -5617,5 +5729,3 @@ Trinidad and Tobago" className="shadow-sm focus:ring-green-500 focus:border-gree
 };
 
 export default AdminDashboard;
-
-
