@@ -15,16 +15,24 @@ export type Product = {
 
 type ProductCardProps = {
   product: Product;
-  disableLink?: boolean; // New prop to disable internal Link
+  disableLink?: boolean;
+  onAddToCart?: (product: Product) => void; // Add callback prop
 };
 
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
-  disableLink = false
+  disableLink = false,
+  onAddToCart
 }) => {
   const categoryDisplay = Array.isArray(product.category)
     ? product.category.join(', ')
     : product.category;
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onAddToCart?.(product);
+  };
 
   const cardContent = (
     <div className="group relative bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
@@ -49,14 +57,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </div>
         )}
 
-        <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            className="bg-white p-2 rounded-full shadow hover:bg-green-50"
-            onClick={(e) => e.preventDefault()}
-          >
-            <ShoppingCartIcon className="h-5 w-5 text-green-700" />
-          </button>
-        </div>
+        {onAddToCart && (
+          <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              className="bg-white p-2 rounded-full shadow hover:bg-green-50"
+              onClick={handleAddToCart}
+            >
+              <ShoppingCartIcon className="h-5 w-5 text-green-700" />
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="p-4">
