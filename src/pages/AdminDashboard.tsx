@@ -3165,8 +3165,12 @@ const orders = customerOrders;
                         <p className="text-xs text-red-500">Low stock</p>
                       </div>
                       <button className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                          {restocking === item.id ? (
+                        <RefreshCwIcon className="h-3.5 w-3.5 animate-spin mr-1" />
+                      ) : (
                         <RefreshCwIcon className="h-3.5 w-3.5 mr-1" />
-                        Restock
+                      )}
+                      {restocking === item.id ? 'Restocking...' : 'Restock'}
                       </button>
                     </div>
                   </div>
