@@ -1,5 +1,45 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import ReactModal from 'react-modal';
+import { formatDate } from '../utils/formatDate';
+import OrderSummaryCard from '../components/OrderSummaryCard';
+import OrderTrackingWidget from '../components/OrderTrackingWidget';
+import React, { useState } from 'react';
+import jsPDF from 'jspdf';
+import CustomerDetail from './AdminDashboard/Customers/CustomerDetail';
+import autoTable from 'jspdf-autotable';
+import { addProduct, getAllProducts } from '../firebaseHelpers';
+import { useEffect } from 'react';
+import { collection, query, where, onSnapshot, getDocs, updateDoc, doc, deleteDoc, addDoc } from 'firebase/firestore';
+import { db } from '../firebase';
+import { Link } from 'react-router-dom';
+import { LayoutDashboardIcon, ShoppingBagIcon, PackageIcon, UsersIcon, BarChartIcon, SettingsIcon, MenuIcon, XIcon, SearchIcon, BellIcon, ChevronDownIcon, TrendingUpIcon, ClockIcon, UserCheckIcon, DollarSignIcon, ChevronRightIcon, FilterIcon, AlertCircleIcon, PlusIcon, TagIcon, BoxIcon, CreditCardIcon, TrashIcon, EditIcon, DownloadIcon, PrinterIcon, CheckCircleIcon, UserPlusIcon, StarIcon, MessageCircleIcon, RefreshCwIcon, EyeIcon, KeyIcon, RepeatIcon, TruckIcon } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
+
+// =============================
+// AdminDashboard.tsx
+// =============================
+// Senior Developer Notes:
+// This file implements the main admin dashboard for the e-commerce app, including navigation, analytics, orders, products, customers, reports, and settings.
+// It uses React functional components, hooks for state, and Lucide icons for UI.
+//
+// Key Concepts:
+// - React hooks for state and UI control
+// - Modular mock data for charts, tables, and detail views
+// - Conditional rendering for multi-tab navigation
+// - Inline documentation for maintainability and onboarding
+// =============================
+
+interface InventoryAlert {
+  id: string;
+  product: string;
+  sku: string;
+  stock: number;
+  threshold: number;
+  image: string;
+  category: string;
+  lastUpdated: Date;
+  status: 'low' | 'adequate' | 'out-of-stock';
+}
 
 interface Customer {
   uid: string;
@@ -15,29 +55,6 @@ interface Customer {
   segment?: 'new' | 'repeat' | 'high';
   totalSpent?: number;
 }
-import { formatDate } from '../utils/formatDate';
-import OrderSummaryCard from '../components/OrderSummaryCard';
-import OrderTrackingWidget from '../components/OrderTrackingWidget';
-
-
-
-// =============================
-// AdminDashboard.tsx
-// =============================
-// Senior Developer Notes:
-// This file implements the main admin dashboard for the e-commerce app, including navigation, analytics, orders, products, customers, reports, and settings.
-// It uses React functional components, hooks for state, and Lucide icons for UI.
-//
-// Key Concepts:
-// - React hooks for state and UI control
-// - Modular mock data for charts, tables, and detail views
-// - Conditional rendering for multi-tab navigation
-// - Inline documentation for maintainability and onboarding
-// =============================
-import React, { useState } from 'react';
-import jsPDF from 'jspdf';
-import CustomerDetail from './AdminDashboard/Customers/CustomerDetail';
-import autoTable from 'jspdf-autotable';
 
 // Product type for all usages
 type Product = {
@@ -84,13 +101,7 @@ type Order = {
   shippingMethod?: string;
   items?: any[];
 };
-import { addProduct, getAllProducts } from '../firebaseHelpers';
-import { useEffect } from 'react';
-import { collection, query, where, onSnapshot, getDocs, updateDoc, doc, deleteDoc, addDoc } from 'firebase/firestore';
-import { db } from '../firebase';
-import { Link } from 'react-router-dom';
-import { LayoutDashboardIcon, ShoppingBagIcon, PackageIcon, UsersIcon, BarChartIcon, SettingsIcon, MenuIcon, XIcon, SearchIcon, BellIcon, ChevronDownIcon, TrendingUpIcon, ClockIcon, UserCheckIcon, DollarSignIcon, ChevronRightIcon, FilterIcon, AlertCircleIcon, PlusIcon, TagIcon, BoxIcon, CreditCardIcon, TrashIcon, EditIcon, DownloadIcon, PrinterIcon, CheckCircleIcon, UserPlusIcon, StarIcon, MessageCircleIcon, RefreshCwIcon, EyeIcon, KeyIcon, RepeatIcon, TruckIcon } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
+
 
 export const AdminDashboard = () => {
   // Type for dashboard recent orders
@@ -149,7 +160,8 @@ export const AdminDashboard = () => {
   const [allOrders, setAllOrders] = useState<any[]>([]);
   const [allCustomers, setAllCustomers] = useState<any[]>([]);
   const [customerOrders, setCustomerOrders] = useState<any[]>([]);
-// ==========================
+
+  // ==========================
 // Customer Orders State + Listener
 // ==========================
 
