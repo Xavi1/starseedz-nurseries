@@ -31,12 +31,12 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 interface InventoryAlert {
   id: string;
-  product: string;
+  name: string;
   sku: string;
   stock: number;
   threshold: number;
   image: string;
-  category: string;
+  category: string[];
   lastUpdated: Date;
   status: 'low' | 'adequate' | 'out-of-stock';
 }
@@ -167,7 +167,7 @@ export const AdminDashboard: React.FC = () => {
 
     // Firebase: Real-time inventory alerts subscription
   useEffect(() => {
-    const inventoryRef = collection(db, 'inventory');
+    const inventoryRef = collection(db, 'products');
     const lowStockQuery = query(
       inventoryRef,
       where('stock', '<=', 10), // Your threshold
@@ -187,10 +187,10 @@ export const AdminDashboard: React.FC = () => {
   }, []);
 
   // Firebase: Restock item function
-  const handleRestock = async (itemId: string, currentStock: number) => {
-    setRestocking(itemId);
+  const handleRestock = async (id: string, currentStock: number) => {
+    setRestocking(id);
     try {
-      const itemRef = doc(db, 'inventory', itemId);
+      const itemRef = doc(db, 'products', id);
       const itemDoc = await getDoc(itemRef);
       
       if (itemDoc.exists()) {
@@ -3146,10 +3146,10 @@ const orders = customerOrders;
               {inventoryAlerts.map(item => <li key={item.id} className="px-4 py-4 sm:px-6 hover:bg-gray-50">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <img src={item.image} alt={item.product} className="h-10 w-10 rounded-md object-cover" />
+                      <img src={item.image} alt={item.name} className="h-10 w-10 rounded-md object-cover" />
                       <div className="ml-3">
                         <p className="text-sm font-medium text-gray-900">
-                          {item.product}
+                          {item.name}
                         </p>
                         <p className="text-xs text-gray-500">SKU: {item.sku}</p>
                       </div>
