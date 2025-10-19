@@ -9,7 +9,7 @@ import CustomerDetail from './AdminDashboard/Customers/CustomerDetail';
 import autoTable from 'jspdf-autotable';
 import { addProduct, getAllProducts } from '../firebaseHelpers';
 import { useEffect } from 'react';
-import { collection, query, where, onSnapshot,orderBy, getDocs, updateDoc, doc, deleteDoc, addDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, getDoc, getDocs, updateDoc, doc, deleteDoc, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Link } from 'react-router-dom';
 import { LayoutDashboardIcon, ShoppingBagIcon, PackageIcon, UsersIcon, BarChartIcon, SettingsIcon, MenuIcon, XIcon, SearchIcon, BellIcon, ChevronDownIcon, TrendingUpIcon, ClockIcon, UserCheckIcon, DollarSignIcon, ChevronRightIcon, FilterIcon, AlertCircleIcon, PlusIcon, TagIcon, BoxIcon, CreditCardIcon, TrashIcon, EditIcon, DownloadIcon, PrinterIcon, CheckCircleIcon, UserPlusIcon, StarIcon, MessageCircleIcon, RefreshCwIcon, EyeIcon, KeyIcon, RepeatIcon, TruckIcon } from 'lucide-react';
@@ -185,6 +185,29 @@ export const AdminDashboard = () => {
 
     return () => unsubscribe();
   }, []);
+
+  // Firebase: Restock item function
+  const handleRestock = async (itemId: string, currentStock: number) => {
+    setRestocking(itemId);
+    try {
+      const itemRef = doc(db, 'inventory', itemId);
+      const itemDoc = await getDoc(itemRef);
+      
+      if (itemDoc.exists()) {
+        const restockQuantity = 25; // Your default quantity
+        await updateDoc(itemRef, {
+          stock: currentStock + restockQuantity,
+          lastUpdated: new Date()
+        });
+        // Optional: Add success toast/notification
+      }
+    } catch (error) {
+      console.error('Failed to restock:', error);
+      // Optional: Add error toast/notification
+    } finally {
+      setRestocking(null);
+    }
+  };
 
   // ==========================
 // Customer Orders State + Listener
