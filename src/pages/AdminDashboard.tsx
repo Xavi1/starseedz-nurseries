@@ -9,7 +9,7 @@ import CustomerDetail from './AdminDashboard/Customers/CustomerDetail';
 import autoTable from 'jspdf-autotable';
 import { addProduct, getAllProducts } from '../firebaseHelpers';
 import { useEffect } from 'react';
-import { collection, query, where, onSnapshot, getDocs, updateDoc, doc, deleteDoc, addDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot,orderBy, getDocs, updateDoc, doc, deleteDoc, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Link } from 'react-router-dom';
 import { LayoutDashboardIcon, ShoppingBagIcon, PackageIcon, UsersIcon, BarChartIcon, SettingsIcon, MenuIcon, XIcon, SearchIcon, BellIcon, ChevronDownIcon, TrendingUpIcon, ClockIcon, UserCheckIcon, DollarSignIcon, ChevronRightIcon, FilterIcon, AlertCircleIcon, PlusIcon, TagIcon, BoxIcon, CreditCardIcon, TrashIcon, EditIcon, DownloadIcon, PrinterIcon, CheckCircleIcon, UserPlusIcon, StarIcon, MessageCircleIcon, RefreshCwIcon, EyeIcon, KeyIcon, RepeatIcon, TruckIcon } from 'lucide-react';
@@ -160,6 +160,31 @@ export const AdminDashboard = () => {
   const [allOrders, setAllOrders] = useState<any[]>([]);
   const [allCustomers, setAllCustomers] = useState<any[]>([]);
   const [customerOrders, setCustomerOrders] = useState<any[]>([]);
+  //Invntory Alerts
+  const [inventoryAlerts, setInventoryAlerts] = useState<InventoryAlert[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [restocking, setRestocking] = useState<string | null>(null);
+
+    // Firebase: Real-time inventory alerts subscription
+  useEffect(() => {
+    const inventoryRef = collection(db, 'inventory');
+    const lowStockQuery = query(
+      inventoryRef,
+      where('stock', '<=', 10), // Your threshold
+      orderBy('stock', 'asc')
+    );
+
+    const unsubscribe = onSnapshot(lowStockQuery, (snapshot) => {
+      const alerts: InventoryAlert[] = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as InventoryAlert));
+      setInventoryAlerts(alerts);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // ==========================
 // Customer Orders State + Listener
@@ -1151,7 +1176,7 @@ const handleDownloadPDF = (order: any) => {
     details: 'Left a 4-star review for "Snake Plant"'
   }];
   // Inventory alerts data
-  const inventoryAlerts = [{
+  /* const inventoryAlerts = [{
   // inventoryAlerts: low stock and out-of-stock alerts
     id: 1,
     product: 'Monstera Deliciosa',
@@ -1180,7 +1205,7 @@ const handleDownloadPDF = (order: any) => {
     stock: 6,
     threshold: 15,
     image: 'https://images.unsplash.com/photo-1562847961-8f766d3b8289?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80'
-  }];
+  }]; */
   // Mock data for recent orders
   // Handle CSV Export
   const handleExportCSV = (orders: any[]) => {
