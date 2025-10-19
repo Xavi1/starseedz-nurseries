@@ -103,7 +103,7 @@ type Order = {
 };
 
 
-export const AdminDashboard = () => {
+export const AdminDashboard: React.FC = () => {
   // Type for dashboard recent orders
   type DashboardOrder = {
     id: string;
