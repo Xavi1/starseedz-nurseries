@@ -3131,6 +3131,11 @@ const orders = customerOrders;
             <h3 className="text-lg leading-6 font-medium text-gray-900 flex items-center">
               <AlertCircleIcon className="h-5 w-5 text-yellow-500 mr-2" />
               Inventory Alerts
+               {inventoryAlerts.length > 0 && (
+            <span className="ml-2 bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">
+              {inventoryAlerts.length} alert(s)
+            </span>
+          )}
             </h3>
             <a href="#" className="text-sm font-medium text-green-700 hover:text-green-900">
               View all inventory
