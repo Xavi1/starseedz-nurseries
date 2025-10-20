@@ -164,6 +164,20 @@ export const AdminDashboard: React.FC = () => {
   const [inventoryAlerts, setInventoryAlerts] = useState<InventoryAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [restocking, setRestocking] = useState<string | null>(null);
+  //Custom restock modal
+  const [restockModal, setRestockModal] = useState<{
+  isOpen: boolean;
+  itemId: string | null;
+  itemName: string;
+  currentStock: number;
+  restockAmount: number;
+}>({
+  isOpen: false,
+  itemId: null,
+  itemName: '',
+  currentStock: 0,
+  restockAmount: 10 // Default amount
+});
 
     // Firebase: Real-time inventory alerts subscription
   useEffect(() => {
