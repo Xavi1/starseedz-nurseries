@@ -14,6 +14,8 @@ import { db } from '../firebase';
 import { Link } from 'react-router-dom';
 import { LayoutDashboardIcon, ShoppingBagIcon, PackageIcon, UsersIcon, BarChartIcon, SettingsIcon, MenuIcon, XIcon, SearchIcon, BellIcon, ChevronDownIcon, TrendingUpIcon, ClockIcon, UserCheckIcon, DollarSignIcon, ChevronRightIcon, FilterIcon, AlertCircleIcon, PlusIcon, TagIcon, BoxIcon, CreditCardIcon, TrashIcon, EditIcon, DownloadIcon, PrinterIcon, CheckCircleIcon, UserPlusIcon, StarIcon, MessageCircleIcon, RefreshCwIcon, EyeIcon, KeyIcon, RepeatIcon, TruckIcon } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
+import { ProductCard } from '../components/ProductCard';
+
 
 // =============================
 // AdminDashboard.tsx
@@ -201,10 +203,10 @@ export const AdminDashboard: React.FC = () => {
   }, []);
 
   // Firebase: Restock item function
-const handleRestock = async (itemId: string, itemName: string, currentStock: number, customAmount?: number) => {
+const handleRestock = async (itemId: string, name: string, currentStock: number, customAmount?: number) => {
   setRestocking(itemId);
   try {
-    const itemRef = doc(db, 'inventory', itemId);
+    const itemRef = doc(db, 'products', itemId);
     const restockQuantity = customAmount || 25; // Use custom amount or default
     
     await updateDoc(itemRef, {
@@ -222,7 +224,7 @@ const handleRestock = async (itemId: string, itemName: string, currentStock: num
     });
     
     // Optional: Add success notification
-    console.log(`Successfully restocked ${itemName} with ${restockQuantity} units`);
+    console.log(`Successfully restocked ${name} with ${restockQuantity} units`);
     
   } catch (error) {
     console.error('Failed to restock:', error);
@@ -231,7 +233,7 @@ const handleRestock = async (itemId: string, itemName: string, currentStock: num
     setRestocking(null);
   }
 };
-
+console.log('Inventory alerts data:', inventoryAlerts);
 // Open restock modal function
 const openRestockModal = (itemId: string, itemName: string, currentStock: number) => {
   setRestockModal({
@@ -3206,7 +3208,7 @@ const orders = customerOrders;
                         <p className="text-xs text-red-500">Low stock</p>
                       </div>
                       <button 
-                        onClick={() =>handleRestock(item.id,item.stock)}
+                        onClick={() => openRestockModal(item.id, item.name, item.stock)}
                         className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                           {restocking === item.id ? (
                         <RefreshCwIcon className="h-3.5 w-3.5 animate-spin mr-1" />
@@ -3220,6 +3222,67 @@ const orders = customerOrders;
                 </li>)}
             </ul>
           </div>
+          {/* Restock Modal */}
+{restockModal.isOpen && (
+  <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+      <div className="mt-3">
+        <h3 className="text-lg font-medium text-gray-900">Restock Inventory</h3>
+        <div className="mt-2">
+          <p className="text-sm text-gray-500">
+            Restocking: <strong>{restockModal.itemName}</strong>
+          </p>
+          <p className="text-sm text-gray-500">
+            Current stock: <strong>{restockModal.currentStock}</strong>
+          </p>
+          
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Restock Amount
+            </label>
+            <input
+              type="number"
+              min="1"
+              max="1000"
+              value={restockModal.restockAmount}
+              onChange={(e) => handleRestockAmountChange(Number(e.target.value))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="Enter amount"
+            />
+          </div>
+        </div>
+        
+        <div className="flex justify-end space-x-3 mt-4">
+          <button
+            onClick={() => setRestockModal(prev => ({ ...prev, isOpen: false }))}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => handleRestock(
+              restockModal.itemId!,
+              restockModal.itemName,
+              restockModal.currentStock,
+              restockModal.restockAmount
+            )}
+            disabled={restocking === restockModal.itemId || restockModal.restockAmount <= 0}
+            className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+          >
+            {restocking === restockModal.itemId ? (
+              <span className="flex items-center">
+                <RefreshCwIcon className="h-4 w-4 animate-spin mr-2" />
+                Restocking...
+              </span>
+            ) : (
+              `Restock ${restockModal.restockAmount} Units`
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
         </div>
         {/* Customer Activity Feed (NEW) */}
         <div className="bg-white shadow rounded-lg overflow-hidden">
