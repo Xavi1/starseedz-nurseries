@@ -187,7 +187,7 @@ export const AdminDashboard: React.FC = () => {
   }, []);
 
   // Firebase: Restock item function
-  const handleRestock = async (id: string, currentStock: number) => {
+  const handleRestock = async (id: string, stock: number) => {
     setRestocking(id);
     try {
       const itemRef = doc(db, 'products', id);
@@ -196,7 +196,7 @@ export const AdminDashboard: React.FC = () => {
       if (itemDoc.exists()) {
         const restockQuantity = 25; // Your default quantity
         await updateDoc(itemRef, {
-          stock: currentStock + restockQuantity,
+          stock: stock + restockQuantity,
           lastUpdated: new Date()
         });
         // Optional: Add success toast/notification
@@ -3164,7 +3164,9 @@ const orders = customerOrders;
                         </p>
                         <p className="text-xs text-red-500">Low stock</p>
                       </div>
-                      <button className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                      <button 
+                        onClick={() =>handleRestock(item.id,item.stock)}
+                        className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                           {restocking === item.id ? (
                         <RefreshCwIcon className="h-3.5 w-3.5 animate-spin mr-1" />
                       ) : (
