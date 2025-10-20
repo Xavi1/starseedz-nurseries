@@ -201,28 +201,55 @@ export const AdminDashboard: React.FC = () => {
   }, []);
 
   // Firebase: Restock item function
-  const handleRestock = async (id: string, stock: number) => {
-    setRestocking(id);
-    try {
-      const itemRef = doc(db, 'products', id);
-      const itemDoc = await getDoc(itemRef);
-      
-      if (itemDoc.exists()) {
-        const restockQuantity = 25; // Your default quantity
-        await updateDoc(itemRef, {
-          stock: stock + restockQuantity,
-          lastUpdated: new Date()
-        });
-        // Optional: Add success toast/notification
-      }
-    } catch (error) {
-      console.error('Failed to restock:', error);
-      // Optional: Add error toast/notification
-    } finally {
-      setRestocking(null);
-    }
-  };
+const handleRestock = async (itemId: string, itemName: string, currentStock: number, customAmount?: number) => {
+  setRestocking(itemId);
+  try {
+    const itemRef = doc(db, 'inventory', itemId);
+    const restockQuantity = customAmount || 25; // Use custom amount or default
+    
+    await updateDoc(itemRef, {
+      stock: currentStock + restockQuantity,
+      lastUpdated: new Date()
+    });
+    
+    // Close modal if open
+    setRestockModal({
+      isOpen: false,
+      itemId: null,
+      itemName: '',
+      currentStock: 0,
+      restockAmount: 10
+    });
+    
+    // Optional: Add success notification
+    console.log(`Successfully restocked ${itemName} with ${restockQuantity} units`);
+    
+  } catch (error) {
+    console.error('Failed to restock:', error);
+    // Optional: Add error notification
+  } finally {
+    setRestocking(null);
+  }
+};
 
+// Open restock modal function
+const openRestockModal = (itemId: string, itemName: string, currentStock: number) => {
+  setRestockModal({
+    isOpen: true,
+    itemId,
+    itemName,
+    currentStock,
+    restockAmount: 10
+  });
+};
+
+// Handle restock amount change
+const handleRestockAmountChange = (amount: number) => {
+  setRestockModal(prev => ({
+    ...prev,
+    restockAmount: amount
+  }));
+};
   // ==========================
 // Customer Orders State + Listener
 // ==========================
