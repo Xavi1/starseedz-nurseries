@@ -2965,7 +2965,12 @@ const orders = customerOrders;
           </div>
           <div className="bg-gray-50 px-5 py-3">
             <div className="text-sm">
-              <a href="#" className="font-medium text-green-700 hover:text-green-900 flex items-center">
+              <a href="#" className="font-medium text-green-700 hover:text-green-900 flex items-center"
+                onClick={(e) => {
+              e.preventDefault();
+              setActiveNav('orders');
+              setOrderStatusFilter('Order Placed');
+            }}>
                 View all
                 <ChevronRightIcon className="ml-1 h-4 w-4" />
               </a>
