@@ -3180,7 +3180,11 @@ const orders = customerOrders;
             </span>
           )}
             </h3>
-            <a href="#" className="text-sm font-medium text-green-700 hover:text-green-900">
+            <a href="#" className="text-sm font-medium text-green-700 hover:text-green-900"
+              onClick={(e) => {
+              e.preventDefault();
+              setActiveNav('products');
+            }}>
               View all inventory
             </a>
           </div>
