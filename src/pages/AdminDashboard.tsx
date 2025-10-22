@@ -2738,72 +2738,6 @@ const orders = customerOrders;
                   Order History
                 </h4>
                 
-                {/* Pagination Controls - Top */}
-                {customerOrders.length > 0 && (
-                  <div className="flex justify-between items-center mb-4">
-                    <p className="text-sm text-gray-700">
-                      Showing {((currentPage - 1) * ordersPerPage) + 1} to {Math.min(currentPage * ordersPerPage, customerOrders.length)} of {customerOrders.length} orders
-                    </p>
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                        disabled={currentPage === 1}
-                        className={`px-3 py-1 text-sm rounded-md ${
-                          currentPage === 1 
-                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                        }`}
-                      >
-                        Previous
-                      </button>
-                      
-                      {/* Page Numbers */}
-                      <div className="flex space-x-1">
-                        {Array.from({ length: Math.ceil(customerOrders.length / ordersPerPage) }, (_, i) => i + 1)
-                          .filter(page => {
-                            // Show first 2 pages, last 2 pages, and pages around current page
-                            return page === 1 || 
-                                  page === Math.ceil(customerOrders.length / ordersPerPage) ||
-                                  Math.abs(page - currentPage) <= 1;
-                          })
-                          .map((page, index, array) => {
-                            // Add ellipsis for gaps in page numbers
-                            const showEllipsis = index > 0 && page - array[index - 1] > 1;
-                            return (
-                              <React.Fragment key={page}>
-                                {showEllipsis && (
-                                  <span className="px-2 py-1 text-sm text-gray-500">...</span>
-                                )}
-                                <button
-                                  onClick={() => setCurrentPage(page)}
-                                  className={`px-3 py-1 text-sm rounded-md ${
-                                    currentPage === page
-                                      ? 'bg-blue-600 text-white'
-                                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                                  }`}
-                                >
-                                  {page}
-                                </button>
-                              </React.Fragment>
-                            );
-                          })}
-                      </div>
-                      
-                      <button
-                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(customerOrders.length / ordersPerPage)))}
-                        disabled={currentPage === Math.ceil(customerOrders.length / ordersPerPage)}
-                        className={`px-3 py-1 text-sm rounded-md ${
-                          currentPage === Math.ceil(customerOrders.length / ordersPerPage)
-                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                        }`}
-                      >
-                        Next
-                      </button>
-                    </div>
-                  </div>
-                )}
-                
                 <div className="bg-gray-50 rounded-lg overflow-hidden">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead>
@@ -2825,11 +2759,9 @@ const orders = customerOrders;
 
                     <tbody className="bg-white divide-y divide-gray-200">
                       {customerOrders.length > 0 ? (
-                        // Get current orders for the page
                         customerOrders
                           .slice((currentPage - 1) * ordersPerPage, currentPage * ordersPerPage)
                           .map((order) => {
-                            // Get the latest timeline entry
                             const latestEntry =
                               order.timeline && order.timeline.length > 0
                                 ? order.timeline[order.timeline.length - 1]
@@ -2907,66 +2839,97 @@ const orders = customerOrders;
                   </table>
                 </div>
 
-                {/* Pagination Controls - Bottom */}
+                {/* Pagination Footer */}
                 {customerOrders.length > 0 && (
-                  <div className="flex justify-between items-center mt-4">
-                    <p className="text-sm text-gray-700">
-                      Showing {((currentPage - 1) * ordersPerPage) + 1} to {Math.min(currentPage * ordersPerPage, customerOrders.length)} of {customerOrders.length} orders
-                    </p>
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                        disabled={currentPage === 1}
-                        className={`px-3 py-1 text-sm rounded-md ${
-                          currentPage === 1 
-                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                        }`}
-                      >
-                        Previous
-                      </button>
-                      
-                      {/* Page Numbers */}
-                      <div className="flex space-x-1">
-                        {Array.from({ length: Math.ceil(customerOrders.length / ordersPerPage) }, (_, i) => i + 1)
-                          .filter(page => {
-                            return page === 1 || 
-                                  page === Math.ceil(customerOrders.length / ordersPerPage) ||
-                                  Math.abs(page - currentPage) <= 1;
-                          })
-                          .map((page, index, array) => {
-                            const showEllipsis = index > 0 && page - array[index - 1] > 1;
-                            return (
-                              <React.Fragment key={page}>
-                                {showEllipsis && (
-                                  <span className="px-2 py-1 text-sm text-gray-500">...</span>
-                                )}
-                                <button
-                                  onClick={() => setCurrentPage(page)}
-                                  className={`px-3 py-1 text-sm rounded-md ${
-                                    currentPage === page
-                                      ? 'bg-blue-600 text-white'
-                                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                                  }`}
-                                >
-                                  {page}
-                                </button>
-                              </React.Fragment>
-                            );
-                          })}
+                  <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 sm:px-6">
+                    <div className="flex flex-col sm:flex-row items-center justify-between">
+                      <div className="flex items-center mb-4 sm:mb-0">
+                        <span className="text-sm text-gray-700">
+                          Showing <span className="font-medium">{(currentPage - 1) * ordersPerPage + 1}</span> to{' '}
+                          <span className="font-medium">{Math.min(currentPage * ordersPerPage, customerOrders.length)}</span> of{' '}
+                          <span className="font-medium">{customerOrders.length}</span> results
+                        </span>
                       </div>
-                      
-                      <button
-                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(customerOrders.length / ordersPerPage)))}
-                        disabled={currentPage === Math.ceil(customerOrders.length / ordersPerPage)}
-                        className={`px-3 py-1 text-sm rounded-md ${
-                          currentPage === Math.ceil(customerOrders.length / ordersPerPage)
-                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                        }`}
-                      >
-                        Next
-                      </button>
+                      <div className="flex items-center">
+                        {(() => {
+                          const totalOrders = customerOrders.length;
+                          const totalPages = Math.ceil(totalOrders / ordersPerPage) || 1;
+                          let pageNumbers = [];
+                          
+                          if (totalPages <= 5) {
+                            pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+                          } else {
+                            if (currentPage <= 3) {
+                              pageNumbers = [1, 2, 3, 4, '...', totalPages];
+                            } else if (currentPage >= totalPages - 2) {
+                              pageNumbers = [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+                            } else {
+                              pageNumbers = [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
+                            }
+                          }
+                          
+                          return (
+                            <>
+                              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                <button
+                                  type="button"
+                                  className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
+                                    currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'
+                                  }`}
+                                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                  disabled={currentPage === 1}
+                                  aria-label="Previous"
+                                >
+                                  <span className="sr-only">Previous</span>
+                                  <svg className="h-5 w-5 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                  </svg>
+                                </button>
+                                
+                                {pageNumbers.map((num, idx) =>
+                                  typeof num === 'number' ? (
+                                    <button
+                                      key={num}
+                                      type="button"
+                                      className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium ${
+                                        num === currentPage 
+                                          ? 'bg-green-50 text-green-700 border-green-500 z-10' 
+                                          : 'bg-white text-gray-700 hover:bg-gray-50'
+                                      }`}
+                                      onClick={() => setCurrentPage(num)}
+                                      aria-current={num === currentPage ? 'page' : undefined}
+                                    >
+                                      {num}
+                                    </button>
+                                  ) : (
+                                    <span 
+                                      key={idx} 
+                                      className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-400 select-none"
+                                    >
+                                      …
+                                    </span>
+                                  )
+                                )}
+                                
+                                <button
+                                  type="button"
+                                  className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
+                                    currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'
+                                  }`}
+                                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                  disabled={currentPage === totalPages}
+                                  aria-label="Next"
+                                >
+                                  <span className="sr-only">Next</span>
+                                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                  </svg>
+                                </button>
+                              </nav>
+                            </>
+                          );
+                        })()}
+                      </div>
                     </div>
                   </div>
                 )}
