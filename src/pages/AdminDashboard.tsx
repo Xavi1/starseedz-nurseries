@@ -181,6 +181,8 @@ export const AdminDashboard: React.FC = () => {
   restockAmount: 10 // Default amount
 });
 
+// Pagination state
+const [ordersPerPage, setOrdersPerPage] = useState(10);
     // Firebase: Real-time inventory alerts subscription
   useEffect(() => {
     const inventoryRef = collection(db, 'products');
