@@ -182,7 +182,7 @@ export const AdminDashboard: React.FC = () => {
 });
 
 // Pagination state for Customer Ordrer Detail Render
-const [ordersPerPage, setOrdersPerPage] = useState(10);
+const [ordersPerPage, setOrdersPerPage] = useState(5);
 
 useEffect(() => {
   // Reset to first page when customer orders change
@@ -2737,6 +2737,73 @@ const orders = customerOrders;
                 <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
                   Order History
                 </h4>
+                
+                {/* Pagination Controls - Top */}
+                {customerOrders.length > 0 && (
+                  <div className="flex justify-between items-center mb-4">
+                    <p className="text-sm text-gray-700">
+                      Showing {((currentPage - 1) * ordersPerPage) + 1} to {Math.min(currentPage * ordersPerPage, customerOrders.length)} of {customerOrders.length} orders
+                    </p>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className={`px-3 py-1 text-sm rounded-md ${
+                          currentPage === 1 
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        Previous
+                      </button>
+                      
+                      {/* Page Numbers */}
+                      <div className="flex space-x-1">
+                        {Array.from({ length: Math.ceil(customerOrders.length / ordersPerPage) }, (_, i) => i + 1)
+                          .filter(page => {
+                            // Show first 2 pages, last 2 pages, and pages around current page
+                            return page === 1 || 
+                                  page === Math.ceil(customerOrders.length / ordersPerPage) ||
+                                  Math.abs(page - currentPage) <= 1;
+                          })
+                          .map((page, index, array) => {
+                            // Add ellipsis for gaps in page numbers
+                            const showEllipsis = index > 0 && page - array[index - 1] > 1;
+                            return (
+                              <React.Fragment key={page}>
+                                {showEllipsis && (
+                                  <span className="px-2 py-1 text-sm text-gray-500">...</span>
+                                )}
+                                <button
+                                  onClick={() => setCurrentPage(page)}
+                                  className={`px-3 py-1 text-sm rounded-md ${
+                                    currentPage === page
+                                      ? 'bg-blue-600 text-white'
+                                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                                  }`}
+                                >
+                                  {page}
+                                </button>
+                              </React.Fragment>
+                            );
+                          })}
+                      </div>
+                      
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(customerOrders.length / ordersPerPage)))}
+                        disabled={currentPage === Math.ceil(customerOrders.length / ordersPerPage)}
+                        className={`px-3 py-1 text-sm rounded-md ${
+                          currentPage === Math.ceil(customerOrders.length / ordersPerPage)
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
                 <div className="bg-gray-50 rounded-lg overflow-hidden">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead>
@@ -2758,53 +2825,56 @@ const orders = customerOrders;
 
                     <tbody className="bg-white divide-y divide-gray-200">
                       {customerOrders.length > 0 ? (
-                        customerOrders.map((order) => {
-                          // Get the latest timeline entry
-                          const latestEntry =
-                            order.timeline && order.timeline.length > 0
-                              ? order.timeline[order.timeline.length - 1]
-                              : null;
+                        // Get current orders for the page
+                        customerOrders
+                          .slice((currentPage - 1) * ordersPerPage, currentPage * ordersPerPage)
+                          .map((order) => {
+                            // Get the latest timeline entry
+                            const latestEntry =
+                              order.timeline && order.timeline.length > 0
+                                ? order.timeline[order.timeline.length - 1]
+                                : null;
 
-                          const status = latestEntry?.status || order.status || "Pending";
-                          const date = latestEntry?.date || null;
-                          const total = typeof order.total === "number" ? order.total : 0;
+                            const status = latestEntry?.status || order.status || "Pending";
+                            const date = latestEntry?.date || null;
+                            const total = typeof order.total === "number" ? order.total : 0;
 
-                          return (
-                            <tr key={order.id} className="hover:bg-gray-50">
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-700 hover:text-green-900">
-                                <a
-                                  href="#"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    setSelectedCustomer(null);
-                                    setSelectedOrder(order.id);
-                                    setActiveNav("orders");
-                                  }}
-                                >
-                                  {order.id}
-                                </a>
-                              </td>
+                            return (
+                              <tr key={order.id} className="hover:bg-gray-50">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-700 hover:text-green-900">
+                                  <a
+                                    href="#"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      setSelectedCustomer(null);
+                                      setSelectedOrder(order.id);
+                                      setActiveNav("orders");
+                                    }}
+                                  >
+                                    {order.id}
+                                  </a>
+                                </td>
 
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {date ? new Date(date).toLocaleDateString() : "—"}
-                              </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  {date ? new Date(date).toLocaleDateString() : "—"}
+                                </td>
 
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span
-                                  className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadgeClass(
-                                    status
-                                  )}`}
-                                >
-                                  {status}
-                                </span>
-                              </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span
+                                    className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadgeClass(
+                                      status
+                                    )}`}
+                                  >
+                                    {status}
+                                  </span>
+                                </td>
 
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                                ${total.toFixed(2)}
-                              </td>
-                            </tr>
-                          );
-                        })
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                                  ${total.toFixed(2)}
+                                </td>
+                              </tr>
+                            );
+                          })
                       ) : (
                         <tr>
                           <td
@@ -2836,6 +2906,70 @@ const orders = customerOrders;
                     </tbody>
                   </table>
                 </div>
+
+                {/* Pagination Controls - Bottom */}
+                {customerOrders.length > 0 && (
+                  <div className="flex justify-between items-center mt-4">
+                    <p className="text-sm text-gray-700">
+                      Showing {((currentPage - 1) * ordersPerPage) + 1} to {Math.min(currentPage * ordersPerPage, customerOrders.length)} of {customerOrders.length} orders
+                    </p>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className={`px-3 py-1 text-sm rounded-md ${
+                          currentPage === 1 
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        Previous
+                      </button>
+                      
+                      {/* Page Numbers */}
+                      <div className="flex space-x-1">
+                        {Array.from({ length: Math.ceil(customerOrders.length / ordersPerPage) }, (_, i) => i + 1)
+                          .filter(page => {
+                            return page === 1 || 
+                                  page === Math.ceil(customerOrders.length / ordersPerPage) ||
+                                  Math.abs(page - currentPage) <= 1;
+                          })
+                          .map((page, index, array) => {
+                            const showEllipsis = index > 0 && page - array[index - 1] > 1;
+                            return (
+                              <React.Fragment key={page}>
+                                {showEllipsis && (
+                                  <span className="px-2 py-1 text-sm text-gray-500">...</span>
+                                )}
+                                <button
+                                  onClick={() => setCurrentPage(page)}
+                                  className={`px-3 py-1 text-sm rounded-md ${
+                                    currentPage === page
+                                      ? 'bg-blue-600 text-white'
+                                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                                  }`}
+                                >
+                                  {page}
+                                </button>
+                              </React.Fragment>
+                            );
+                          })}
+                      </div>
+                      
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(customerOrders.length / ordersPerPage)))}
+                        disabled={currentPage === Math.ceil(customerOrders.length / ordersPerPage)}
+                        className={`px-3 py-1 text-sm rounded-md ${
+                          currentPage === Math.ceil(customerOrders.length / ordersPerPage)
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
               {/* Activity Timeline */}
               <div>
