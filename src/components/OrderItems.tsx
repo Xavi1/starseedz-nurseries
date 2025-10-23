@@ -11,10 +11,10 @@ interface OrderItem {
 }
 
 interface OrderItemsProps {
-  orderId: string;
+  orderNumber: string;
 }
 
-export default function OrderItems({ orderId }: OrderItemsProps) {
+export default function OrderItems({ orderNumber }: OrderItemsProps) {
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,16 +25,20 @@ export default function OrderItems({ orderId }: OrderItemsProps) {
         setLoading(true);
         setError(null);
         
-        if (!orderId) {
-          setError('No order ID provided');
+        if (!orderNumber) {
+          setError('No order number provided');
           setLoading(false);
           return;
         }
 
-        const orderRef = doc(db, 'orders', orderId);
-        const orderDoc = await getDoc(orderRef);
+        // Query orders collection where orderNumber field matches
+        const ordersRef = collection(db, 'orders');
+        const q = query(ordersRef, where('orderNumber', '==', orderNumber));
+        const querySnapshot = await getDocs(q);
         
-        if (orderDoc.exists()) {
+        if (!querySnapshot.empty) {
+          // Get the first matching order
+          const orderDoc = querySnapshot.docs[0];
           const orderData = orderDoc.data();
           const items = orderData?.items || [];
           setOrderItems(items);
@@ -51,8 +55,9 @@ export default function OrderItems({ orderId }: OrderItemsProps) {
     };
 
     fetchOrderItems();
-  }, [orderId]);
+  }, [orderNumber]);
 
+  // ... rest of your component remains the same
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
