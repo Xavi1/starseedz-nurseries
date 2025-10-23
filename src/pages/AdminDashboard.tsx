@@ -42,6 +42,18 @@ interface InventoryAlert {
   lastUpdated: Date;
   status: 'low' | 'adequate' | 'out-of-stock';
 }
+// Define TypeScript interfaces
+interface OrderItem {
+  id?: string;
+  productName?: string;
+  name?: string;
+  price: number;
+  quantity: number;
+}
+
+interface OrderItemsProps {
+  orderId: string;
+}
 
 interface Customer {
   uid: string;
@@ -162,10 +174,51 @@ export const AdminDashboard: React.FC = () => {
   const [allOrders, setAllOrders] = useState<any[]>([]);
   const [allCustomers, setAllCustomers] = useState<any[]>([]);
   const [customerOrders, setCustomerOrders] = useState<any[]>([]);
-  //Invntory Alerts
+  //Inventory Alerts
   const [inventoryAlerts, setInventoryAlerts] = useState<InventoryAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [restocking, setRestocking] = useState<string | null>(null);
+
+/* //Order Items
+const OrderItems: React.FC<OrderItemsProps> = ({ orderId }) => {
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchOrderItems = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        if (!orderId) {
+          setError('No order ID provided');
+          setLoading(false);
+          return;
+        }
+
+        const orderRef = doc(db, 'orders', orderId);
+        const orderDoc = await getDoc(orderRef);
+        
+        if (orderDoc.exists()) {
+          const orderData = orderDoc.data();
+          // Assuming your order document has an 'items' array field
+          const items = orderData?.items || [];
+          setOrderItems(items);
+        } else {
+          setError('Order not found');
+        }
+        
+      } catch (err) {
+        console.error('Error fetching order items:', err);
+        setError('Failed to load order items');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrderItems();
+  }, [orderId]); */
   //Custom restock modal
   const [restockModal, setRestockModal] = useState<{
   isOpen: boolean;
