@@ -219,6 +219,7 @@ const OrderItems: React.FC<OrderItemsProps> = ({ orderId }) => {
 
     fetchOrderItems();
   }, [orderId]); */
+  
   //Custom restock modal
   const [restockModal, setRestockModal] = useState<{
   isOpen: boolean;
