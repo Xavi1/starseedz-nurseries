@@ -2356,8 +2356,8 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                     Category
                   </h4>
                   <p className="mt-1 text-sm text-gray-900">
-+                    {Array.isArray(product.category) ? product.category.join(', ') : product.category}
-+                  </p>
+                    {Array.isArray(product.category) ? product.category.join(', ') : product.category}
+                  </p>
                 </div>
                 <div>
                   <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
