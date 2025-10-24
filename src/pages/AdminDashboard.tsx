@@ -1377,7 +1377,7 @@ const handleDownloadPDF = (order: any) => {
   };
 
   // Print an individual order invoice
-const handlePrintInvoice = (order: any) => {
+    const handlePrintInvoice = (order: any) => {
     // Create container
     const container = document.createElement('div');
     container.className = 'print-only-container';
@@ -1385,6 +1385,8 @@ const handlePrintInvoice = (order: any) => {
 
     // Safely extract and calculate items
     const items = order.items || [];
+    console.log('Full order object:', order);
+    console.log('Order items:', order.items);
     
     // Calculate subtotal from items if available, otherwise use order total
     let subtotal = 0;
