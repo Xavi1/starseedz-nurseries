@@ -45,11 +45,25 @@ interface InventoryAlert {
 }
 // Define TypeScript interfaces
 interface OrderItem {
-  id?: string;
-  productName?: string;
-  name?: string;
+  id: string;
+  name: string;
   price: number;
   quantity: number;
+  image?: string;
+  category?: string;
+}
+
+interface FullOrder {
+  id: string;
+  orderNumber?: string;
+  date?: any;
+  total?: number;
+  status?: string;
+  items?: OrderItem[];
+  shippingAddress?: any;
+  billingAddress?: any;
+  paymentMethod?: string;
+  [key: string]: any;
 }
 
 interface OrderItemsProps {
@@ -1377,76 +1391,90 @@ const handleDownloadPDF = (order: any) => {
   };
 
   // Print an individual order invoice
-const handlePrintInvoice = (order: any) => {
-    // Debug: Log the entire order structure to confirm items array
-    console.log('Full order structure:', order);
-    console.log('Items array:', order.items);
-    console.log('Full order structure:', JSON.stringify(order, null, 2));
+const handlePrintInvoice = async (order: { id: string }) => {
+  try {
+    // 🔹 Step 1: Fetch full order data
+    console.log("Fetching full order from Firestore for ID:", order.id);
 
-    // Create container
-    const container = document.createElement('div');
-    container.className = 'print-only-container';
-    container.setAttribute('aria-hidden', 'true');
+    const orderRef = doc(collection(db, "orders"), order.id);
+    const orderSnap = await getDoc(orderRef);
 
-    // Extract items from items array
-    let items = [];
-    
-    if (order.items && Array.isArray(order.items)) {
-        items = order.items;
-        console.log('Found items at: order.items', items);
-    } else {
-        console.log('No items array found in order. Available arrays:', 
-            Object.keys(order).filter(key => Array.isArray(order[key])));
+    if (!orderSnap.exists()) {
+      console.error("Order not found in Firestore:", order.id);
+      alert("Order not found or may have been deleted.");
+      return;
     }
 
-    console.log('Final items array for invoice:', items);
+    const fullOrder = { id: orderSnap.id, ...orderSnap.data() } as FullOrder;
+    console.log("✅ Full order fetched:", fullOrder);
 
-    // Calculate subtotal from items if available, otherwise use order total
-    let subtotal = 0;
-    if (items.length > 0) {
-        subtotal = items.reduce((sum: number, item: any) => {
-            const price = typeof item.price === 'number' ? item.price : parseFloat(String(item.price || 0));
-            const quantity = item.quantity || item.qty || 1;
-            return sum + (price * quantity);
-        }, 0);
-    } else {
-        // Fallback to order total if no items array
-        subtotal = typeof order.total === 'number' ? order.total : 
-                  typeof order.amount === 'number' ? order.amount :
-                  parseFloat(String(order.total || order.amount || 0).replace('$', ''));
+    // 🔹 Step 2: Safely access items
+    const items = Array.isArray(fullOrder.items) ? fullOrder.items : [];
+
+    if (items.length === 0) {
+      console.warn("⚠️ No items found in order. Keys:", Object.keys(fullOrder));
     }
 
-    const shipping = 5.00;
+    // 🔹 Step 3: Calculate totals
+    const subtotal =
+      items.length > 0
+        ? items.reduce((sum, item) => {
+            const price =
+              typeof item.price === "number"
+                ? item.price
+                : parseFloat(String(item.price || 0));
+            const quantity = item.quantity || 1;
+            return sum + price * quantity;
+          }, 0)
+        : typeof fullOrder.total === "number"
+        ? fullOrder.total
+        : parseFloat(String(fullOrder.total || 0).replace("$", ""));
+
+    const shipping = 5.0;
     const tax = subtotal * 0.08;
     const total = subtotal + shipping + tax;
 
-    // Generate items HTML with safe property access
-    const itemsHTML = items.map((item: any) => {
-        const name = item.name || item.productName || item.title || 'Unnamed Product';
-        const price = typeof item.price === 'number' ? item.price : parseFloat(String(item.price || 0));
-        const quantity = item.quantity || item.qty || 1;
-        const itemTotal = price * quantity;
+    // 🔹 Step 4: Build invoice HTML
+    const itemsHTML = items.length
+      ? items
+          .map((item) => {
+            const name = item.name || "Unnamed Product";
+            const price =
+              typeof item.price === "number"
+                ? item.price
+                : parseFloat(String(item.price || 0));
+            const quantity = item.quantity || 1;
+            const itemTotal = price * quantity;
 
-        return `
-            <tr>
+            return `
+              <tr>
                 <td style="border:1px solid #e5e7eb; padding:12px;">${name}</td>
                 <td style="border:1px solid #e5e7eb; padding:12px; text-align:right;">${quantity}</td>
                 <td style="border:1px solid #e5e7eb; padding:12px; text-align:right;">$${price.toFixed(2)}</td>
                 <td style="border:1px solid #e5e7eb; padding:12px; text-align:right;">$${itemTotal.toFixed(2)}</td>
-            </tr>
-        `;
-    }).join('');
-
-    // If no items, show a message
-    const tableBody = items.length > 0 ? itemsHTML : `
-        <tr>
+              </tr>
+            `;
+          })
+          .join("")
+      : `
+          <tr>
             <td colspan="4" style="border:1px solid #e5e7eb; padding:12px; text-align:center;">
-                No items found in order. Check console for order structure.
+              No items found in order. Check console for structure.
             </td>
-        </tr>
-    `;
+          </tr>
+        `;
 
-    // Format invoice content with company branding
+    // 🔹 Step 5: Create container
+    const container = document.createElement("div");
+    container.className = "print-only-container";
+    container.setAttribute("aria-hidden", "true");
+
+    const formatDate = (date: any) => {
+      if (!date) return "Unknown";
+      const d = date.seconds ? new Date(date.seconds * 1000) : new Date(date);
+      return d.toLocaleDateString();
+    };
+
     const content = `
       <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial; padding:20px; max-width:800px; margin:0 auto;">
         <div style="text-align:center; margin-bottom:30px;">
@@ -1458,14 +1486,13 @@ const handlePrintInvoice = (order: any) => {
         <div style="display:flex; justify-content:space-between; margin-bottom:30px;">
           <div>
             <h2 style="margin:0 0 10px; color:#111827; font-size:20px;">INVOICE</h2>
-            <p style="margin:0; color:#374151;">Order #: ${order.id || order.orderId || order.orderNumber || 'N/A'}</p>
-            <p style="margin:5px 0; color:#374151;">Date: ${formatDate(order.date || order.createdAt || order.orderDate || new Date())}</p>
+            <p style="margin:0; color:#374151;">Order #: ${fullOrder.id}</p>
+            <p style="margin:5px 0; color:#374151;">Date: ${formatDate(fullOrder.date || fullOrder.createdAt)}</p>
           </div>
           <div style="text-align:right;">
             <h3 style="margin:0 0 10px; color:#111827;">Bill To:</h3>
-            <p style="margin:0; color:#374151;">${order.customer || order.customerName || order.userName || 'Customer'}</p>
-            <p style="margin:5px 0; color:#374151;">123 Main Street</p>
-            <p style="margin:5px 0; color:#374151;">Portland, OR 97201</p>
+            <p style="margin:0; color:#374151;">${fullOrder.shippingAddress?.firstName || "Customer"} ${fullOrder.shippingAddress?.lastName || ""}</p>
+            <p style="margin:5px 0; color:#374151;">${fullOrder.shippingAddress?.address || "123 Main Street"}</p>
           </div>
         </div>
 
@@ -1478,9 +1505,7 @@ const handlePrintInvoice = (order: any) => {
               <th style="border:1px solid #e5e7eb; padding:12px; text-align:right; background:#f9fafb;">Total</th>
             </tr>
           </thead>
-          <tbody>
-            ${tableBody}
-          </tbody>
+          <tbody>${itemsHTML}</tbody>
         </table>
 
         <div style="display:flex; justify-content:flex-end;">
@@ -1506,45 +1531,42 @@ const handlePrintInvoice = (order: any) => {
 
         <div style="margin-top:40px; padding-top:20px; border-top:1px solid #e5e7eb; text-align:center;">
           <p style="margin:0; color:#374151;">Thank you for your business!</p>
-          <p style="margin:5px 0; color:#374151;">Payment processed via ${order.paymentMethod || 'Unknown'}</p>
+          <p style="margin:5px 0; color:#374151;">Payment processed via ${fullOrder.paymentMethod || "Unknown"}</p>
         </div>
       </div>
     `;
 
     container.innerHTML = content;
 
-    // Create print-only style
-    const style = document.createElement('style');
-    style.type = 'text/css';
-    style.id = 'print-only-style';
-    style.appendChild(document.createTextNode(`
-      @media print {
-        body * { visibility: hidden !important; }
-        .print-only-container, .print-only-container * { visibility: visible !important; }
-        .print-only-container { position: absolute; left: 0; top: 0; width: 100%; }
-      }
-      /* Keep container hidden on screen */
-      .print-only-container { display: none; }
-      @media print { .print-only-container { display: block; } }
-    `));
+    // 🔹 Step 6: Print styling
+    const style = document.createElement("style");
+    style.type = "text/css";
+    style.id = "print-only-style";
+    style.appendChild(
+      document.createTextNode(`
+        @media print {
+          body * { visibility: hidden !important; }
+          .print-only-container, .print-only-container * { visibility: visible !important; }
+          .print-only-container { position: absolute; left: 0; top: 0; width: 100%; }
+        }
+        .print-only-container { display: none; }
+        @media print { .print-only-container { display: block; } }
+      `)
+    );
 
     document.body.appendChild(style);
     document.body.appendChild(container);
 
-    // Trigger print
-    try {
-      window.print();
-    } catch (err) {
-      console.error('Print failed:', err);
-      window.alert('Print failed: ' + String(err));
-    }
+    window.print();
 
-    // Cleanup after print dialog
     setTimeout(() => {
-      const s = document.getElementById('print-only-style');
-      if (s) s.remove();
-      if (container && container.parentNode) container.parentNode.removeChild(container);
+      document.getElementById("print-only-style")?.remove();
+      container.remove();
     }, 500);
+  } catch (err) {
+    console.error("❌ Error printing invoice:", err);
+    alert("Failed to print invoice. Check console for details.");
+  }
 };
   // Print orders: render a temporary print-only container in-page and call window.print()
   // This avoids popup blockers by not opening a new window.
