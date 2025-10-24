@@ -1377,17 +1377,57 @@ const handleDownloadPDF = (order: any) => {
   };
 
   // Print an individual order invoice
-  const handlePrintInvoice = (order: any) => {
+const handlePrintInvoice = (order: any) => {
     // Create container
     const container = document.createElement('div');
     container.className = 'print-only-container';
     container.setAttribute('aria-hidden', 'true');
 
-    // Calculate totals
-    const subtotal = typeof order.total === 'number' ? order.total : parseFloat(String(order.total).replace('$', ''));
+    // Safely extract and calculate items
+    const items = order.items || [];
+    
+    // Calculate subtotal from items if available, otherwise use order total
+    let subtotal = 0;
+    if (items.length > 0) {
+        subtotal = items.reduce((sum: number, item: any) => {
+            const price = typeof item.price === 'number' ? item.price : parseFloat(String(item.price).replace('$', ''));
+            const quantity = item.quantity || 1;
+            return sum + (price * quantity);
+        }, 0);
+    } else {
+        // Fallback to order total if no items array
+        subtotal = typeof order.total === 'number' ? order.total : parseFloat(String(order.total).replace('$', ''));
+    }
+
     const shipping = 5.00;
     const tax = subtotal * 0.08;
     const total = subtotal + shipping + tax;
+
+    // Generate items HTML with safe property access
+    const itemsHTML = items.map((item: any) => {
+        const name = item.name || item.productName || 'Unnamed Product';
+        const price = typeof item.price === 'number' ? item.price : parseFloat(String(item.price || 0));
+        const quantity = item.quantity || 1;
+        const itemTotal = price * quantity;
+
+        return `
+            <tr>
+                <td style="border:1px solid #e5e7eb; padding:12px;">${name}</td>
+                <td style="border:1px solid #e5e7eb; padding:12px; text-align:right;">${quantity}</td>
+                <td style="border:1px solid #e5e7eb; padding:12px; text-align:right;">$${price.toFixed(2)}</td>
+                <td style="border:1px solid #e5e7eb; padding:12px; text-align:right;">$${itemTotal.toFixed(2)}</td>
+            </tr>
+        `;
+    }).join('');
+
+    // If no items, show a message
+    const tableBody = items.length > 0 ? itemsHTML : `
+        <tr>
+            <td colspan="4" style="border:1px solid #e5e7eb; padding:12px; text-align:center;">
+                No items found in this order
+            </td>
+        </tr>
+    `;
 
     // Format invoice content with company branding
     const content = `
@@ -1401,12 +1441,12 @@ const handleDownloadPDF = (order: any) => {
         <div style="display:flex; justify-content:space-between; margin-bottom:30px;">
           <div>
             <h2 style="margin:0 0 10px; color:#111827; font-size:20px;">INVOICE</h2>
-            <p style="margin:0; color:#374151;">Order #: ${order.id}</p>
-            <p style="margin:5px 0; color:#374151;">Date: ${formatDate(order.date)}</p>
+            <p style="margin:0; color:#374151;">Order #: ${order.id || order.orderId || 'N/A'}</p>
+            <p style="margin:5px 0; color:#374151;">Date: ${formatDate(order.date || order.createdAt || new Date())}</p>
           </div>
           <div style="text-align:right;">
             <h3 style="margin:0 0 10px; color:#111827;">Bill To:</h3>
-            <p style="margin:0; color:#374151;">${order.customer}</p>
+            <p style="margin:0; color:#374151;">${order.customer || order.customerName || 'Customer'}</p>
             <p style="margin:5px 0; color:#374151;">123 Main Street</p>
             <p style="margin:5px 0; color:#374151;">Portland, OR 97201</p>
           </div>
@@ -1422,14 +1462,7 @@ const handleDownloadPDF = (order: any) => {
             </tr>
           </thead>
           <tbody>
-            ${(order.items || []).map((item: any) => `
-              <tr>
-                <td style="border:1px solid #e5e7eb; padding:12px;">${item.name}</td>
-                <td style="border:1px solid #e5e7eb; padding:12px; text-align:right;">${item.quantity}</td>
-                <td style="border:1px solid #e5e7eb; padding:12px; text-align:right;">$${item.price.toFixed(2)}</td>
-                <td style="border:1px solid #e5e7eb; padding:12px; text-align:right;">$${(item.quantity * item.price).toFixed(2)}</td>
-              </tr>
-            `).join('')}
+            ${tableBody}
           </tbody>
         </table>
 
@@ -1456,7 +1489,7 @@ const handleDownloadPDF = (order: any) => {
 
         <div style="margin-top:40px; padding-top:20px; border-top:1px solid #e5e7eb; text-align:center;">
           <p style="margin:0; color:#374151;">Thank you for your business!</p>
-          <p style="margin:5px 0; color:#374151;">Payment processed via ${order.paymentMethod}</p>
+          <p style="margin:5px 0; color:#374151;">Payment processed via ${order.paymentMethod || 'Unknown'}</p>
         </div>
       </div>
     `;
@@ -1495,8 +1528,7 @@ const handleDownloadPDF = (order: any) => {
       if (s) s.remove();
       if (container && container.parentNode) container.parentNode.removeChild(container);
     }, 500);
-  };
-
+};
   // Print orders: render a temporary print-only container in-page and call window.print()
   // This avoids popup blockers by not opening a new window.
   const handlePrintOrders = (orders: any[]) => {
