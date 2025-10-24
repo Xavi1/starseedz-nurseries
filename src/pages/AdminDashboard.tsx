@@ -1377,28 +1377,43 @@ const handleDownloadPDF = (order: any) => {
   };
 
   // Print an individual order invoice
-    const handlePrintInvoice = (order: any) => {
+const handlePrintInvoice = (order: any) => {
+    // Debug: Log the entire order structure to confirm items array
+    console.log('Full order structure:', order);
+    console.log('Items array:', order.items);
+    console.log('Full order structure:', JSON.stringify(order, null, 2));
+
     // Create container
     const container = document.createElement('div');
     container.className = 'print-only-container';
     container.setAttribute('aria-hidden', 'true');
 
-    // Safely extract and calculate items
-    const items = order.items || [];
-    console.log('Full order object:', order);
-    console.log('Order items:', order.items);
+    // Extract items from items array
+    let items = [];
     
+    if (order.items && Array.isArray(order.items)) {
+        items = order.items;
+        console.log('Found items at: order.items', items);
+    } else {
+        console.log('No items array found in order. Available arrays:', 
+            Object.keys(order).filter(key => Array.isArray(order[key])));
+    }
+
+    console.log('Final items array for invoice:', items);
+
     // Calculate subtotal from items if available, otherwise use order total
     let subtotal = 0;
     if (items.length > 0) {
         subtotal = items.reduce((sum: number, item: any) => {
-            const price = typeof item.price === 'number' ? item.price : parseFloat(String(item.price).replace('$', ''));
-            const quantity = item.quantity || 1;
+            const price = typeof item.price === 'number' ? item.price : parseFloat(String(item.price || 0));
+            const quantity = item.quantity || item.qty || 1;
             return sum + (price * quantity);
         }, 0);
     } else {
         // Fallback to order total if no items array
-        subtotal = typeof order.total === 'number' ? order.total : parseFloat(String(order.total).replace('$', ''));
+        subtotal = typeof order.total === 'number' ? order.total : 
+                  typeof order.amount === 'number' ? order.amount :
+                  parseFloat(String(order.total || order.amount || 0).replace('$', ''));
     }
 
     const shipping = 5.00;
@@ -1407,9 +1422,9 @@ const handleDownloadPDF = (order: any) => {
 
     // Generate items HTML with safe property access
     const itemsHTML = items.map((item: any) => {
-        const name = item.name || item.productName || 'Unnamed Product';
+        const name = item.name || item.productName || item.title || 'Unnamed Product';
         const price = typeof item.price === 'number' ? item.price : parseFloat(String(item.price || 0));
-        const quantity = item.quantity || 1;
+        const quantity = item.quantity || item.qty || 1;
         const itemTotal = price * quantity;
 
         return `
@@ -1426,7 +1441,7 @@ const handleDownloadPDF = (order: any) => {
     const tableBody = items.length > 0 ? itemsHTML : `
         <tr>
             <td colspan="4" style="border:1px solid #e5e7eb; padding:12px; text-align:center;">
-                No items found in this order
+                No items found in order. Check console for order structure.
             </td>
         </tr>
     `;
@@ -1443,12 +1458,12 @@ const handleDownloadPDF = (order: any) => {
         <div style="display:flex; justify-content:space-between; margin-bottom:30px;">
           <div>
             <h2 style="margin:0 0 10px; color:#111827; font-size:20px;">INVOICE</h2>
-            <p style="margin:0; color:#374151;">Order #: ${order.id || order.orderId || 'N/A'}</p>
-            <p style="margin:5px 0; color:#374151;">Date: ${formatDate(order.date || order.createdAt || new Date())}</p>
+            <p style="margin:0; color:#374151;">Order #: ${order.id || order.orderId || order.orderNumber || 'N/A'}</p>
+            <p style="margin:5px 0; color:#374151;">Date: ${formatDate(order.date || order.createdAt || order.orderDate || new Date())}</p>
           </div>
           <div style="text-align:right;">
             <h3 style="margin:0 0 10px; color:#111827;">Bill To:</h3>
-            <p style="margin:0; color:#374151;">${order.customer || order.customerName || 'Customer'}</p>
+            <p style="margin:0; color:#374151;">${order.customer || order.customerName || order.userName || 'Customer'}</p>
             <p style="margin:5px 0; color:#374151;">123 Main Street</p>
             <p style="margin:5px 0; color:#374151;">Portland, OR 97201</p>
           </div>
