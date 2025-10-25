@@ -2242,6 +2242,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
               </h4>
               <div className="flex flex-col space-y-4">
                 <OrderSummaryCard
+                  orderNumber={order.orderNumber}
                   items={order.items || []}
                   subtotal={order.subtotal || 0}
                   shipping={order.shipping || 0}
