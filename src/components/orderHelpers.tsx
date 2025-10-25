@@ -93,39 +93,42 @@ export const fetchUserOrders = async (userId: string): Promise<Order[]> => {
 };
 
 export const fetchOrderByNumber = async (orderNumber: string): Promise<Order | null> => {
-  try {
-    const ordersQuery = query(
-      collection(db, 'orders'),
-      where('orderNumber', '==', orderNumber)
-    );
-    
-    const ordersSnapshot = await getDocs(ordersQuery);
-    
-    if (!ordersSnapshot.empty) {
-      const doc = ordersSnapshot.docs[0];
-      const data = doc.data();
-      return {
-        id: doc.id,
-        orderNumber: data.orderNumber,
-        items: data.items || [],
-        subtotal: data.subtotal || 0,
-        shipping: data.shipping || 0,
-        tax: data.tax || 0,
-        total: data.total || (data.subtotal || 0) + (data.shipping || 0) + (data.tax || 0),
-        status: data.status || 'Processing',
-        date: data.date || new Date().toISOString(),
-        billingAddress: data.billingAddress || {},
-        shippingAddress: data.shippingAddress || {},
-        paymentMethod: data.paymentMethod || { type: 'Unknown' },
-        shippingMethod: data.shippingMethod || 'Standard Shipping',
-        timeline: data.timeline || []
-      } as Order;
-    }
-    
+  if (!orderNumber) {
+    console.warn('fetchOrderByNumber called without orderNumber');
     return null;
-  } catch (error) {
-    console.error('Error fetching order by number:', error);
-    throw error;
+  }
+
+  try {
+    const ordersRef = collection(db, 'orders');
+    const q = query(ordersRef, where('orderNumber', '==', orderNumber));
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) return null;
+
+    const doc = snapshot.docs[0];
+    const data = doc.data();
+
+    return {
+      id: doc.id,
+      orderNumber: data.orderNumber,
+      items: data.items ?? [],
+      subtotal: data.subtotal ?? 0,
+      shipping: data.shipping ?? 0,
+      tax: data.tax ?? 0,
+      total: data.total ?? (data.subtotal ?? 0) + (data.shipping ?? 0) + (data.tax ?? 0),
+      status: data.status ?? 'Processing',
+      date: data.date ?? new Date().toISOString(),
+      billingAddress: data.billingAddress ?? {},
+      shippingAddress: data.shippingAddress ?? {},
+      paymentMethod: data.paymentMethod ?? { type: 'Unknown' },
+      shippingMethod: data.shippingMethod ?? 'Standard Shipping',
+      timeline: data.timeline ?? [],
+      trackingNumber: data.trackingNumber ?? '',
+      userId: data.userId ?? '',
+    } as Order;
+  } catch (err) {
+    console.error('Error fetching order by number:', err);
+    return null;
   }
 };
 

@@ -42,6 +42,7 @@ export const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
   // Fetch order data from Firebase
   useEffect(() => {
     const fetchOrderData = async () => {
+       console.log('Fetching order data...', { orderNumber, userId, propItems, propSubtotal });
       // If items are passed as props, use them directly
       if (propItems && propSubtotal !== undefined) {
         const calculatedTotal = propTotal || (propSubtotal + (propShipping || 0) + (propTax || 0));
