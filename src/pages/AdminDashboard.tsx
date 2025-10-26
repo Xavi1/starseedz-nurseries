@@ -2243,11 +2243,12 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
               <div className="flex flex-col space-y-4">
                 <OrderSummaryCard
                   orderNumber={order.orderNumber}
-                  items={order.items || []}
-                  subtotal={order.subtotal || 0}
-                  shipping={order.shipping || 0}
-                  tax={order.tax || 0}
-                  total={order.total || 0}
+                  status={order.status}
+                  items={order.items}
+                  subtotal={order.subtotal}
+                  shipping={order.shipping}
+                  tax={order.tax}
+                  total={order.total}
                 />
                 <OrderTrackingWidget
                   status={order.status}
