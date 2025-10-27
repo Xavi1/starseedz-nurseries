@@ -5,7 +5,14 @@ import { fetchOrderByNumber, fetchUserOrders, Order, OrderItem } from '../compon
 interface OrderSummaryCardProps {
   orderNumber?: string;
   status?: string;
-  items: OrderItem[];
+  items: Array<{
+    id: string;
+    name: string;
+    price: number;
+    quantity: number;
+    category?: string | string[];
+    image?: string;
+  }>;
   subtotal: number;
   shipping: number;
   tax: number;
@@ -71,7 +78,7 @@ export const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
                   {item.category && item.category.length > 0 && (
-                    <span className="mr-2">Category: {item.category[0]}</span>
+                    <span className="mr-2">Category: {item.category}</span>
                   )}
                   <span>Line total: <span className="font-medium text-gray-900">
                     ${((item.price ?? 0) * (item.quantity ?? 0)).toFixed(2)}

@@ -273,6 +273,7 @@ const handleViewOrder = async (orderId: string, orderNumber?: string) => {
 
   try {
     const orderData = await fetchOrderByNumber(orderNumber);
+    console.log("Raw order data:", orderData);
     if (orderData && isFullOrder(orderData)) {
       setFullOrderData(orderData);
     } else {
@@ -1758,6 +1759,7 @@ const handlePrintInvoice = async (order: { id: string }) => {
           const data = doc.data();
           return {
             id: doc.id,
+            orderNumber:data.orderNumber,
             userId: data.userId,
             total: data.total,
             shippingAddress: data.shippingAddress
@@ -1832,6 +1834,7 @@ const handlePrintInvoice = async (order: { id: string }) => {
         
         orders.push({
           id: doc.id,
+          orderNumber: data.orderNumber || 'N/A',
           customer: data.shippingAddress?.firstName + ' ' + data.shippingAddress?.lastName,
           date: data.date || '',
           status: latestStatus,
