@@ -9,7 +9,7 @@ export interface OrderItem {
   quantity?: number;
   price?: number;
   image?: string;
-  category?: string[];
+  category?: string;
 }
 
 export interface Order {
