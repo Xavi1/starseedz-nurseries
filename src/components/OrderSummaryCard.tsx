@@ -55,7 +55,7 @@ export const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
                 ) : (
                   <div className="w-[60px] h-[60px] bg-gray-100 flex items-center justify-center">
                     <span className="text-xs text-gray-400 text-center">
-                      {item.category?.[0] || 'Item'}
+                      {item.category|| 'Item'}
                     </span>
                   </div>
                 )}
