@@ -362,7 +362,6 @@ useEffect(() => {
 
       const formatted = snapshot.docs.map((doc) => {
         const data = doc.data();
-
         const latestTimeline =
           Array.isArray(data.timeline) && data.timeline.length > 0
             ? data.timeline[data.timeline.length - 1]
@@ -1791,6 +1790,7 @@ const handlePrintInvoice = async (order: { id: string }) => {
       const orders: any[] = [];
       ordersSnap.forEach(doc => {
         const data = doc.data();
+        console.log("Firestore raw data for order:", data); 
         // Get the latest status from the timeline if it exists
         const timeline = data.timeline || [];
         const latestStatus = timeline.length > 0 ? timeline[timeline.length - 1].status : 'Order Placed';
