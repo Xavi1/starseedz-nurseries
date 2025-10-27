@@ -2121,6 +2121,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
         return salesReportData;
     }
   };
+  
   // Render order detail view
   const renderOrderDetail = () => {
   // =============================
@@ -2130,6 +2131,15 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
     if (!selectedOrder) return null;
     const order = allOrders.find(o => o.id === selectedOrder);
     if (!order) return null;
+    console.log('OrderSummaryCard props:', {
+    orderNumber: order.orderNumber,
+    status: order.status,
+    items: order.items,
+    subtotal: order.subtotal,
+    shipping: order.shipping,
+    tax: order.tax,
+    total: order.total
+});
     return <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="px-4 py-5 border-b border-gray-200 flex justify-between items-center">
           <h3 className="text-lg leading-6 font-medium text-gray-900">
