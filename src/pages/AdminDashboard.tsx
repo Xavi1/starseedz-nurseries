@@ -16,6 +16,7 @@ import { LayoutDashboardIcon, ShoppingBagIcon, PackageIcon, UsersIcon, BarChartI
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 import { ProductCard } from '../components/ProductCard';
 import OrderItems from '../components/OrderItems';
+import { fetchOrderByNumber} from '../components/orderHelpers';
 
 
 // =============================
@@ -53,7 +54,7 @@ interface OrderItem {
   category?: string;
 }
 
-interface FullOrder {
+interface FullOrder extends Partial<Order> {
   id: string;
   orderNumber?: string;
   date?: any;
@@ -193,6 +194,8 @@ export const AdminDashboard: React.FC = () => {
   const [inventoryAlerts, setInventoryAlerts] = useState<InventoryAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [restocking, setRestocking] = useState<string | null>(null);
+  const [showOrderSummary, setShowOrderSummary] = useState(false);
+  const [fullOrderData, setFullOrderData] = useState<FullOrder | null>(null);
 
 /* //Order Items
 const OrderItems: React.FC<OrderItemsProps> = ({ orderId }) => {
@@ -249,6 +252,38 @@ const OrderItems: React.FC<OrderItemsProps> = ({ orderId }) => {
   currentStock: 0,
   restockAmount: 10 // Default amount
 });
+
+//View Order Detail Handler
+const isFullOrder = (data: any): data is FullOrder => {
+  return (
+    data &&
+    typeof data.paymentMethod === 'string' &&
+    // Add other necessary property checks here
+    true // continue with other required validations
+  );
+};
+
+const handleViewOrder = async (orderId: string, orderNumber?: string) => {
+  setSelectedOrder(orderId);
+
+  if (!orderNumber) {
+    console.warn("No order number found for this order.");
+    return;
+  }
+
+  try {
+    const orderData = await fetchOrderByNumber(orderNumber);
+    if (orderData && isFullOrder(orderData)) {
+      setFullOrderData(orderData);
+    } else {
+      console.warn("Order data doesn't match FullOrder type:", orderNumber);
+      setFullOrderData(null);
+    }
+  } catch (err) {
+    console.error("Error fetching full order details:", err);
+    setFullOrderData(null);
+  }
+};
 
 // Pagination state for Customer Ordrer Detail Render
 const [ordersPerPage, setOrdersPerPage] = useState(5);
@@ -2251,15 +2286,17 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                 ORDER SUMMARY AND TRACKING
               </h4>
               <div className="flex flex-col space-y-4">
-                <OrderSummaryCard
-                  orderNumber={order.orderNumber}
-                  status={order.status}
-                  items={order.items}
-                  subtotal={order.subtotal}
-                  shipping={order.shipping}
-                  tax={order.tax}
-                  total={order.total}
-                />
+                {fullOrderData && (
+                  <OrderSummaryCard
+                    orderNumber={fullOrderData.orderNumber || 'N/A'}
+                    status={fullOrderData.status || 'Unknown'}
+                    items={fullOrderData.items ?? []} // fallback to empty array
+                    subtotal={fullOrderData.subtotal ?? 0}
+                    shipping={fullOrderData.shipping ?? 0}
+                    tax={fullOrderData.tax ?? 0}
+                    total={fullOrderData.total ?? 0}
+                  />
+                )}
                 <OrderTrackingWidget
                   status={order.status}
                   estimatedDelivery={order.timeline && order.timeline.length > 0 ? order.timeline[order.timeline.length - 1].date : ''}
@@ -3706,7 +3743,10 @@ const orders = customerOrders;
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-2">
-                        <button onClick={() => setSelectedOrder(order.id)} className="text-green-700 hover:text-green-900">
+                        <button 
+                          onClick={() => handleViewOrder(order.id, order.orderNumber)} 
+                          className="text-green-700 hover:text-green-900"
+                        >
                           <EyeIcon className="h-5 w-5" />
                         </button>
                         <button className="text-gray-500 hover:text-gray-700">
