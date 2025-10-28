@@ -293,28 +293,98 @@ const handleViewOrder = async (orderId: string, orderNumber?: string) => {
     const orderData = await fetchOrderByNumber(orderNumber);
     console.log("Raw order data:", orderData);
     
-    // Enhanced debugging
     if (orderData) {
-      console.log("Order data keys:", Object.keys(orderData));
-      const isValid = isFullOrder(orderData);
-      console.log("Is valid FullOrder:", isValid);
+      // Normalize the data to ensure it has all required fields
+      const normalizedData = normalizeOrderData(orderData);
       
-      if (!isValid) {
-        // Check what's missing or incorrect
-        validateOrderData(orderData);
+      if (isFullOrder(normalizedData)) {
+        setFullOrderData(normalizedData);
+      } else {
+        console.warn("Order data doesn't match FullOrder type after normalization:", orderNumber);
+        // Create a compatible order object with fallbacks
+        setFullOrderData(createCompatibleOrder(normalizedData));
       }
-    }
-    
-    if (orderData && isFullOrder(orderData)) {
-      setFullOrderData(orderData);
     } else {
-      console.warn("Order data doesn't match FullOrder type:", orderNumber, orderData);
+      console.warn("No order data returned for:", orderNumber);
       setFullOrderData(null);
     }
   } catch (err) {
     console.error("Error fetching full order details:", err);
     setFullOrderData(null);
   }
+};
+
+// Enhanced normalization function
+const normalizeOrderData = (data: any): any => {
+  // Extract customer info from available fields
+  const customer = data.customer || extractCustomerInfo(data);
+  
+  return {
+    id: data.id || data._id || data.orderId,
+    orderNumber: data.orderNumber || data.orderNo || data.number,
+    status: data.status || 'unknown',
+    customer: customer,
+    items: Array.isArray(data.items) ? data.items : (data.products || []),
+    total: data.total || data.amount || data.price || 0,
+    subtotal: data.subtotal || 0,
+    shipping: data.shipping || 0,
+    tax: data.tax || 0,
+    date: data.date || data.createdAt || new Date().toISOString(),
+    shippingAddress: data.shippingAddress || data.address || {},
+    billingAddress: data.billingAddress || data.shippingAddress || {},
+    paymentMethod: data.paymentMethod || {},
+    shippingMethod: data.shippingMethod || 'Standard Shipping',
+    timeline: data.timeline || [],
+    trackingNumber: data.trackingNumber || '',
+    userId: data.userId,
+    // Include all original data
+    ...data
+  };
+};
+
+// Extract customer info from available data
+const extractCustomerInfo = (data: any) => {
+  // Try to get customer info from shipping address
+  if (data.shippingAddress) {
+    return {
+      name: data.shippingAddress.fullName || 'Unknown Customer',
+      email: data.shippingAddress.email || '',
+      phone: data.shippingAddress.phone || '',
+      // Add other customer fields as needed
+    };
+  }
+  
+  // Fallback customer info
+  return {
+    name: 'Unknown Customer',
+    email: '',
+    phone: ''
+  };
+};
+
+// Create a compatible order even if validation fails
+const createCompatibleOrder = (data: any): FullOrder => {
+  const customer = data.customer || extractCustomerInfo(data);
+  
+  return {
+    id: data.id || 'unknown',
+    orderNumber: data.orderNumber || 'unknown',
+    status: data.status || 'unknown',
+    customer: customer,
+    items: Array.isArray(data.items) ? data.items : [],
+    total: data.total || 0,
+    subtotal: data.subtotal || 0,
+    shipping: data.shipping || 0,
+    tax: data.tax || 0,
+    date: data.date || new Date().toISOString(),
+    shippingAddress: data.shippingAddress || {},
+    billingAddress: data.billingAddress || {},
+    paymentMethod: data.paymentMethod || {},
+    shippingMethod: data.shippingMethod || 'Standard Shipping',
+    timeline: data.timeline || [],
+    trackingNumber: data.trackingNumber || '',
+    userId: data.userId
+  };
 };
 
 // Helper function to validate order data
