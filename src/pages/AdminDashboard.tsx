@@ -261,7 +261,6 @@ const isFullOrder = (data: any): data is FullOrder => {
     'id', 
     'orderNumber', 
     'status', 
-    'customer', 
     'items', 
     'total'
   ];
@@ -273,25 +272,9 @@ const isFullOrder = (data: any): data is FullOrder => {
     return false;
   }
   
-  // Validate customer object
-  if (!data.customer || typeof data.customer !== 'object') {
-    console.warn('Invalid customer data');
-    return false;
-  }
-  
   // Validate items array
   if (!Array.isArray(data.items)) {
     console.warn('Items is not an array');
-    return false;
-  }
-  
-  // Validate items structure
-  const invalidItems = data.items.filter((item: any) => 
-    !item || !item.id || !item.name || !item.price
-  );
-  
-  if (invalidItems.length > 0) {
-    console.warn('Invalid items found:', invalidItems);
     return false;
   }
   
