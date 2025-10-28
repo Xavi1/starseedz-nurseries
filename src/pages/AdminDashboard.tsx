@@ -274,15 +274,47 @@ const handleViewOrder = async (orderId: string, orderNumber?: string) => {
   try {
     const orderData = await fetchOrderByNumber(orderNumber);
     console.log("Raw order data:", orderData);
+    
+    // Enhanced debugging
+    if (orderData) {
+      console.log("Order data keys:", Object.keys(orderData));
+      const isValid = isFullOrder(orderData);
+      console.log("Is valid FullOrder:", isValid);
+      
+      if (!isValid) {
+        // Check what's missing or incorrect
+        validateOrderData(orderData);
+      }
+    }
+    
     if (orderData && isFullOrder(orderData)) {
       setFullOrderData(orderData);
     } else {
-      console.warn("Order data doesn't match FullOrder type:", orderNumber);
+      console.warn("Order data doesn't match FullOrder type:", orderNumber, orderData);
       setFullOrderData(null);
     }
   } catch (err) {
     console.error("Error fetching full order details:", err);
     setFullOrderData(null);
+  }
+};
+
+// Helper function to validate order data
+const validateOrderData = (data: any) => {
+  const requiredFields = ['id', 'orderNumber', 'status', 'customer', 'items', 'total'];
+  const missingFields = requiredFields.filter(field => !(field in data));
+  
+  if (missingFields.length > 0) {
+    console.warn("Missing required fields:", missingFields);
+  }
+  
+  // Check nested structures
+  if (data.customer && typeof data.customer !== 'object') {
+    console.warn("Customer field is not an object:", data.customer);
+  }
+  
+  if (data.items && !Array.isArray(data.items)) {
+    console.warn("Items field is not an array:", data.items);
   }
 };
 
