@@ -9,28 +9,63 @@ import {
   TrendingUpIcon 
 } from '@heroicons/react/outline';
 
-const CustomerReport = ({ data, timeframe }) => {
-  if (!data) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        No customer data available.
-      </div>
-    );
-  }
+// Define TypeScript interfaces
+interface CustomerData {
+  newCustomers: number;
+  returningCustomers: number;
+  growthData?: Array<{
+    period: string;
+    new: number;
+    returning: number;
+    total: number;
+  }>;
+}
 
+interface CustomerReportProps {
+  data: CustomerData;
+  timeframe: string;
+}
+
+interface GrowthDataItem {
+  period: string;
+  new: number;
+  returning: number;
+}
+
+interface CustomerSegment {
+  name: string;
+  value: number;
+}
+
+interface RetentionDataItem {
+  month: string;
+  retention: number;
+}
+
+const CustomerReport: React.FC<CustomerReportProps> = ({ data, timeframe }) => {
   const COLORS = ['#3b82f6', '#16a34a', '#8b5cf6'];
 
   // Format growth data for charts
-  const formattedGrowthData = data.growthData?.map(item => ({
+  const formattedGrowthData: GrowthDataItem[] = data.growthData?.map((item: GrowthDataItem) => ({
     period: item.period,
     new: item.new,
     returning: item.returning
   })) || [];
 
-  const customerSegments = [
+  const customerSegments: CustomerSegment[] = [
     { name: 'New', value: data.newCustomers },
     { name: 'Repeat', value: data.returningCustomers },
     { name: 'High Value', value: Math.floor(data.newCustomers * 0.2) } // Example calculation
+  ];
+
+  const retentionData: RetentionDataItem[] = [
+    { month: 'Jan', retention: 65 },
+    { month: 'Feb', retention: 68 },
+    { month: 'Mar', retention: 71 },
+    { month: 'Apr', retention: 69 },
+    { month: 'May', retention: 74 },
+    { month: 'Jun', retention: 78 },
+    { month: 'Jul', retention: 82 }
   ];
 
   return (
@@ -106,7 +141,9 @@ const CustomerReport = ({ data, timeframe }) => {
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
-                    label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`}
+                    label={({ name, percent }: { name: string; percent?: number }) => 
+                      `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`
+                    }
                   >
                     {customerSegments.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -126,15 +163,7 @@ const CustomerReport = ({ data, timeframe }) => {
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart 
-                  data={[
-                    { month: 'Jan', retention: 65 },
-                    { month: 'Feb', retention: 68 },
-                    { month: 'Mar', retention: 71 },
-                    { month: 'Apr', retention: 69 },
-                    { month: 'May', retention: 74 },
-                    { month: 'Jun', retention: 78 },
-                    { month: 'Jul', retention: 82 }
-                  ]} 
+                  data={retentionData}
                   margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                 >
                   <defs>
@@ -147,7 +176,14 @@ const CustomerReport = ({ data, timeframe }) => {
                   <XAxis dataKey="month" />
                   <YAxis />
                   <Tooltip />
-                  <Area type="monotone" dataKey="retention" name="Retention Rate (%)" stroke="#8b5cf6" fillOpacity={1} fill="url(#colorRetention)" />
+                  <Area 
+                    type="monotone" 
+                    dataKey="retention" 
+                    name="Retention Rate (%)" 
+                    stroke="#8b5cf6" 
+                    fillOpacity={1} 
+                    fill="url(#colorRetention)" 
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
