@@ -38,6 +38,17 @@ interface InventoryData {
   };
 }
 
+const ReportRenderer = () => {
+  const [reportType, setReportType] = useState<'sales' | 'customers' | 'inventory'>('sales');
+  const [reportTimeframe, setReportTimeframe] = useState<'week' | 'month' | 'quarter' | 'year'>('week');
+  const [loading, setLoading] = useState(false);
+  const [reportData, setReportData] = useState<ReportData>({
+    sales: null,
+    customers: null,
+    inventory: null
+  });
+
+
 interface ReportData {
   sales: SalesDataItem[] | null;
   customers: any | null; // Using any since CustomerData is defined in CustomerReport
@@ -80,6 +91,38 @@ const BoxIcon = ({ className }: { className?: string }) => (
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
   </svg>
 );
+
+  // Fetch report data when type or timeframe changes
+  useEffect(() => {
+    const fetchReportData = async () => {
+      setLoading(true);
+      try {
+        let data;
+        switch (reportType) {
+          case 'sales':
+            data = await fetchSalesReport(reportTimeframe);
+            setReportData(prev => ({ ...prev, sales: data }));
+            break;
+          case 'customers':
+            data = await fetchCustomerReport(reportTimeframe);
+            setReportData(prev => ({ ...prev, customers: data }));
+            break;
+          case 'inventory':
+            data = await fetchInventoryReport();
+            setReportData(prev => ({ ...prev, inventory: data }));
+            break;
+          default:
+            break;
+        }
+      } catch (error) {
+        console.error('Error fetching report data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReportData();
+  }, [reportType, reportTimeframe]);
 
   // Fetch report data when type or timeframe changes
   useEffect(() => {
