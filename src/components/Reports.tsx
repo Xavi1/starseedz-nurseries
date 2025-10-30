@@ -4,7 +4,6 @@ import {
   fetchCustomerReport, 
   fetchInventoryReport 
 } from './reportService';
-import { ShoppingBagIcon, DollarSignIcon, TagIcon, BoxIcon, DownloadIcon, UserPlusIcon} from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 
 const ReportRenderer = () => {
@@ -15,7 +14,13 @@ const ReportRenderer = () => {
     sales: null,
     customers: null,
     inventory: null
-  });
+  });}
+
+const [loading, setLoading] = useState<boolean>(false);
+const [reportType, setReportType] = useState<string>("sales");
+const [reportTimeframe, setReportTimeframe] = useState<string>("daily");
+const [reportData, setReportData] = useState<SalesDataItem[] | InventoryData | ProcessedCustomerData | null>(null);
+
 
   // Define TypeScript interfaces for the main component
 interface SalesDataItem {
@@ -37,17 +42,6 @@ interface InventoryData {
     outOfStock: number;
   };
 }
-
-const ReportRenderer = () => {
-  const [reportType, setReportType] = useState<'sales' | 'customers' | 'inventory'>('sales');
-  const [reportTimeframe, setReportTimeframe] = useState<'week' | 'month' | 'quarter' | 'year'>('week');
-  const [loading, setLoading] = useState(false);
-  const [reportData, setReportData] = useState<ReportData>({
-    sales: null,
-    customers: null,
-    inventory: null
-  });
-
 
 interface ReportData {
   sales: SalesDataItem[] | null;
@@ -92,44 +86,13 @@ const BoxIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-  // Fetch report data when type or timeframe changes
-  useEffect(() => {
-    const fetchReportData = async () => {
-      setLoading(true);
-      try {
-        let data;
-        switch (reportType) {
-          case 'sales':
-            data = await fetchSalesReport(reportTimeframe);
-            setReportData(prev => ({ ...prev, sales: data }));
-            break;
-          case 'customers':
-            data = await fetchCustomerReport(reportTimeframe);
-            setReportData(prev => ({ ...prev, customers: data }));
-            break;
-          case 'inventory':
-            data = await fetchInventoryReport();
-            setReportData(prev => ({ ...prev, inventory: data }));
-            break;
-          default:
-            break;
-        }
-      } catch (error) {
-        console.error('Error fetching report data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchReportData();
-  }, [reportType, reportTimeframe]);
 
   // Fetch report data when type or timeframe changes
   useEffect(() => {
     const fetchReportData = async () => {
       setLoading(true);
       try {
-        let data;
+        let data: SalesDataItem[] | unknown[] | InventoryData | null = null;
         switch (reportType) {
           case 'sales':
             data = await fetchSalesReport(reportTimeframe);
