@@ -4,6 +4,7 @@ import {
   fetchCustomerReport, 
   fetchInventoryReport 
 } from './reportService';
+import { ShoppingBagIcon, DollarSignIcon, TagIcon, BoxIcon, DownloadIcon, UserPlusIcon} from 'lucide-react';
 
 const ReportRenderer = () => {
   const [reportType, setReportType] = useState('sales');
