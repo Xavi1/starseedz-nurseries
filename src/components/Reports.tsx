@@ -17,6 +17,33 @@ const ReportRenderer = () => {
     inventory: null
   });
 
+  // Define TypeScript interfaces for the main component
+interface SalesDataItem {
+  revenue: number;
+  orders: number;
+  date: string;
+}
+
+interface SalesMetrics {
+  totalRevenue: number;
+  totalOrders: number;
+  avgOrderValue: number;
+}
+
+interface InventoryData {
+  [category: string]: {
+    inStock: number;
+    lowStock: number;
+    outOfStock: number;
+  };
+}
+
+interface ReportData {
+  sales: SalesDataItem[] | null;
+  customers: any | null; // Using any since CustomerData is defined in CustomerReport
+  inventory: InventoryData | null;
+}
+
   // Fetch report data when type or timeframe changes
   useEffect(() => {
     const fetchReportData = async () => {
