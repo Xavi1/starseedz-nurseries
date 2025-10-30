@@ -5,6 +5,7 @@ import {
   fetchInventoryReport 
 } from './reportService';
 import { ShoppingBagIcon, DollarSignIcon, TagIcon, BoxIcon, DownloadIcon, UserPlusIcon} from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 
 const ReportRenderer = () => {
   const [reportType, setReportType] = useState('sales');
