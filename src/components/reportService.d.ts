@@ -52,3 +52,8 @@ export interface ProcessedInventoryData {
 export declare function fetchSalesReport(timeframe: string): Promise<ProcessedSalesData[]>;
 export declare function fetchCustomerReport(timeframe: string): Promise<ProcessedCustomerData>;
 export declare function fetchInventoryReport(): Promise<ProcessedInventoryData>;
+export interface ProcessedCustomerData {
+  newCustomers: number;
+  returningCustomers: number;
+  totalCustomers: number;
+}

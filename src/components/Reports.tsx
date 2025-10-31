@@ -6,6 +6,7 @@ import {
 } from './reportService';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 
+
 // TypeScript interfaces
 interface SalesDataItem {
   revenue: number;
@@ -94,18 +95,21 @@ const ReportRenderer = () => {
       setLoading(true);
       try {
         switch (reportType) {
-          case 'sales':
+          case 'sales': {
             const salesData = await fetchSalesReport(reportTimeframe);
             setReportData(prev => ({ ...prev, sales: salesData as SalesDataItem[] }));
             break;
-          case 'customers':
+          }
+          case 'customers': {
             const customerData = await fetchCustomerReport(reportTimeframe);
             setReportData(prev => ({ ...prev, customers: customerData as ProcessedCustomerData }));
             break;
-          case 'inventory':
+          }
+          case 'inventory': {
             const inventoryData = await fetchInventoryReport();
             setReportData(prev => ({ ...prev, inventory: inventoryData as InventoryData }));
             break;
+          }
           default:
             break;
         }
