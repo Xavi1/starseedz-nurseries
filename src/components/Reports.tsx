@@ -296,7 +296,7 @@ const SalesReport = ({ data, metrics }: { data: SalesDataItem[] | null; metrics:
         <Section title="Orders by Status">
           <ResponsiveContainer width="100%" height={260}>
             <PieChart>
-              <Pie data={ordersStatusData} dataKey="value" outerRadius={80} label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}>
+              <Pie data={ordersStatusData} dataKey="value" outerRadius={80} label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`}>
                 <Cell fill="#16a34a" />
                 <Cell fill="#8b5cf6" />
                 <Cell fill="#3b82f6" />
