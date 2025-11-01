@@ -4848,7 +4848,9 @@ const orders = customerOrders;
         </div>}
     </>;
   // Render reports content
-  const renderReportsContent = () => <div className="space-y-6">
+  const renderReportsContent = () => <ReportRenderer />;
+    
+    {/* <div className="space-y-6">
       <div className="bg-white shadow rounded-lg">
         <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
@@ -5317,7 +5319,7 @@ const orders = customerOrders;
             </div>}
         </div>
       </div>
-    </div>;
+    </div>; */}
   // Render settings content
   const renderSettingsContent = () => <div className="bg-white shadow rounded-lg">
       <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
