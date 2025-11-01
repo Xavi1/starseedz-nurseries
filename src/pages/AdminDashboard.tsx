@@ -17,7 +17,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { ProductCard } from '../components/ProductCard';
 import OrderItems from '../components/OrderItems';
 import { fetchOrderByNumber} from '../components/orderHelpers';
-
+import ReportRenderer from '../components/Reports';
 
 // =============================
 // AdminDashboard.tsx
