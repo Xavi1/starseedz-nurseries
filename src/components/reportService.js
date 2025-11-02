@@ -14,7 +14,7 @@ import { db } from '../firebase';
 // Fetch sales report data
 export const fetchSalesReport = async (timeframe) => {
   try {
-    const salesCollection = collection(db, 'sales');
+    const salesCollection = collection(db, 'orders');
     let q = query(salesCollection);
     
     // Add timeframe filter
