@@ -109,12 +109,12 @@ const getDateFilter = (timeframe) => {
 };
 
 // Process sales data for charts
-const processSalesData = (salesData, timeframe) => {
-  // Group data by date based on timeframe
-  const groupedData = salesData.reduce((acc, sale) => {
-    const date = new Date(sale.date);
+const processSalesData = (orders, timeframe) => {
+  // Group orders by date
+  const groupedData = orders.reduce((acc, order) => {
+    const date = new Date(order.date);
     let key;
-    
+
     switch (timeframe) {
       case 'week':
         key = date.toLocaleDateString();
@@ -129,22 +129,22 @@ const processSalesData = (salesData, timeframe) => {
       default:
         key = date.toLocaleDateString();
     }
-    
+
     if (!acc[key]) {
       acc[key] = { revenue: 0, orders: 0 };
     }
-    
-    acc[key].revenue += sale.amount || 0;
+
+    acc[key].revenue += order.total || 0;
     acc[key].orders += 1;
-    
+
     return acc;
   }, {});
-  
-  // Convert to array format for Recharts
+
+  // Return Recharts-compatible array
   return Object.entries(groupedData).map(([date, data]) => ({
     date,
     revenue: data.revenue,
-    orders: data.orders
+    orders: data.orders,
   }));
 };
 
