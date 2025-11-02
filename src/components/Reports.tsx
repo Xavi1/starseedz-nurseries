@@ -253,25 +253,30 @@ const ReportRenderer = () => {
 // 🧾 SALES REPORT (mirrors internal layout)
 const SalesReport = ({ data, metrics }: { data: SalesDataItem[] | null; metrics: SalesMetrics }) => {
   if (!data || data.length === 0)
-    return <div className="text-center py-8 text-gray-500">No sales data available.</div>;
+    return <div className="text-center py-8 text-gray-500">No orders available.</div>;
 
-  // ✅ Dynamically group orders by status
+  // 🔹 Group orders by status
   const ordersStatusData = Object.entries(
-    data.reduce((acc: Record<string, number>, sale: any) => {
-      const status = sale.status || "Unknown";
+    (data as any[]).reduce((acc, order) => {
+      const status = order.status || 'Unknown';
       acc[status] = (acc[status] || 0) + 1;
       return acc;
     }, {})
   ).map(([name, value]) => ({ name, value }));
 
-  // ✅ Dynamically group sales by category (if your sale documents contain category info)
-  const categorySalesData = Object.entries(
-    data.reduce((acc: Record<string, number>, sale: any) => {
-      const category = sale.category || "Uncategorized";
-      acc[category] = (acc[category] || 0) + (sale.revenue || sale.amount || 0);
-      return acc;
-    }, {})
-  ).map(([name, sales]) => ({ name, sales }));
+  // 🔹 Group total revenue by product category
+  const categorySalesData = (data as any[]).reduce((acc, order) => {
+    (order.items || []).forEach((item: { category?: string; price?: number; quantity?: number }) => {
+  const category = item.category || 'Uncategorized';
+  acc[category] = (acc[category] || 0) + (item.price || 0) * (item.quantity || 1);
+});
+    return acc;
+  }, {});
+
+  const categoryChartData = Object.entries(categorySalesData).map(([name, sales]) => ({
+    name,
+    sales,
+  }));
 
   return (
     <div>
@@ -321,7 +326,7 @@ const SalesReport = ({ data, metrics }: { data: SalesDataItem[] | null; metrics:
 
         <Section title="Sales by Category">
           <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={categorySalesData}>
+            <BarChart data={categoryChartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
@@ -334,6 +339,7 @@ const SalesReport = ({ data, metrics }: { data: SalesDataItem[] | null; metrics:
     </div>
   );
 };
+
 
 // 🧍 CUSTOMER REPORT
 const CustomerReport = ({ data }: { data: ProcessedCustomerData | null }) => {
