@@ -58,6 +58,10 @@ interface ReportData {
   inventory: InventoryData | null;
 }
 
+interface SalesReportProps {
+  timeframe?: string;
+}
+
 // Icon components
 const DownloadIcon = ({ className }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -248,23 +252,26 @@ const ReportRenderer = () => {
 
 // 🧾 SALES REPORT (mirrors internal layout)
 const SalesReport = ({ data, metrics }: { data: SalesDataItem[] | null; metrics: SalesMetrics }) => {
-  if (!data) return <div className="text-center py-8 text-gray-500">No sales data available.</div>;
+  if (!data || data.length === 0)
+    return <div className="text-center py-8 text-gray-500">No sales data available.</div>;
 
-  const ordersStatusData = [
-    { name: "Delivered", value: 180 },
-    { name: "Shipped", value: 45 },
-    { name: "Processing", value: 28 },
-    { name: "Pending", value: 12 },
-    { name: "Cancelled", value: 5 },
-  ];
+  // ✅ Dynamically group orders by status
+  const ordersStatusData = Object.entries(
+    data.reduce((acc: Record<string, number>, sale: any) => {
+      const status = sale.status || "Unknown";
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    }, {})
+  ).map(([name, value]) => ({ name, value }));
 
-  const categorySalesData = [
-    { name: "Indoor Plants", sales: 4250 },
-    { name: "Outdoor Plants", sales: 3200 },
-    { name: "Succulents", sales: 2100 },
-    { name: "Garden Tools", sales: 1450 },
-    { name: "Pots & Planters", sales: 780 },
-  ];
+  // ✅ Dynamically group sales by category (if your sale documents contain category info)
+  const categorySalesData = Object.entries(
+    data.reduce((acc: Record<string, number>, sale: any) => {
+      const category = sale.category || "Uncategorized";
+      acc[category] = (acc[category] || 0) + (sale.revenue || sale.amount || 0);
+      return acc;
+    }, {})
+  ).map(([name, sales]) => ({ name, sales }));
 
   return (
     <div>
@@ -297,12 +304,15 @@ const SalesReport = ({ data, metrics }: { data: SalesDataItem[] | null; metrics:
         <Section title="Orders by Status">
           <ResponsiveContainer width="100%" height={260}>
             <PieChart>
-              <Pie data={ordersStatusData} dataKey="value" outerRadius={80} label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`}>
-                <Cell fill="#16a34a" />
-                <Cell fill="#8b5cf6" />
-                <Cell fill="#3b82f6" />
-                <Cell fill="#eab308" />
-                <Cell fill="#ef4444" />
+              <Pie
+                data={ordersStatusData}
+                dataKey="value"
+                outerRadius={80}
+                label={({ name, percent }) => `${name}: ${(percent! * 100).toFixed(0)}%`}
+              >
+                {ordersStatusData.map((_, i) => (
+                  <Cell key={i} fill={["#16a34a", "#8b5cf6", "#3b82f6", "#eab308", "#ef4444"][i % 5]} />
+                ))}
               </Pie>
               <Tooltip />
             </PieChart>
