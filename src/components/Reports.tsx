@@ -21,7 +21,7 @@ import {
   BarChart,
   Bar,
 } from "recharts";
-import { getReportSummary } from './reportService.js';
+import { getReportSummary } from './reportService';
 
 // TypeScript interfaces
 interface SalesDataItem {

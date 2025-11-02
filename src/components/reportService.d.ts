@@ -57,3 +57,4 @@ export interface ProcessedCustomerData {
   returningCustomers: number;
   totalCustomers: number;
 }
+export function getReportSummary(): Promise<any>;
