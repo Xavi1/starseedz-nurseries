@@ -11,28 +11,28 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 
-// Fetch sales report data
+// Fetch sales report data from 'orders' collection
 export const fetchSalesReport = async (timeframe) => {
   try {
-    const salesCollection = collection(db, 'orders');
-    let q = query(salesCollection);
-    
-    // Add timeframe filter
+    const ordersCollection = collection(db, 'orders');
+    let q = query(ordersCollection);
+
+    // Apply timeframe filter
     const dateFilter = getDateFilter(timeframe);
     if (dateFilter) {
       q = query(q, where('date', '>=', dateFilter));
     }
-    
+
     q = query(q, orderBy('date', 'asc'));
-    
+
     const snapshot = await getDocs(q);
-    const salesData = snapshot.docs.map(doc => ({
+    const orders = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
-      date: doc.data().date?.toDate?.() || doc.data().date
+      date: doc.data().date?.toDate?.() || new Date(doc.data().date),
     }));
-    
-    return processSalesData(salesData, timeframe);
+
+    return processSalesData(orders, timeframe);
   } catch (error) {
     console.error('Error fetching sales report:', error);
     throw error;
