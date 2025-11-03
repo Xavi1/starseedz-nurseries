@@ -129,29 +129,33 @@ const getDateFilter = (timeframe) => {
 
 // Process sales data for charts
 const processSalesData = (orders, timeframe) => {
-  // Group orders by date
+  console.log("🔍 [processSalesData] Received orders:", orders.length);
+
+  if (!orders || orders.length === 0) {
+    console.warn("⚠️ [processSalesData] No orders to process.");
+    return [];
+  }
+
   const groupedData = orders.reduce((acc, order) => {
     const date = new Date(order.date);
     let key;
 
     switch (timeframe) {
-      case 'week':
+      case "week":
         key = date.toLocaleDateString();
         break;
-      case 'month':
+      case "month":
         key = `${date.getMonth() + 1}/${date.getDate()}`;
         break;
-      case 'quarter':
-      case 'year':
+      case "quarter":
+      case "year":
         key = `${date.getMonth() + 1}/1`;
         break;
       default:
         key = date.toLocaleDateString();
     }
 
-    if (!acc[key]) {
-      acc[key] = { revenue: 0, orders: 0 };
-    }
+    if (!acc[key]) acc[key] = { revenue: 0, orders: 0 };
 
     acc[key].revenue += order.total || 0;
     acc[key].orders += 1;
@@ -159,13 +163,16 @@ const processSalesData = (orders, timeframe) => {
     return acc;
   }, {});
 
-  // Return Recharts-compatible array
-  return Object.entries(groupedData).map(([date, data]) => ({
+  const result = Object.entries(groupedData).map(([date, data]) => ({
     date,
     revenue: data.revenue,
     orders: data.orders,
   }));
+
+  console.log("✅ [processSalesData] Aggregated result (first 3):", result.slice(0, 3));
+  return result;
 };
+
 
 // Process customer data
 const processCustomerData = (customerData, timeframe) => {
