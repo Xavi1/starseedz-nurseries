@@ -14,7 +14,7 @@ import { db } from '../firebase';
 // Fetch sales report data from 'orders' collection
 export const fetchSalesReport = async (timeframe) => {
   try {
-    console.log("📊 [fetchSalesReport] Starting fetch for timeframe:", timeframe);
+    console.log("📊 [fetchSalesReport] Starting fetch for timeframe:", timeframe);    
 
     const ordersCollection = collection(db, "orders");
     let q = query(ordersCollection);
@@ -23,7 +23,7 @@ export const fetchSalesReport = async (timeframe) => {
     const dateFilter = getDateFilter(timeframe);
     if (dateFilter) {
       console.log("📅 [fetchSalesReport] Applying date filter:", dateFilter.toDate());
-      q = query(q, where("date", ">=", dateFilter));
+      // q = query(q, where("date", ">=", dateFilter));
     } else {
       console.log("📅 [fetchSalesReport] No date filter applied (fetching all orders)");
     }
