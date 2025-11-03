@@ -22,6 +22,7 @@ import {
   Bar,
 } from "recharts";
 import { getReportSummary } from './reportService';
+import {ProcessedSalesData} from './reportService';
 
 // TypeScript interfaces
 interface SalesDataItem {
@@ -52,12 +53,6 @@ interface InventoryData {
   [category: string]: InventoryCategory;
 }
 
-interface ReportData {
-  sales: SalesDataItem[] | null;
-  customers: ProcessedCustomerData | null;
-  inventory: InventoryData | null;
-}
-
 interface SalesReportProps {
   timeframe?: string;
 }
@@ -75,12 +70,18 @@ interface TimelineEntry {
 }
 
 interface Order {
-  id: string;
+  id?: string;
   total?: number;
   subtotal?: number;
   date?: string | Date;
   items?: OrderItem[];
   timeline?: TimelineEntry[];
+}
+
+interface ReportData {
+  sales: { raw: Order[]; processed: SalesDataItem[] } | null;
+  customers: ProcessedCustomerData | null;
+  inventory: Record<string, any> | null;
 }
 
 // Icon components
@@ -155,39 +156,54 @@ const ReportRenderer = () => {
   const [reportType, setReportType] = useState<string>("sales");
   const [reportTimeframe, setReportTimeframe] = useState<string>("week");
   const [loading, setLoading] = useState<boolean>(false);
-  const [reportData, setReportData] = useState<ReportData>({
-    sales: null,
-    customers: null,
-    inventory: null,
-  });
-
+  const [timeframe, setTimeframe] = useState<'day' | 'week' | 'month' | 'year'>('week');
+  const [reportData, setReportData] = useState<{
+  sales: { raw: Order[]; processed: SalesDataItem[] } | null;
+  customers: ProcessedCustomerData | null;
+  inventory: Record<string, any> | null;
+}>({
+  sales: null,
+  customers: null,
+  inventory: null,
+});
   useEffect(() => {
-    const fetchReportData = async () => {
-      setLoading(true);
-      try {
-        switch (reportType) {
-          case "sales": {
-            const salesData = await fetchSalesReport(reportTimeframe);
-            setReportData((prev) => ({ ...prev, sales: salesData as SalesDataItem[] }));
-            break;
-          }
-          case "customers": {
-            const customerData = await fetchCustomerReport(reportTimeframe);
-            setReportData((prev) => ({ ...prev, customers: customerData as ProcessedCustomerData }));
-            break;
-          }
-          case "inventory": {
-            const inventoryData = await fetchInventoryReport();
-            setReportData((prev) => ({ ...prev, inventory: inventoryData as InventoryData }));
-            break;
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching report data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+const fetchReportData = async () => {
+  
+  try {
+    console.log("📊 [Reports] Fetching report data for timeframe:", timeframe);
+    // 1️⃣ Fetch raw data from Firebase
+    const orders = await fetchSalesReport(timeframe);
+    const customers = await fetchCustomerReport(timeframe);
+    const inventory = await fetchInventoryReport();
+
+    // 2️⃣ Process the sales data for charts
+    const processedSalesData = orders
+      ? orders.map((order: any) => ({
+          date: new Date(order.date).toLocaleDateString(),
+          revenue: order.total || 0,
+          orders: 1,
+        }))
+      : [];
+
+    console.log("🧾 [Reports] Processed sales data:", processedSalesData);
+
+    // 3️⃣ Update the report state
+     setReportData((prev) => ({
+      ...prev,
+      sales: {
+        raw: orders, // 🟢 Firestore data
+        processed: processedSalesData, // 🟢 Chart data
+      },
+      customers,
+      inventory,
+    }));
+
+    console.log("✅ [Reports] Report data successfully updated");
+  } catch (error) {
+    console.error("❌ [Reports] Failed to fetch report data:", error);
+  }
+};
+
 
     fetchReportData();
   }, [reportType, reportTimeframe]);
@@ -200,7 +216,8 @@ const ReportRenderer = () => {
     return { totalRevenue, totalOrders, avgOrderValue };
   };
 
-  const salesMetrics = calculateSalesMetrics(reportData.sales);
+  const salesMetrics = calculateSalesMetrics(reportData.sales?.processed || []);
+
 
   return (
     <div className="space-y-6">
@@ -262,7 +279,13 @@ const ReportRenderer = () => {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
             </div>
           )}
-          {!loading && reportType === "sales" && <SalesReport data={reportData.sales} metrics={salesMetrics} />}
+         {!loading && reportType === "sales" && reportData.sales && (
+            <SalesReport
+              rawOrders={reportData.sales.raw}
+              data={reportData.sales.processed}
+              metrics={salesMetrics}
+            />
+          )}
           {!loading && reportType === "customers" && <CustomerReport data={reportData.customers} />}
           {!loading && reportType === "inventory" && <InventoryReport data={reportData.inventory} />}
         </div>
@@ -272,37 +295,41 @@ const ReportRenderer = () => {
 };
 
 // 🧾 SALES REPORT (mirrors internal layout)
-const SalesReport = ({ data, metrics }: { data: SalesDataItem[] | null; metrics: SalesMetrics }) => {
-  if (!data || data.length === 0)
-    return <div className="text-center py-8 text-gray-500">No orders available.</div>;
+const SalesReport = ({
+  data,
+  rawOrders,
+  metrics,
+}: {
+  data: SalesDataItem[] | null;
+  rawOrders: Order[] | null;
+  metrics: SalesMetrics;
+}) => {
+  if (!data || !rawOrders)
+    return <div className="text-center py-8 text-gray-500">No sales data available.</div>;
 
-  // 🔹 Group orders by status
-  // Safely extract the most recent status from timeline[]
-  const ordersStatusData = Array.isArray(data)
+  const ordersStatusData = Array.isArray(rawOrders)
     ? Object.entries(
-        data.reduce<Record<string, number>>((acc, order) => {
-          const timeline = order?.timeline;
+        rawOrders.reduce<Record<string, number>>((acc, order) => {
           const latestStatus =
-            Array.isArray(timeline) && timeline.length > 0
-              ? timeline[timeline.length - 1].status || "Unknown"
+            Array.isArray(order.timeline) && order.timeline.length > 0
+              ? order.timeline[order.timeline.length - 1].status || "Unknown"
               : "Unknown";
-
           acc[latestStatus] = (acc[latestStatus] || 0) + 1;
-          console.log("🥧 Orders by Status (from timeline):", ordersStatusData);
           return acc;
         }, {})
       ).map(([name, value]) => ({ name, value }))
     : [];
 
-  // 🔹 Group total revenue by product category
-  const categorySalesData = (data as any[]).reduce((acc, order) => {
-    (order.items || []).forEach((item: { category?: string; price?: number; quantity?: number }) => {
-  const category = item.category || 'Uncategorized';
-  acc[category] = (acc[category] || 0) + (item.price || 0) * (item.quantity || 1);
-});
+  const categorySalesData = rawOrders.flatMap((order) =>
+    (order.items || []).map((item) => ({
+      category: item.category || "Uncategorized",
+      total: (item.price || 0) * (item.quantity || 1),
+    }))
+  ).reduce<Record<string, number>>((acc, { category, total }) => {
+    acc[category] = (acc[category] || 0) + total;
     return acc;
   }, {});
-
+  
   const categoryChartData = Object.entries(categorySalesData).map(([name, sales]) => ({
     name,
     sales,
