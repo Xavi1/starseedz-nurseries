@@ -256,13 +256,22 @@ const SalesReport = ({ data, metrics }: { data: SalesDataItem[] | null; metrics:
     return <div className="text-center py-8 text-gray-500">No orders available.</div>;
 
   // 🔹 Group orders by status
-  const ordersStatusData = Object.entries(
-    (data as any[]).reduce((acc, order) => {
-      const status = order.status || 'Unknown';
-      acc[status] = (acc[status] || 0) + 1;
-      return acc;
-    }, {})
-  ).map(([name, value]) => ({ name, value }));
+  // Safely extract the most recent status from timeline[]
+  const ordersStatusData = Array.isArray(data)
+    ? Object.entries(
+        data.reduce<Record<string, number>>((acc, order) => {
+          const timeline = order?.timeline;
+          const latestStatus =
+            Array.isArray(timeline) && timeline.length > 0
+              ? timeline[timeline.length - 1].status || "Unknown"
+              : "Unknown";
+
+          acc[latestStatus] = (acc[latestStatus] || 0) + 1;
+          console.log("🥧 Orders by Status (from timeline):", ordersStatusData);
+          return acc;
+        }, {})
+      ).map(([name, value]) => ({ name, value }))
+    : [];
 
   // 🔹 Group total revenue by product category
   const categorySalesData = (data as any[]).reduce((acc, order) => {
