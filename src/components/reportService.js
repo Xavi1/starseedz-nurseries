@@ -279,22 +279,30 @@ const processInventoryData = (inventoryData) => {
 };
 
 //function to get report summary
-export const getReportSummary = async (timeframe = 'month') => {
+export const getReportSummary = async (timeframe = "month") => {
   try {
+    console.log("📋 [getReportSummary] Generating report summary for:", timeframe);
+
     const [salesData, customerData, inventoryData] = await Promise.all([
       fetchSalesReport(timeframe),
       fetchCustomerReport(timeframe),
-      fetchInventoryReport()
+      fetchInventoryReport(),
     ]);
+
+    console.log("✅ [getReportSummary] Summary data ready:", {
+      salesCount: salesData?.length || 0,
+      customersCount: customerData?.growthData?.length || 0,
+      inventoryCategories: Object.keys(inventoryData || {}).length,
+    });
 
     return {
       sales: salesData,
       customers: customerData,
       inventory: inventoryData,
-      generatedAt: new Date()
+      generatedAt: new Date(),
     };
   } catch (error) {
-    console.error('Error generating report summary:', error);
+    console.error("❌ [getReportSummary] Error generating report summary:", error);
     throw error;
   }
 };
