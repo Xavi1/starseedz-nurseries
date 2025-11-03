@@ -62,6 +62,27 @@ interface SalesReportProps {
   timeframe?: string;
 }
 
+interface OrderItem {
+  category?: string;
+  price?: number;
+  quantity?: number;
+}
+
+interface TimelineEntry {
+  date: string;
+  description: string;
+  status: string;
+}
+
+interface Order {
+  id: string;
+  total?: number;
+  subtotal?: number;
+  date?: string | Date;
+  items?: OrderItem[];
+  timeline?: TimelineEntry[];
+}
+
 // Icon components
 const DownloadIcon = ({ className }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
