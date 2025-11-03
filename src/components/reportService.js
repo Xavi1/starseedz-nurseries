@@ -14,30 +14,49 @@ import { db } from '../firebase';
 // Fetch sales report data from 'orders' collection
 export const fetchSalesReport = async (timeframe) => {
   try {
-    const ordersCollection = collection(db, 'orders');
+    console.log("📊 [fetchSalesReport] Starting fetch for timeframe:", timeframe);
+
+    const ordersCollection = collection(db, "orders");
     let q = query(ordersCollection);
 
     // Apply timeframe filter
     const dateFilter = getDateFilter(timeframe);
     if (dateFilter) {
-      q = query(q, where('date', '>=', dateFilter));
+      console.log("📅 [fetchSalesReport] Applying date filter:", dateFilter.toDate());
+      q = query(q, where("date", ">=", dateFilter));
+    } else {
+      console.log("📅 [fetchSalesReport] No date filter applied (fetching all orders)");
     }
 
-    q = query(q, orderBy('date', 'asc'));
+    q = query(q, orderBy("date", "asc"));
 
+    console.log("🚀 [fetchSalesReport] Running Firestore query...");
     const snapshot = await getDocs(q);
+    console.log("✅ [fetchSalesReport] Query complete. Documents found:", snapshot.size);
+
+    if (snapshot.empty) {
+      console.warn("⚠️ [fetchSalesReport] No orders found in the selected timeframe.");
+      return [];
+    }
+
     const orders = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
       date: doc.data().date?.toDate?.() || new Date(doc.data().date),
     }));
 
-    return processSalesData(orders, timeframe);
+    console.log("🧾 [fetchSalesReport] First order sample:", orders[0] || "No data");
+    console.log("🧮 [fetchSalesReport] Processing sales data...");
+    const processedData = processSalesData(orders, timeframe);
+    console.log("✅ [fetchSalesReport] Processed data:", processedData.slice(0, 3)); // preview only
+
+    return processedData;
   } catch (error) {
-    console.error('Error fetching sales report:', error);
+    console.error("❌ [fetchSalesReport] Error fetching sales report:", error);
     throw error;
   }
 };
+
 
 // Fetch customer report data
 export const fetchCustomerReport = async (timeframe) => {
