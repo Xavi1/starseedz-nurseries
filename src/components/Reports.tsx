@@ -181,13 +181,28 @@ useEffect(() => {
       console.log("🛒 [Reports] Raw orders from service:", rawOrders);
 
       // 2️⃣ Process the sales data for charts
-      const processedSalesData = rawOrders
-        ? rawOrders.map((order: any) => ({
-            date: new Date(order.date).toLocaleDateString(),
-            revenue: order.total || 0,
-            orders: 1,
-          }))
-        : [];
+      const processedSalesData: SalesDataItem[] = (rawOrders || [])
+      .map((order: any) => {
+        const orderDate =
+          order.date?.toDate?.() ||
+          (order.date?._seconds ? new Date(order.date._seconds * 1000) : null) ||
+          new Date(order.date);
+
+        const orderTotal = Number(order.total ?? order.subtotal ?? order.revenue ?? 0);
+
+        if (!orderDate || isNaN(orderDate.getTime()) || orderTotal <= 0) {
+          console.log("⚠️ Skipping invalid order:", order);
+          return null;
+        }
+
+        return {
+          date: orderDate.toISOString().split("T")[0],
+          revenue: orderTotal,
+          orders: 1,
+        };
+      })
+      // tell TypeScript this removes nulls
+      .filter((item): item is SalesDataItem => item !== null);
 
       console.log("📈 [Reports] Processed sales data:", processedSalesData);
 
@@ -210,33 +225,21 @@ useEffect(() => {
 }, [timeframe]);
 
 // Fix the calculateSalesMetrics function
-const calculateSalesMetrics = (rawOrders: Order[] | null): SalesMetrics => {
-  console.log("🧮 [calculateSalesMetrics] Raw orders:", rawOrders);
-  
-  if (!rawOrders || rawOrders.length === 0) {
-    console.log("📭 [calculateSalesMetrics] No raw orders found");
+const calculateSalesMetrics = (rawOrders: any[] | null): SalesMetrics => {
+  if (!rawOrders || rawOrders.length === 0)
     return { totalRevenue: 0, totalOrders: 0, avgOrderValue: 0 };
-  }
-  
-  // Check if we have actual order objects with total property
-  const firstOrder = rawOrders[0];
-  console.log("🔍 [calculateSalesMetrics] First order sample:", firstOrder);
-  
+
   const totalRevenue = rawOrders.reduce((sum, order) => {
-    const orderTotal = order.total || 0;
-    console.log(`💰 Order ${order.id}: total = ${orderTotal}`);
+    const orderTotal = order.total ?? order.revenue ?? 0;
     return sum + orderTotal;
   }, 0);
-  
-  const totalOrders = rawOrders.length;
+
+  const totalOrders = rawOrders.reduce((sum, order) => {
+    return sum + (order.orders ?? 1);
+  }, 0);
+
   const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-  
-  console.log("📊 [calculateSalesMetrics] Final metrics:", {
-    totalRevenue,
-    totalOrders, 
-    avgOrderValue
-  });
-  
+
   return { totalRevenue, totalOrders, avgOrderValue };
 };
 
@@ -363,6 +366,13 @@ const SalesReport = ({
     sales,
   }));
 
+const chartData = [...(data || [])]
+  .map(entry => ({
+    date: entry.date ? new Date(entry.date).toLocaleDateString() : "",
+    revenue: Number(entry.revenue) || 0,
+  }))
+  .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
   return (
     <div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -373,7 +383,7 @@ const SalesReport = ({
 
       <Section title="Revenue Over Time">
         <ResponsiveContainer width="100%" height={300}>
-          <AreaChart data={data}>
+          <AreaChart data={chartData}>
             <defs>
               <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#16a34a" stopOpacity={0.8} />
