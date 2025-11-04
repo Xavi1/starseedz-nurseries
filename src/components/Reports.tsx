@@ -281,11 +281,11 @@ useEffect(() => {
             </div>
           )}
          {!loading && reportType === "sales" && reportData.sales && (
-            <SalesReport
-              rawOrders={reportData.sales.raw}
-              data={reportData.sales.processed}
-              metrics={salesMetrics}
-            />
+          <SalesReport
+            rawOrders={reportData.sales.raw}
+            data={reportData.sales.processed}
+            metrics={salesMetrics}
+          />
           )}
           {!loading && reportType === "customers" && <CustomerReport data={reportData.customers} />}
           {!loading && reportType === "inventory" && <InventoryReport data={reportData.inventory} />}
@@ -305,6 +305,9 @@ const SalesReport = ({
   rawOrders: Order[] | null;
   metrics: SalesMetrics;
 }) => {
+  console.log("🔍 [SalesReport] Raw orders:", rawOrders);
+  console.log("🔍 [SalesReport] Metrics:", metrics);
+  console.log("🔍 [SalesReport] Processed data:", data);
   if (!data || !rawOrders)
     return <div className="text-center py-8 text-gray-500">No sales data available.</div>;
 
