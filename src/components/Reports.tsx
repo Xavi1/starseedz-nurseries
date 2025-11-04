@@ -166,33 +166,36 @@ const ReportRenderer = () => {
   customers: null,
   inventory: null,
 });
+
+// In the ReportRenderer component, update the useEffect to store raw orders properly
 useEffect(() => {
   const fetchReportData = async () => {
     try {
       console.log("📊 [Reports] Fetching report data for timeframe:", timeframe);
       
       // 1️⃣ Fetch raw data from Firebase
-      const orders = await fetchSalesReport(timeframe);
+      const rawOrders = await fetchSalesReport(timeframe); // This should return actual order objects
       const customers = await fetchCustomerReport(timeframe);
       const inventory = await fetchInventoryReport();
 
+      console.log("🛒 [Reports] Raw orders from service:", rawOrders);
+
       // 2️⃣ Process the sales data for charts
-      const processedSalesData = orders
-        ? orders.map((order: any) => ({
+      const processedSalesData = rawOrders
+        ? rawOrders.map((order: any) => ({
             date: new Date(order.date).toLocaleDateString(),
             revenue: order.total || 0,
-            orders: 1, // This should be 1 per order for chart aggregation
+            orders: 1,
           }))
         : [];
 
-      console.log("🧾 [Reports] Raw orders:", orders);
       console.log("📈 [Reports] Processed sales data:", processedSalesData);
 
-      // 3️⃣ Update the report state
+      // 3️⃣ Update the report state - make sure rawOrders contains actual order objects
       setReportData({
         sales: {
-          raw: orders, // 🟢 Firestore data
-          processed: processedSalesData, // 🟢 Chart data
+          raw: rawOrders, // 🟢 This should be the actual order objects from Firestore
+          processed: processedSalesData, // 🟢 This is for charts
         },
         customers,
         inventory,
@@ -204,20 +207,41 @@ useEffect(() => {
   };
 
   fetchReportData();
-}, [timeframe]); // Changed from reportType, reportTimeframe to timeframe
+}, [timeframe]);
 
-  const calculateSalesMetrics = (rawOrders: Order[] | null, processedData: SalesDataItem[] | null): SalesMetrics => {
-  if (!rawOrders || rawOrders.length === 0) return { totalRevenue: 0, totalOrders: 0, avgOrderValue: 0 };
+// Fix the calculateSalesMetrics function
+const calculateSalesMetrics = (rawOrders: Order[] | null): SalesMetrics => {
+  console.log("🧮 [calculateSalesMetrics] Raw orders:", rawOrders);
   
-  const totalRevenue = rawOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+  if (!rawOrders || rawOrders.length === 0) {
+    console.log("📭 [calculateSalesMetrics] No raw orders found");
+    return { totalRevenue: 0, totalOrders: 0, avgOrderValue: 0 };
+  }
+  
+  // Check if we have actual order objects with total property
+  const firstOrder = rawOrders[0];
+  console.log("🔍 [calculateSalesMetrics] First order sample:", firstOrder);
+  
+  const totalRevenue = rawOrders.reduce((sum, order) => {
+    const orderTotal = order.total || 0;
+    console.log(`💰 Order ${order.id}: total = ${orderTotal}`);
+    return sum + orderTotal;
+  }, 0);
+  
   const totalOrders = rawOrders.length;
   const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+  
+  console.log("📊 [calculateSalesMetrics] Final metrics:", {
+    totalRevenue,
+    totalOrders, 
+    avgOrderValue
+  });
   
   return { totalRevenue, totalOrders, avgOrderValue };
 };
 
-  // Update the usage
-  const salesMetrics = calculateSalesMetrics(reportData.sales?.raw || [], reportData.sales?.processed || []);
+// Update the metrics calculation
+const salesMetrics = calculateSalesMetrics(reportData.sales?.raw || []);
 
 
   return (
