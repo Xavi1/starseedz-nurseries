@@ -197,7 +197,7 @@ useEffect(() => {
 
         return {
           date: orderDate.toISOString().split("T")[0],
-          revenue: orderTotal,
+          revenue: Number(orderTotal.toFixed(2)),
           orders: 1,
         };
       })
@@ -239,6 +239,12 @@ const calculateSalesMetrics = (rawOrders: any[] | null): SalesMetrics => {
   }, 0);
 
   const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+  return {
+    totalRevenue: Number(totalRevenue.toFixed(2)),
+    totalOrders,
+    avgOrderValue: Number(avgOrderValue.toFixed(2)),
+  };
+
 
   return { totalRevenue, totalOrders, avgOrderValue };
 };
