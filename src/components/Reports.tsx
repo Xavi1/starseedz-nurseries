@@ -166,47 +166,45 @@ const ReportRenderer = () => {
   customers: null,
   inventory: null,
 });
-  useEffect(() => {
-const fetchReportData = async () => {
-  
-  try {
-    console.log("📊 [Reports] Fetching report data for timeframe:", timeframe);
-    // 1️⃣ Fetch raw data from Firebase
-    const orders = await fetchSalesReport(timeframe);
-    const customers = await fetchCustomerReport(timeframe);
-    const inventory = await fetchInventoryReport();
+useEffect(() => {
+  const fetchReportData = async () => {
+    try {
+      console.log("📊 [Reports] Fetching report data for timeframe:", timeframe);
+      
+      // 1️⃣ Fetch raw data from Firebase
+      const orders = await fetchSalesReport(timeframe);
+      const customers = await fetchCustomerReport(timeframe);
+      const inventory = await fetchInventoryReport();
 
-    // 2️⃣ Process the sales data for charts
-    const processedSalesData = orders
-      ? orders.map((order: any) => ({
-          date: new Date(order.date).toLocaleDateString(),
-          revenue: order.total || 0,
-          orders: 1,
-        }))
-      : [];
+      // 2️⃣ Process the sales data for charts
+      const processedSalesData = orders
+        ? orders.map((order: any) => ({
+            date: new Date(order.date).toLocaleDateString(),
+            revenue: order.total || 0,
+            orders: 1, // This should be 1 per order for chart aggregation
+          }))
+        : [];
 
-    console.log("🧾 [Reports] Processed sales data:", processedSalesData);
+      console.log("🧾 [Reports] Raw orders:", orders);
+      console.log("📈 [Reports] Processed sales data:", processedSalesData);
 
-    // 3️⃣ Update the report state
-     setReportData((prev) => ({
-      ...prev,
-      sales: {
-        raw: orders, // 🟢 Firestore data
-        processed: processedSalesData, // 🟢 Chart data
-      },
-      customers,
-      inventory,
-    }));
+      // 3️⃣ Update the report state
+      setReportData({
+        sales: {
+          raw: orders, // 🟢 Firestore data
+          processed: processedSalesData, // 🟢 Chart data
+        },
+        customers,
+        inventory,
+      });
 
-    console.log("✅ [Reports] Report data successfully updated");
-  } catch (error) {
-    console.error("❌ [Reports] Failed to fetch report data:", error);
-  }
-};
+    } catch (error) {
+      console.error("❌ [Reports] Failed to fetch report data:", error);
+    }
+  };
 
-
-    fetchReportData();
-  }, [reportType, reportTimeframe]);
+  fetchReportData();
+}, [timeframe]); // Changed from reportType, reportTimeframe to timeframe
 
   const calculateSalesMetrics = (rawOrders: Order[] | null, processedData: SalesDataItem[] | null): SalesMetrics => {
   if (!rawOrders || rawOrders.length === 0) return { totalRevenue: 0, totalOrders: 0, avgOrderValue: 0 };
