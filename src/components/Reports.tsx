@@ -208,15 +208,18 @@ const fetchReportData = async () => {
     fetchReportData();
   }, [reportType, reportTimeframe]);
 
-  const calculateSalesMetrics = (data: SalesDataItem[] | null): SalesMetrics => {
-    if (!data || data.length === 0) return { totalRevenue: 0, totalOrders: 0, avgOrderValue: 0 };
-    const totalRevenue = data.reduce((sum, item) => sum + (item.revenue || 0), 0);
-    const totalOrders = data.reduce((sum, item) => sum + (item.orders || 0), 0);
-    const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-    return { totalRevenue, totalOrders, avgOrderValue };
-  };
+  const calculateSalesMetrics = (rawOrders: Order[] | null, processedData: SalesDataItem[] | null): SalesMetrics => {
+  if (!rawOrders || rawOrders.length === 0) return { totalRevenue: 0, totalOrders: 0, avgOrderValue: 0 };
+  
+  const totalRevenue = rawOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+  const totalOrders = rawOrders.length;
+  const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+  
+  return { totalRevenue, totalOrders, avgOrderValue };
+};
 
-  const salesMetrics = calculateSalesMetrics(reportData.sales?.processed || []);
+  // Update the usage
+  const salesMetrics = calculateSalesMetrics(reportData.sales?.raw || [], reportData.sales?.processed || []);
 
 
   return (
