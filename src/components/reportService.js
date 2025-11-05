@@ -22,8 +22,8 @@ export const fetchSalesReport = async (timeframe) => {
     // Apply timeframe filter
     const dateFilter = getDateFilter(timeframe);
     if (dateFilter) {
-      console.log("📅 [fetchSalesReport] Applying date filter:", dateFilter.toDate());
-      // q = query(q, where("date", ">=", dateFilter));
+      console.log("📅 [fetchSalesReport] Applying date filter:", dateFilter); // Remove .toDate()
+      q = query(q, where("date", ">=", dateFilter));
     } else {
       console.log("📅 [fetchSalesReport] No date filter applied (fetching all orders)");
     }
@@ -42,13 +42,13 @@ export const fetchSalesReport = async (timeframe) => {
     const orders = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
-      date: doc.data().date?.toDate?.() || new Date(doc.data().date),
+      date: new Date(doc.data().date), // Convert string to Date object
     }));
 
     console.log("🧾 [fetchSalesReport] First order sample:", orders[0] || "No data");
     console.log("🧮 [fetchSalesReport] Processing sales data...");
     const processedData = processSalesData(orders, timeframe);
-    console.log("✅ [fetchSalesReport] Processed data:", processedData.slice(0, 3)); // preview only
+    console.log("✅ [fetchSalesReport] Processed data:", processedData.slice(0, 3));
 
     return processedData;
   } catch (error) {
@@ -61,7 +61,7 @@ export const fetchSalesReport = async (timeframe) => {
 // Fetch customer report data
 export const fetchCustomerReport = async (timeframe) => {
   try {
-    const customersCollection = collection(db, 'customers');
+    const customersCollection = collection(db, 'users');
     let q = query(customersCollection);
     
     const dateFilter = getDateFilter(timeframe);
@@ -124,7 +124,7 @@ const getDateFilter = (timeframe) => {
       return null;
   }
   
-  return Timestamp.fromDate(filterDate);
+  return filterDate.toISOString();
 };
 
 // Process sales data for charts
