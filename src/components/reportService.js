@@ -22,7 +22,7 @@ export const fetchSalesReport = async (timeframe) => {
     // Apply timeframe filter
     const dateFilter = getDateFilter(timeframe);
     if (dateFilter) {
-      console.log("📅 [fetchSalesReport] Applying date filter:", dateFilter); // Remove .toDate()
+      console.log("📅 [fetchSalesReport] Applying date filter:", dateFilter);
       q = query(q, where("date", ">=", dateFilter));
     } else {
       console.log("📅 [fetchSalesReport] No date filter applied (fetching all orders)");
@@ -39,11 +39,28 @@ export const fetchSalesReport = async (timeframe) => {
       return [];
     }
 
-    const orders = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-      date: new Date(doc.data().date), // Convert string to Date object
-    }));
+    const orders = snapshot.docs.map((doc) => {
+      const data = doc.data(); // Define data first
+      let date;
+      
+      try {
+        date = new Date(data.date);
+        // Check if date is valid
+        if (isNaN(date.getTime())) {
+          console.warn("⚠️ Invalid date for order:", doc.id, data.date);
+          date = new Date(); // Fallback to current date
+        }
+      } catch (error) {
+        console.warn("⚠️ Date conversion error for order:", doc.id, error);
+        date = new Date(); // Fallback to current date
+      }
+      
+      return {
+        id: doc.id,
+        ...data,
+        date: date,
+      };
+    });
 
     console.log("🧾 [fetchSalesReport] First order sample:", orders[0] || "No data");
     console.log("🧮 [fetchSalesReport] Processing sales data...");
@@ -61,7 +78,7 @@ export const fetchSalesReport = async (timeframe) => {
 // Fetch customer report data
 export const fetchCustomerReport = async (timeframe) => {
   try {
-    const customersCollection = collection(db, 'users');
+    const customersCollection = collection(db, 'customers');
     let q = query(customersCollection);
     
     const dateFilter = getDateFilter(timeframe);
@@ -70,11 +87,28 @@ export const fetchCustomerReport = async (timeframe) => {
     }
     
     const snapshot = await getDocs(q);
-    const customerData = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate?.() || doc.data().createdAt
-    }));
+    const customerData = snapshot.docs.map(doc => {
+      const data = doc.data(); // Define data first
+      let createdAt;
+      
+      try {
+        createdAt = new Date(data.createdAt);
+        // Check if date is valid
+        if (isNaN(createdAt.getTime())) {
+          console.warn("⚠️ Invalid date for customer:", doc.id, data.createdAt);
+          createdAt = new Date(); // Fallback to current date
+        }
+      } catch (error) {
+        console.warn("⚠️ Date conversion error for customer:", doc.id, error);
+        createdAt = new Date(); // Fallback to current date
+      }
+      
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: createdAt,
+      };
+    });
     
     return processCustomerData(customerData, timeframe);
   } catch (error) {
@@ -123,6 +157,10 @@ const getDateFilter = (timeframe) => {
     default:
       return null;
   }
+
+   // Set to start of day for consistent filtering
+  filterDate.setHours(0, 0, 0, 0);
+  console.log("📅 [getDateFilter] Filtering from:", filterDate.toISOString());
   
   return filterDate.toISOString();
 };
