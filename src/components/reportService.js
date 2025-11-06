@@ -137,32 +137,53 @@ export const fetchInventoryReport = async () => {
 };
 
 // Helper function to calculate date filters
-const getDateFilter = (timeframe) => {
+export const getDateFilter = (timeframe) => {
   const now = new Date();
-  const filterDate = new Date();
-  
+  let startDate;
+
   switch (timeframe) {
+    case 'today':
+      startDate = new Date(now);
+      startDate.setHours(0, 0, 0, 0);
+      break;
+    case 'yesterday':
+      startDate = new Date(now);
+      startDate.setDate(now.getDate() - 1);
+      startDate.setHours(0, 0, 0, 0);
+      break;
     case 'week':
-      filterDate.setDate(now.getDate() - 7);
+    case 'last7days':
+      startDate = new Date(now);
+      startDate.setDate(now.getDate() - 7);
       break;
     case 'month':
-      filterDate.setDate(now.getDate() - 30);
+    case 'last30days':
+      startDate = new Date(now);
+      startDate.setDate(now.getDate() - 30);
       break;
-    case 'quarter':
-      filterDate.setDate(now.getDate() - 90);
+    case 'last90days':
+      startDate = new Date(now);
+      startDate.setDate(now.getDate() - 90);
       break;
-    case 'year':
-      filterDate.setFullYear(now.getFullYear() - 1);
+    case 'thisMonth':
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
       break;
-    default:
+    case 'lastMonth':
+      startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      break;
+    case 'thisYear':
+      startDate = new Date(now.getFullYear(), 0, 1);
+      break;
+    case 'all':
       return null;
+    default:
+      console.warn('Unknown timeframe, defaulting to last 7 days');
+      startDate = new Date(now);
+      startDate.setDate(now.getDate() - 7);
   }
 
-   // Set to start of day for consistent filtering
-  filterDate.setHours(0, 0, 0, 0);
-  console.log("📅 [getDateFilter] Filtering from:", filterDate.toISOString());
-  
-  return filterDate.toISOString();
+  console.log(`📅 [getDateFilter] Timeframe: ${timeframe}, Filtering from:`, startDate.toISOString());
+  return startDate;
 };
 
 // Process sales data for charts
