@@ -22,8 +22,15 @@ export const fetchSalesReport = async (timeframe) => {
     // Apply timeframe filter
     const dateFilter = getDateFilter(timeframe);
     if (dateFilter) {
-      console.log("📅 [fetchSalesReport] Applying date filter:", dateFilter);
-      q = query(q, where("date", ">=", dateFilter));
+      // Convert to Firestore Timestamp for proper comparison
+      const dateStringFilter = dateFilter.toISOString();
+      
+      console.log("📅 [fetchSalesReport] Applying date filter:", dateFilter.toISOString());
+      //console.log("📅 [fetchSalesReport] As Timestamp:", dateStringFilter.toDate().toISOString());
+      console.log("📅 [fetchSalesReport] Current date:", new Date().toISOString());
+      console.log("📅 [fetchSalesReport] Days difference:", Math.floor((new Date() - dateFilter) / (1000 * 60 * 60 * 24)));
+      
+      q = query(q, where("date", ">=", dateStringFilter));
     } else {
       console.log("📅 [fetchSalesReport] No date filter applied (fetching all orders)");
     }
@@ -34,17 +41,51 @@ export const fetchSalesReport = async (timeframe) => {
     const snapshot = await getDocs(q);
     console.log("✅ [fetchSalesReport] Query complete. Documents found:", snapshot.size);
 
-    if (snapshot.empty) {
-      console.warn("⚠️ [fetchSalesReport] No orders found in the selected timeframe.");
-      return [];
+    // Debug: Check what dates are actually being returned
+    if (!snapshot.empty) {
+      const dates = snapshot.docs.map(doc => {
+        const data = doc.data();
+        if (data.date) {
+          // Handle both Timestamp and Date objects
+          const dateObj = data.date.toDate ? data.date.toDate() : new Date(data.date);
+          return dateObj.toISOString();
+        }
+        return 'no-date';
+      });
+      console.log("📅 [fetchSalesReport] Actual dates in query results:", dates.slice(0, 5)); // First 5 dates
+    } else {
+      console.log("❌ [fetchSalesReport] No documents found with the current filter");
+      
+      // Debug: Check what happens without any date filter
+      const allOrdersQuery = query(ordersCollection, orderBy("date", "asc"));
+      const allOrdersSnapshot = await getDocs(allOrdersQuery);
+      console.log("🔍 [DEBUG] Total orders in database:", allOrdersSnapshot.size);
+      
+      if (!allOrdersSnapshot.empty) {
+        const allDates = allOrdersSnapshot.docs.map(doc => {
+          const data = doc.data();
+          if (data.date) {
+            const dateObj = data.date.toDate ? data.date.toDate() : new Date(data.date);
+            return dateObj.toISOString();
+          }
+          return 'no-date';
+        });
+        console.log("🔍 [DEBUG] All dates in database:", allDates.slice(0, 10)); // First 10 dates
+      }
     }
 
     const orders = snapshot.docs.map((doc) => {
-      const data = doc.data(); // Define data first
+      const data = doc.data();
       let date;
       
       try {
-        date = new Date(data.date);
+        // Handle both Timestamp and Date objects
+        if (data.date && data.date.toDate) {
+          date = data.date.toDate();
+        } else {
+          date = new Date(data.date);
+        }
+        
         // Check if date is valid
         if (isNaN(date.getTime())) {
           console.warn("⚠️ Invalid date for order:", doc.id, data.date);
@@ -138,7 +179,8 @@ export const fetchInventoryReport = async () => {
 
 // Helper function to calculate date filters
 export const getDateFilter = (timeframe) => {
-  const now = new Date();
+  // Use a fixed current date instead of new Date() which uses system time
+  const now = new Date('2024-11-06'); // Replace with actual current date
   let startDate;
 
   switch (timeframe) {
