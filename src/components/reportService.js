@@ -22,15 +22,14 @@ export const fetchSalesReport = async (timeframe) => {
     // Apply timeframe filter
     const dateFilter = getDateFilter(timeframe);
     if (dateFilter) {
-      // Convert to Firestore Timestamp for proper comparison
-      const dateStringFilter = dateFilter.toISOString();
+      // Convert to ISO string for proper date comparison
+      const dateString = dateFilter.toISOString();
       
-      console.log("📅 [fetchSalesReport] Applying date filter:", dateFilter.toISOString());
-      //console.log("📅 [fetchSalesReport] As Timestamp:", dateStringFilter.toDate().toISOString());
+      console.log("📅 [fetchSalesReport] Applying date filter:", dateString);
       console.log("📅 [fetchSalesReport] Current date:", new Date().toISOString());
       console.log("📅 [fetchSalesReport] Days difference:", Math.floor((new Date() - dateFilter) / (1000 * 60 * 60 * 24)));
       
-      q = query(q, where("date", ">=", dateStringFilter));
+      q = query(q, where("date", ">=", dateString));
     } else {
       console.log("📅 [fetchSalesReport] No date filter applied (fetching all orders)");
     }
@@ -79,8 +78,16 @@ export const fetchSalesReport = async (timeframe) => {
       let date;
       
       try {
-        // Handle both Timestamp and Date objects
-        if (data.date && data.date.toDate) {
+        // Handle the specific date format from Firebase
+        if (typeof data.date === 'string') {
+          // Parse the Firebase date string format
+          const [datePart, timePart] = data.date.split('T');
+          const [year, month, day] = datePart.split('-');
+          const [hours, minutes, secondsMs] = timePart.split(':');
+          const seconds = secondsMs.split('.')[0];
+          date = new Date(year, month - 1, day, hours, minutes, seconds);
+        } else if (data.date && data.date.toDate) {
+          // Handle Firestore Timestamp
           date = data.date.toDate();
         } else {
           date = new Date(data.date);
@@ -179,42 +186,39 @@ export const fetchInventoryReport = async () => {
 
 // Helper function to calculate date filters
 export const getDateFilter = (timeframe) => {
-  // Use a fixed current date instead of new Date() which uses system time
-  const now = new Date('2024-11-06'); // Replace with actual current date
+  // Use current date
+  const now = new Date();
   let startDate;
 
   switch (timeframe) {
-    case 'today':
-      startDate = new Date(now);
-      startDate.setHours(0, 0, 0, 0);
-      break;
-    case 'yesterday':
-      startDate = new Date(now);
-      startDate.setDate(now.getDate() - 1);
-      startDate.setHours(0, 0, 0, 0);
-      break;
+    case '7d':
     case 'week':
     case 'last7days':
       startDate = new Date(now);
       startDate.setDate(now.getDate() - 7);
+      startDate.setHours(0, 0, 0, 0);
       break;
+    case '30d':
     case 'month':
     case 'last30days':
       startDate = new Date(now);
       startDate.setDate(now.getDate() - 30);
+      startDate.setHours(0, 0, 0, 0);
       break;
+    case '90d':
     case 'last90days':
       startDate = new Date(now);
       startDate.setDate(now.getDate() - 90);
+      startDate.setHours(0, 0, 0, 0);
       break;
-    case 'thisMonth':
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-      break;
-    case 'lastMonth':
-      startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      break;
-    case 'thisYear':
+    case 'ytd':
       startDate = new Date(now.getFullYear(), 0, 1);
+      startDate.setHours(0, 0, 0, 0);
+      break;
+    case 'year':
+      startDate = new Date(now);
+      startDate.setFullYear(now.getFullYear() - 1);
+      startDate.setHours(0, 0, 0, 0);
       break;
     case 'all':
       return null;
@@ -222,6 +226,7 @@ export const getDateFilter = (timeframe) => {
       console.warn('Unknown timeframe, defaulting to last 7 days');
       startDate = new Date(now);
       startDate.setDate(now.getDate() - 7);
+      startDate.setHours(0, 0, 0, 0);
   }
 
   console.log(`📅 [getDateFilter] Timeframe: ${timeframe}, Filtering from:`, startDate.toISOString());
@@ -242,15 +247,20 @@ const processSalesData = (orders, timeframe) => {
     let key;
 
     switch (timeframe) {
+      case "7d":
       case "week":
         key = date.toLocaleDateString();
         break;
+      case "30d":
       case "month":
         key = `${date.getMonth() + 1}/${date.getDate()}`;
         break;
-      case "quarter":
+      case "90d":
+        key = `${date.getMonth() + 1}/${date.getDate()}`;
+        break;
+      case "ytd":
       case "year":
-        key = `${date.getMonth() + 1}/1`;
+        key = date.toLocaleDateString('default', { month: 'short' });
         break;
       default:
         key = date.toLocaleDateString();
