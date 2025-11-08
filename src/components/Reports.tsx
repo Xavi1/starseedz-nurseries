@@ -53,9 +53,6 @@ interface InventoryData {
   [category: string]: InventoryCategory;
 }
 
-interface SalesReportProps {
-  timeframe?: string;
-}
 
 interface OrderItem {
   category?: string;
@@ -78,11 +75,6 @@ interface Order {
   timeline?: TimelineEntry[];
 }
 
-interface ReportData {
-  sales: { raw: Order[]; processed: SalesDataItem[] } | null;
-  customers: ProcessedCustomerData | null;
-  inventory: Record<string, any> | null;
-}
 
 // Icon components
 const DownloadIcon = ({ className }: { className?: string }) => (
@@ -153,76 +145,71 @@ const AlertCircleIcon = ({ className }: { className?: string }) => (
 );
 
 const ReportRenderer = () => {
+  const [loading, setLoading] = useState<boolean>(false);
   const [reportType, setReportType] = useState<string>("sales");
   const [reportTimeframe, setReportTimeframe] = useState<string>("week");
-  const [loading, setLoading] = useState<boolean>(false);
-  const [timeframe, setTimeframe] = useState<'day' | 'week' | 'month' | 'year'>('week');
   const [reportData, setReportData] = useState<{
-  sales: { raw: Order[]; processed: SalesDataItem[] } | null;
-  customers: ProcessedCustomerData | null;
-  inventory: Record<string, any> | null;
-}>({
-  sales: null,
-  customers: null,
-  inventory: null,
-});
+    sales: { raw: Order[]; processed: SalesDataItem[] } | null;
+    customers: ProcessedCustomerData | null;
+    inventory: Record<string, any> | null;
+  }>({
+    sales: null,
+    customers: null,
+    inventory: null,
+  });
 
 // In the ReportRenderer component, update the useEffect to store raw orders properly
 useEffect(() => {
   const fetchReportData = async () => {
     try {
-      console.log("📊 [Reports] Fetching report data for timeframe:", timeframe);
-      
+      console.log("📊 [Reports] Fetching report data for timeframe:", reportTimeframe);
       // 1️⃣ Fetch raw data from Firebase
-      const rawOrders = await fetchSalesReport(timeframe); // This should return actual order objects
-      const customers = await fetchCustomerReport(timeframe);
+      const rawOrders = await fetchSalesReport(reportTimeframe);
+      const customers = await fetchCustomerReport(reportTimeframe);
       const inventory = await fetchInventoryReport();
 
       console.log("🛒 [Reports] Raw orders from service:", rawOrders);
 
       // 2️⃣ Process the sales data for charts
       const processedSalesData: SalesDataItem[] = (rawOrders || [])
-      .map((order: any) => {
-        const orderDate =
-          order.date?.toDate?.() ||
-          (order.date?._seconds ? new Date(order.date._seconds * 1000) : null) ||
-          new Date(order.date);
+        .map((order: any) => {
+          const orderDate =
+            order.date?.toDate?.() ||
+            (order.date?._seconds ? new Date(order.date._seconds * 1000) : null) ||
+            new Date(order.date);
 
-        const orderTotal = Number(order.total ?? order.subtotal ?? order.revenue ?? 0);
+          const orderTotal = Number(order.total ?? order.subtotal ?? order.revenue ?? 0);
 
-        if (!orderDate || isNaN(orderDate.getTime()) || orderTotal <= 0) {
-          console.log("⚠️ Skipping invalid order:", order);
-          return null;
-        }
+          if (!orderDate || isNaN(orderDate.getTime()) || orderTotal <= 0) {
+            console.log("⚠️ Skipping invalid order:", order);
+            return null;
+          }
 
-        return {
-          date: orderDate.toISOString().split("T")[0],
-          revenue: Number(orderTotal.toFixed(2)),
-          orders: 1,
-        };
-      })
-      // tell TypeScript this removes nulls
-      .filter((item): item is SalesDataItem => item !== null);
+          return {
+            date: orderDate.toISOString().split("T")[0],
+            revenue: Number(orderTotal.toFixed(2)),
+            orders: 1,
+          };
+        })
+        .filter((item): item is SalesDataItem => item !== null);
 
       console.log("📈 [Reports] Processed sales data:", processedSalesData);
 
-      // 3️⃣ Update the report state - make sure rawOrders contains actual order objects
       setReportData({
         sales: {
-          raw: rawOrders, // 🟢 This should be the actual order objects from Firestore
-          processed: processedSalesData, // 🟢 This is for charts
+          raw: rawOrders,
+          processed: processedSalesData,
         },
         customers,
         inventory,
       });
-
     } catch (error) {
       console.error("❌ [Reports] Failed to fetch report data:", error);
     }
   };
 
   fetchReportData();
-}, [timeframe]);
+}, [reportTimeframe]);
 
 // Fix the calculateSalesMetrics function
 const calculateSalesMetrics = (rawOrders: any[] | null): SalesMetrics => {

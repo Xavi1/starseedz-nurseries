@@ -17,7 +17,7 @@ export const fetchSalesReport = async (timeframe) => {
     console.log("📊 [fetchSalesReport] Starting fetch for timeframe:", timeframe);    
 
     const ordersCollection = collection(db, "orders");
-    let q = query(ordersCollection);
+    let q = query(ordersCollection, orderBy("date", "asc"));
 
     // Apply timeframe filter
     const dateFilter = getDateFilter(timeframe);
@@ -29,12 +29,10 @@ export const fetchSalesReport = async (timeframe) => {
       console.log("📅 [fetchSalesReport] Current date:", new Date().toISOString());
       console.log("📅 [fetchSalesReport] Days difference:", Math.floor((new Date() - dateFilter) / (1000 * 60 * 60 * 24)));
       
-      q = query(q, where("date", ">=", dateString));
+      q = query(ordersCollection, where("date", ">=", dateString), orderBy("date", "asc"));
     } else {
       console.log("📅 [fetchSalesReport] No date filter applied (fetching all orders)");
     }
-
-    q = query(q, orderBy("date", "asc"));
 
     console.log("🚀 [fetchSalesReport] Running Firestore query...");
     const snapshot = await getDocs(q);
@@ -51,26 +49,15 @@ export const fetchSalesReport = async (timeframe) => {
         }
         return 'no-date';
       });
-      console.log("📅 [fetchSalesReport] Actual dates in query results:", dates.slice(0, 5)); // First 5 dates
+      console.log("📅 [fetchSalesReport] Date range in results:", {
+        first: dates[0],
+        last: dates[dates.length - 1],
+        total: dates.length
+      });
     } else {
-      console.log("❌ [fetchSalesReport] No documents found with the current filter");
-      
-      // Debug: Check what happens without any date filter
-      const allOrdersQuery = query(ordersCollection, orderBy("date", "asc"));
-      const allOrdersSnapshot = await getDocs(allOrdersQuery);
-      console.log("🔍 [DEBUG] Total orders in database:", allOrdersSnapshot.size);
-      
-      if (!allOrdersSnapshot.empty) {
-        const allDates = allOrdersSnapshot.docs.map(doc => {
-          const data = doc.data();
-          if (data.date) {
-            const dateObj = data.date.toDate ? data.date.toDate() : new Date(data.date);
-            return dateObj.toISOString();
-          }
-          return 'no-date';
-        });
-        console.log("🔍 [DEBUG] All dates in database:", allDates.slice(0, 10)); // First 10 dates
-      }
+      console.log("⚠️ [fetchSalesReport] No documents found with the current filter");
+      console.log("🔍 [fetchSalesReport] Timeframe used:", timeframe);
+      console.log("🔍 [fetchSalesReport] Filter date:", dateFilter ? dateFilter.toISOString() : 'none');
     }
 
     const orders = snapshot.docs.map((doc) => {
@@ -110,10 +97,27 @@ export const fetchSalesReport = async (timeframe) => {
       };
     });
 
-    console.log("🧾 [fetchSalesReport] First order sample:", orders[0] || "No data");
+    console.log("🧾 [fetchSalesReport] Orders retrieved:", orders.length);
+    if (orders.length > 0) {
+      console.log("🧾 [fetchSalesReport] First order:", {
+        id: orders[0].id,
+        date: orders[0].date.toISOString(),
+        total: orders[0].total
+      });
+      console.log("🧾 [fetchSalesReport] Last order:", {
+        id: orders[orders.length - 1].id,
+        date: orders[orders.length - 1].date.toISOString(),
+        total: orders[orders.length - 1].total
+      });
+    }
+    
     console.log("🧮 [fetchSalesReport] Processing sales data...");
     const processedData = processSalesData(orders, timeframe);
-    console.log("✅ [fetchSalesReport] Processed data:", processedData.slice(0, 3));
+    console.log("✅ [fetchSalesReport] Processed data points:", processedData.length);
+    if (processedData.length > 0) {
+      console.log("✅ [fetchSalesReport] First data point:", processedData[0]);
+      console.log("✅ [fetchSalesReport] Last data point:", processedData[processedData.length - 1]);
+    }
 
     return processedData;
   } catch (error) {
@@ -126,29 +130,34 @@ export const fetchSalesReport = async (timeframe) => {
 // Fetch customer report data
 export const fetchCustomerReport = async (timeframe) => {
   try {
+    console.log("👥 [fetchCustomerReport] Fetching for timeframe:", timeframe);
+    
     const customersCollection = collection(db, 'customers');
     let q = query(customersCollection);
     
     const dateFilter = getDateFilter(timeframe);
     if (dateFilter) {
-      q = query(q, where('createdAt', '>=', dateFilter));
+      const dateString = dateFilter.toISOString();
+      q = query(q, where('createdAt', '>=', dateString));
+      console.log("📅 [fetchCustomerReport] Filtering from:", dateString);
     }
     
     const snapshot = await getDocs(q);
+    console.log("✅ [fetchCustomerReport] Customers found:", snapshot.size);
+    
     const customerData = snapshot.docs.map(doc => {
-      const data = doc.data(); // Define data first
+      const data = doc.data();
       let createdAt;
       
       try {
         createdAt = new Date(data.createdAt);
-        // Check if date is valid
         if (isNaN(createdAt.getTime())) {
           console.warn("⚠️ Invalid date for customer:", doc.id, data.createdAt);
-          createdAt = new Date(); // Fallback to current date
+          createdAt = new Date();
         }
       } catch (error) {
         console.warn("⚠️ Date conversion error for customer:", doc.id, error);
-        createdAt = new Date(); // Fallback to current date
+        createdAt = new Date();
       }
       
       return {
@@ -160,7 +169,7 @@ export const fetchCustomerReport = async (timeframe) => {
     
     return processCustomerData(customerData, timeframe);
   } catch (error) {
-    console.error('Error fetching customer report:', error);
+    console.error('❌ [fetchCustomerReport] Error:', error);
     throw error;
   }
 };
@@ -186,9 +195,10 @@ export const fetchInventoryReport = async () => {
 
 // Helper function to calculate date filters
 export const getDateFilter = (timeframe) => {
-  // Use current date
   const now = new Date();
   let startDate;
+
+  console.log("🔧 [getDateFilter] Input timeframe:", timeframe, "Type:", typeof timeframe);
 
   switch (timeframe) {
     case '7d':
@@ -197,6 +207,7 @@ export const getDateFilter = (timeframe) => {
       startDate = new Date(now);
       startDate.setDate(now.getDate() - 7);
       startDate.setHours(0, 0, 0, 0);
+      console.log("📅 [getDateFilter] Week filter: Last 7 days");
       break;
     case '30d':
     case 'month':
@@ -204,38 +215,41 @@ export const getDateFilter = (timeframe) => {
       startDate = new Date(now);
       startDate.setDate(now.getDate() - 30);
       startDate.setHours(0, 0, 0, 0);
+      console.log("📅 [getDateFilter] Month filter: Last 30 days");
       break;
     case '90d':
+    case 'quarter':
     case 'last90days':
       startDate = new Date(now);
       startDate.setDate(now.getDate() - 90);
       startDate.setHours(0, 0, 0, 0);
+      console.log("📅 [getDateFilter] Quarter filter: Last 90 days");
       break;
     case 'ytd':
+    case 'year':
       startDate = new Date(now.getFullYear(), 0, 1);
       startDate.setHours(0, 0, 0, 0);
-      break;
-    case 'year':
-      startDate = new Date(now);
-      startDate.setFullYear(now.getFullYear() - 1);
-      startDate.setHours(0, 0, 0, 0);
+      console.log("📅 [getDateFilter] Year filter: Year to date");
       break;
     case 'all':
+      console.log("📅 [getDateFilter] All time filter: No date restriction");
       return null;
     default:
-      console.warn('Unknown timeframe, defaulting to last 7 days');
+      console.warn('⚠️ [getDateFilter] Unknown timeframe:', timeframe, '- defaulting to last 7 days');
       startDate = new Date(now);
       startDate.setDate(now.getDate() - 7);
       startDate.setHours(0, 0, 0, 0);
   }
 
-  console.log(`📅 [getDateFilter] Timeframe: ${timeframe}, Filtering from:`, startDate.toISOString());
+  console.log(`📅 [getDateFilter] Final filter date: ${startDate.toISOString()}`);
+  console.log(`📅 [getDateFilter] Days from now: ${Math.floor((now - startDate) / (1000 * 60 * 60 * 24))}`);
+  
   return startDate;
 };
 
 // Process sales data for charts
 const processSalesData = (orders, timeframe) => {
-  console.log("🔍 [processSalesData] Received orders:", orders.length);
+  console.log("🔍 [processSalesData] Processing", orders.length, "orders for timeframe:", timeframe);
 
   if (!orders || orders.length === 0) {
     console.warn("⚠️ [processSalesData] No orders to process.");
@@ -249,18 +263,26 @@ const processSalesData = (orders, timeframe) => {
     switch (timeframe) {
       case "7d":
       case "week":
+      case "last7days":
         key = date.toLocaleDateString();
         break;
       case "30d":
       case "month":
+      case "last30days":
         key = `${date.getMonth() + 1}/${date.getDate()}`;
         break;
       case "90d":
+      case "quarter":
+      case "last90days":
         key = `${date.getMonth() + 1}/${date.getDate()}`;
         break;
       case "ytd":
       case "year":
         key = date.toLocaleDateString('default', { month: 'short' });
+        break;
+      case "all":
+        // For all time, group by month
+        key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
         break;
       default:
         key = date.toLocaleDateString();
@@ -280,7 +302,21 @@ const processSalesData = (orders, timeframe) => {
     orders: data.orders,
   }));
 
-  console.log("✅ [processSalesData] Aggregated result (first 3):", result.slice(0, 3));
+  // Sort results chronologically
+  result.sort((a, b) => {
+    // Try to parse dates for proper sorting
+    const dateA = new Date(a.date);
+    const dateB = new Date(b.date);
+    if (!isNaN(dateA) && !isNaN(dateB)) {
+      return dateA - dateB;
+    }
+    return a.date.localeCompare(b.date);
+  });
+
+  console.log("✅ [processSalesData] Grouped into", result.length, "data points");
+  console.log("✅ [processSalesData] Total revenue:", result.reduce((sum, item) => sum + item.revenue, 0));
+  console.log("✅ [processSalesData] Sample data:", result.slice(0, 3));
+
   return result;
 };
 
@@ -294,6 +330,8 @@ const processCustomerData = (customerData, timeframe) => {
   const returningCustomers = customerData.filter(customer => 
     customer.type === 'returning' || (customer.previousOrders && customer.previousOrders > 0)
   );
+  
+  console.log("👥 [processCustomerData] New:", newCustomers.length, "Returning:", returningCustomers.length);
   
   return {
     newCustomers: newCustomers.length,
@@ -314,17 +352,27 @@ const calculateCustomerGrowth = (customerData, timeframe) => {
     let key;
     
     switch (timeframe) {
+      case '7d':
       case 'week':
+      case 'last7days':
         key = date.toLocaleDateString();
         break;
+      case '30d':
       case 'month':
+      case 'last30days':
         key = `${date.getMonth() + 1}/${date.getDate()}`;
         break;
+      case '90d':
       case 'quarter':
+      case 'last90days':
         key = `Week ${Math.floor(date.getDate() / 7) + 1}`;
         break;
+      case 'ytd':
       case 'year':
         key = date.toLocaleString('default', { month: 'short' });
+        break;
+      case 'all':
+        key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
         break;
       default:
         key = date.toLocaleDateString();
@@ -353,11 +401,7 @@ const calculateCustomerGrowth = (customerData, timeframe) => {
     total: data.total
   }));
 
-  // Simple sorting - you might want more sophisticated date sorting
-  return result.sort((a, b) => {
-    // Basic string comparison - works for consistent date formats
-    return a.period.localeCompare(b.period);
-  });
+  return result.sort((a, b) => a.period.localeCompare(b.period));
 };
 
 // Process inventory data
@@ -401,8 +445,11 @@ export const getReportSummary = async (timeframe = "month") => {
     ]);
 
     console.log("✅ [getReportSummary] Summary data ready:", {
-      salesCount: salesData?.length || 0,
-      customersCount: customerData?.growthData?.length || 0,
+      salesDataPoints: salesData?.length || 0,
+      totalRevenue: salesData?.reduce((sum, item) => sum + item.revenue, 0) || 0,
+      totalOrders: salesData?.reduce((sum, item) => sum + item.orders, 0) || 0,
+      newCustomers: customerData?.newCustomers || 0,
+      returningCustomers: customerData?.returningCustomers || 0,
       inventoryCategories: Object.keys(inventoryData || {}).length,
     });
 
