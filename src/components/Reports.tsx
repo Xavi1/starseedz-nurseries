@@ -53,7 +53,6 @@ interface InventoryData {
   [category: string]: InventoryCategory;
 }
 
-
 interface OrderItem {
   category?: string;
   price?: number;
@@ -74,7 +73,6 @@ interface Order {
   items?: OrderItem[];
   timeline?: TimelineEntry[];
 }
-
 
 // Icon components
 const DownloadIcon = ({ className }: { className?: string }) => (
@@ -144,6 +142,21 @@ const AlertCircleIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+// Helper function for date formatting
+const formatDateForDisplay = (date: Date, timeframe: string): string => {
+  switch (timeframe) {
+    case "week":
+      return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    case "month":
+    case "quarter":
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    case "year":
+      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+    default:
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+};
+
 const ReportRenderer = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [reportType, setReportType] = useState<string>("sales");
@@ -158,87 +171,83 @@ const ReportRenderer = () => {
     inventory: null,
   });
 
-// In the ReportRenderer component, update the useEffect to store raw orders properly
-useEffect(() => {
-  const fetchReportData = async () => {
-    try {
-      console.log("📊 [Reports] Fetching report data for timeframe:", reportTimeframe);
-      // 1️⃣ Fetch raw data from Firebase
-      const rawOrders = await fetchSalesReport(reportTimeframe);
-      const customers = await fetchCustomerReport(reportTimeframe);
-      const inventory = await fetchInventoryReport();
+  // In the ReportRenderer component, update the useEffect to store raw orders properly
+  useEffect(() => {
+    const fetchReportData = async () => {
+      try {
+        console.log("📊 [Reports] Fetching report data for timeframe:", reportTimeframe);
+        // 1️⃣ Fetch raw data from Firebase
+        const rawOrders = await fetchSalesReport(reportTimeframe);
+        const customers = await fetchCustomerReport(reportTimeframe);
+        const inventory = await fetchInventoryReport();
 
-      console.log("🛒 [Reports] Raw orders from service:", rawOrders);
+        console.log("🛒 [Reports] Raw orders from service:", rawOrders);
 
-      // 2️⃣ Process the sales data for charts
-      const processedSalesData: SalesDataItem[] = (rawOrders || [])
-        .map((order: any) => {
-          const orderDate =
-            order.date?.toDate?.() ||
-            (order.date?._seconds ? new Date(order.date._seconds * 1000) : null) ||
-            new Date(order.date);
+        // 2️⃣ Process the sales data for charts
+        const processedSalesData: SalesDataItem[] = (rawOrders || [])
+          .map((order: any) => {
+            const orderDate =
+              order.date?.toDate?.() ||
+              (order.date?._seconds ? new Date(order.date._seconds * 1000) : null) ||
+              new Date(order.date);
 
-          const orderTotal = Number(order.total ?? order.subtotal ?? order.revenue ?? 0);
+            const orderTotal = Number(order.total ?? order.subtotal ?? order.revenue ?? 0);
 
-          if (!orderDate || isNaN(orderDate.getTime()) || orderTotal <= 0) {
-            console.log("⚠️ Skipping invalid order:", order);
-            return null;
-          }
+            if (!orderDate || isNaN(orderDate.getTime()) || orderTotal <= 0) {
+              console.log("⚠️ Skipping invalid order:", order);
+              return null;
+            }
 
-          return {
-            date: orderDate.toISOString().split("T")[0],
-            revenue: Number(orderTotal.toFixed(2)),
-            orders: 1,
-          };
-        })
-        .filter((item): item is SalesDataItem => item !== null);
+            return {
+              date: orderDate.toISOString().split("T")[0],
+              revenue: Number(orderTotal.toFixed(2)),
+              orders: 1,
+            };
+          })
+          .filter((item): item is SalesDataItem => item !== null);
 
-      console.log("📈 [Reports] Processed sales data:", processedSalesData);
+        console.log("📈 [Reports] Processed sales data:", processedSalesData);
 
-      setReportData({
-        sales: {
-          raw: rawOrders,
-          processed: processedSalesData,
-        },
-        customers,
-        inventory,
-      });
-    } catch (error) {
-      console.error("❌ [Reports] Failed to fetch report data:", error);
-    }
+        setReportData({
+          sales: {
+            raw: rawOrders,
+            processed: processedSalesData,
+          },
+          customers,
+          inventory,
+        });
+      } catch (error) {
+        console.error("❌ [Reports] Failed to fetch report data:", error);
+      }
+    };
+
+    fetchReportData();
+  }, [reportTimeframe]);
+
+  // Fix the calculateSalesMetrics function
+  const calculateSalesMetrics = (rawOrders: any[] | null): SalesMetrics => {
+    if (!rawOrders || rawOrders.length === 0)
+      return { totalRevenue: 0, totalOrders: 0, avgOrderValue: 0 };
+
+    const totalRevenue = rawOrders.reduce((sum, order) => {
+      const orderTotal = order.total ?? order.revenue ?? 0;
+      return sum + orderTotal;
+    }, 0);
+
+    const totalOrders = rawOrders.reduce((sum, order) => {
+      return sum + (order.orders ?? 1);
+    }, 0);
+
+    const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+    return {
+      totalRevenue: Number(totalRevenue.toFixed(2)),
+      totalOrders,
+      avgOrderValue: Number(avgOrderValue.toFixed(2)),
+    };
   };
 
-  fetchReportData();
-}, [reportTimeframe]);
-
-// Fix the calculateSalesMetrics function
-const calculateSalesMetrics = (rawOrders: any[] | null): SalesMetrics => {
-  if (!rawOrders || rawOrders.length === 0)
-    return { totalRevenue: 0, totalOrders: 0, avgOrderValue: 0 };
-
-  const totalRevenue = rawOrders.reduce((sum, order) => {
-    const orderTotal = order.total ?? order.revenue ?? 0;
-    return sum + orderTotal;
-  }, 0);
-
-  const totalOrders = rawOrders.reduce((sum, order) => {
-    return sum + (order.orders ?? 1);
-  }, 0);
-
-  const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-  return {
-    totalRevenue: Number(totalRevenue.toFixed(2)),
-    totalOrders,
-    avgOrderValue: Number(avgOrderValue.toFixed(2)),
-  };
-
-
-  return { totalRevenue, totalOrders, avgOrderValue };
-};
-
-// Update the metrics calculation
-const salesMetrics = calculateSalesMetrics(reportData.sales?.raw || []);
-
+  // Update the metrics calculation
+  const salesMetrics = calculateSalesMetrics(reportData.sales?.raw || []);
 
   return (
     <div className="space-y-6">
@@ -300,12 +309,13 @@ const salesMetrics = calculateSalesMetrics(reportData.sales?.raw || []);
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
             </div>
           )}
-         {!loading && reportType === "sales" && reportData.sales && (
-          <SalesReport
-            rawOrders={reportData.sales.raw}
-            data={reportData.sales.processed}
-            metrics={salesMetrics}
-          />
+          {!loading && reportType === "sales" && reportData.sales && (
+            <SalesReport
+              rawOrders={reportData.sales.raw}
+              data={reportData.sales.processed}
+              metrics={salesMetrics}
+              timeframe={reportTimeframe}
+            />
           )}
           {!loading && reportType === "customers" && <CustomerReport data={reportData.customers} />}
           {!loading && reportType === "inventory" && <InventoryReport data={reportData.inventory} />}
@@ -320,10 +330,12 @@ const SalesReport = ({
   data,
   rawOrders,
   metrics,
+  timeframe,
 }: {
   data: SalesDataItem[] | null;
   rawOrders: Order[] | null;
   metrics: SalesMetrics;
+  timeframe: string;
 }) => {
   console.log("🔍 [SalesReport] Raw orders:", rawOrders);
   console.log("🔍 [SalesReport] Metrics:", metrics);
@@ -359,12 +371,24 @@ const SalesReport = ({
     sales,
   }));
 
-const chartData = [...(data || [])]
-  .map(entry => ({
-    date: entry.date ? new Date(entry.date).toLocaleDateString() : "",
-    revenue: Number(entry.revenue) || 0,
-  }))
-  .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  // Fixed chartData processing with timeframe
+  const chartData = [...(data || [])]
+    .map(entry => {
+      // Ensure the date is properly parsed
+      const dateObj = new Date(entry.date);
+      
+      // Use ISO string for sorting and consistent display
+      return {
+        date: dateObj.toISOString().split('T')[0], // YYYY-MM-DD format for consistency
+        displayDate: formatDateForDisplay(dateObj, timeframe),
+        revenue: Number(entry.revenue) || 0,
+      };
+    })
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .map(item => ({
+      date: item.displayDate, // Use formatted date for display
+      revenue: item.revenue,
+    }));
 
   return (
     <div>
@@ -427,7 +451,6 @@ const chartData = [...(data || [])]
     </div>
   );
 };
-
 
 // 🧍 CUSTOMER REPORT
 const CustomerReport = ({ data }: { data: ProcessedCustomerData | null }) => {
