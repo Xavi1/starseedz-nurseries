@@ -13,16 +13,16 @@ import {
   Legend,
   AreaChart,
   Area,
-  LineChart,
-  Line,
+  // LineChart,
+  // Line,
   PieChart,
   Pie,
   Cell,
   BarChart,
   Bar,
 } from "recharts";
-import { getReportSummary } from './reportService';
-import {ProcessedSalesData} from './reportService';
+// import { getReportSummary } from './reportService';
+// import {ProcessedSalesData} from './reportService';
 
 // TypeScript interfaces
 interface SalesDataItem {
@@ -158,55 +158,34 @@ const formatDateForDisplay = (date: Date, timeframe: string): string => {
 };
 
 const ReportRenderer = () => {
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading] = useState<boolean>(false); // setLoading is unused
   const [reportType, setReportType] = useState<string>("sales");
   const [reportTimeframe, setReportTimeframe] = useState<string>("week");
   const [reportData, setReportData] = useState<{
     sales: { raw: Order[]; processed: SalesDataItem[] } | null;
     customers: ProcessedCustomerData | null;
-    inventory: Record<string, any> | null;
+  inventory: InventoryData | null;
   }>({
     sales: null,
     customers: null,
     inventory: null,
   });
 
-  // In the ReportRenderer component, update the useEffect to store raw orders properly
   useEffect(() => {
     const fetchReportData = async () => {
       try {
-        console.log("📊 [Reports] Fetching report data for timeframe:", reportTimeframe);
-        // 1️⃣ Fetch raw data from Firebase
-        const rawOrders = await fetchSalesReport(reportTimeframe);
+        // Fetch full sales report (should return { raw, processed })
+        const salesReport = await fetchSalesReport(reportTimeframe);
         const customers = await fetchCustomerReport(reportTimeframe);
         const inventory = await fetchInventoryReport();
 
-        console.log("🛒 [Reports] Raw orders from service:", rawOrders);
-
-        // 2️⃣ Process the sales data for charts
-        const processedSalesData: SalesDataItem[] = (rawOrders || [])
-          .map((order: any) => {
-            const orderDate =
-              order.date?.toDate?.() ||
-              (order.date?._seconds ? new Date(order.date._seconds * 1000) : null) ||
-              new Date(order.date);
-
-            const orderTotal = Number(order.total ?? order.subtotal ?? order.revenue ?? 0);
-
-            if (!orderDate || isNaN(orderDate.getTime()) || orderTotal <= 0) {
-              console.log("⚠️ Skipping invalid order:", order);
-              return null;
-            }
-
-            return {
-              date: orderDate.toISOString().split("T")[0],
-              revenue: Number(orderTotal.toFixed(2)),
-              orders: 1,
-            };
-          })
-          .filter((item): item is SalesDataItem => item !== null);
-
-        console.log("📈 [Reports] Processed sales data:", processedSalesData);
+        // Defensive unpacking for salesReport
+        let rawOrders: Order[] = [];
+        let processedSalesData: SalesDataItem[] = [];
+        if (salesReport && typeof salesReport === 'object' && 'raw' in salesReport && 'processed' in salesReport) {
+          rawOrders = Array.isArray(salesReport.raw) ? salesReport.raw : [];
+          processedSalesData = Array.isArray(salesReport.processed) ? salesReport.processed : [];
+        }
 
         setReportData({
           sales: {
@@ -220,23 +199,18 @@ const ReportRenderer = () => {
         console.error("❌ [Reports] Failed to fetch report data:", error);
       }
     };
-
     fetchReportData();
   }, [reportTimeframe]);
-
-  // Fix the calculateSalesMetrics function
-  const calculateSalesMetrics = (rawOrders: any[] | null): SalesMetrics => {
+  const calculateSalesMetrics = (rawOrders: Order[] | null): SalesMetrics => {
     if (!rawOrders || rawOrders.length === 0)
       return { totalRevenue: 0, totalOrders: 0, avgOrderValue: 0 };
 
     const totalRevenue = rawOrders.reduce((sum, order) => {
-      const orderTotal = order.total ?? order.revenue ?? 0;
+      const orderTotal = order.total ?? 0;
       return sum + orderTotal;
     }, 0);
 
-    const totalOrders = rawOrders.reduce((sum, order) => {
-      return sum + (order.orders ?? 1);
-    }, 0);
+    const totalOrders = rawOrders.length;
 
     const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
     return {
@@ -342,14 +316,17 @@ const SalesReport = ({
   console.log("🔍 [SalesReport] Processed data:", data);
   if (!data || !rawOrders)
     return <div className="text-center py-8 text-gray-500">No sales data available.</div>;
-
+  console.log("🧾 Full raw order timeline:", rawOrders.map(o => o.timeline));
   const ordersStatusData = Array.isArray(rawOrders)
     ? Object.entries(
         rawOrders.reduce<Record<string, number>>((acc, order) => {
           const latestStatus =
-            Array.isArray(order.timeline) && order.timeline.length > 0
-              ? order.timeline[order.timeline.length - 1].status || "Unknown"
-              : "Unknown";
+          Array.isArray(order.timeline) && order.timeline.length > 0
+            ? [...order.timeline]
+                .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                .at(-1)?.status || "Unknown"
+            : "Unknown";
+
           acc[latestStatus] = (acc[latestStatus] || 0) + 1;
           return acc;
         }, {})
@@ -425,7 +402,7 @@ const SalesReport = ({
                 data={ordersStatusData}
                 dataKey="value"
                 outerRadius={80}
-                label={({ name, percent }) => `${name}: ${(percent! * 100).toFixed(0)}%`}
+                label={({ name, percent }) => `${name}: ${percent ? (percent * 100).toFixed(0) : '0'}%`}
               >
                 {ordersStatusData.map((_, i) => (
                   <Cell key={i} fill={["#16a34a", "#8b5cf6", "#3b82f6", "#eab308", "#ef4444"][i % 5]} />
@@ -483,7 +460,7 @@ const InventoryReport = ({ data }: { data: InventoryData | null }) => {
 };
 
 // 🧱 Shared Components
-const MetricCard = ({ title, value, Icon, trend }: { title: string; value: any; Icon: any; trend: string }) => (
+const MetricCard = ({ title, value, Icon, trend }: { title: string; value: string | number; Icon: React.FC<{ className?: string }>; trend: string }) => (
   <div className="bg-gray-50 rounded-lg p-4">
     <div className="flex justify-between items-center">
       <h4 className="text-sm font-medium text-gray-500">{title}</h4>

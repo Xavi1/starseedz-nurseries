@@ -119,7 +119,10 @@ export const fetchSalesReport = async (timeframe) => {
       console.log("✅ [fetchSalesReport] Last data point:", processedData[processedData.length - 1]);
     }
 
-    return processedData;
+   return {
+  raw: orders,
+  processed: processedData
+    };
   } catch (error) {
     console.error("❌ [fetchSalesReport] Error fetching sales report:", error);
     throw error;
