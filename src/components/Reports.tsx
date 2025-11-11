@@ -21,6 +21,7 @@ import {
   BarChart,
   Bar,
 } from "recharts";
+import jsPDF from 'jspdf';
 // import { getReportSummary } from './reportService';
 // import {ProcessedSalesData} from './reportService';
 
@@ -142,6 +143,9 @@ const AlertCircleIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+// PDF Helper State
+
+
 // Helper function for date formatting
 const formatDateForDisplay = (date: Date, timeframe: string): string => {
   switch (timeframe) {
@@ -223,6 +227,39 @@ const ReportRenderer = () => {
   // Update the metrics calculation
   const salesMetrics = calculateSalesMetrics(reportData.sales?.raw || []);
 
+  // PDF Export Handler
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text('Sales Report', 14, 20);
+    doc.setFontSize(12);
+    doc.text(`Timeframe: ${reportTimeframe}`, 14, 30);
+    doc.text(`Total Revenue: $${salesMetrics.totalRevenue.toFixed(2)}`, 14, 40);
+    doc.text(`Total Orders: ${salesMetrics.totalOrders}`, 14, 50);
+    doc.text(`Avg. Order Value: $${salesMetrics.avgOrderValue.toFixed(2)}`, 14, 60);
+
+    // Table header
+    doc.setFontSize(12);
+    doc.text('Date', 14, 75);
+    doc.text('Revenue', 60, 75);
+    doc.text('Orders', 110, 75);
+
+    // Table rows
+    let y = 85;
+    (reportData.sales?.processed || []).forEach((row) => {
+      doc.text(row.date, 14, y);
+      doc.text(`$${row.revenue.toFixed(2)}`, 60, y);
+      doc.text(`${row.orders}`, 110, y);
+      y += 10;
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
+    });
+
+    doc.save('sales_report.pdf');
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-white shadow rounded-lg">
@@ -261,6 +298,7 @@ const ReportRenderer = () => {
                 <button
                   className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                   disabled={loading}
+                  onClick={handleExportPDF}
                 >
                   <DownloadIcon className="h-4 w-4 mr-1.5" />
                   Export PDF
