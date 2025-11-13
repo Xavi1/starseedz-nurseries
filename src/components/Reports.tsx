@@ -260,6 +260,30 @@ const ReportRenderer = () => {
     doc.save('sales_report.pdf');
   };
 
+  // CSV Export Handler
+  const handleExportCSV = () => {
+    const rows = reportData.sales?.processed || [];
+    if (!rows.length) return;
+    const header = ['Date', 'Revenue', 'Orders'];
+    const csv = [
+      header.join(','),
+      ...rows.map(row => [
+        `"${row.date}"`,
+        row.revenue.toFixed(2),
+        row.orders
+      ].join(','))
+    ].join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'sales_report.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-white shadow rounded-lg">
@@ -306,6 +330,7 @@ const ReportRenderer = () => {
                 <button
                   className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                   disabled={loading}
+                  onClick={handleExportCSV}
                 >
                   <DownloadIcon className="h-4 w-4 mr-1.5" />
                   Export CSV
