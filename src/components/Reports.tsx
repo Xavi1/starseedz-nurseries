@@ -13,8 +13,8 @@ import {
   Legend,
   AreaChart,
   Area,
-  // LineChart,
-  // Line,
+  LineChart,
+  Line,
   PieChart,
   Pie,
   Cell,
@@ -495,14 +495,85 @@ const SalesReport = ({
 // 🧍 CUSTOMER REPORT
 const CustomerReport = ({ data }: { data: ProcessedCustomerData | null }) => {
   if (!data) return <div className="text-center py-8 text-gray-500">No customer data available.</div>;
+  // Demo chart data for customer growth
+  const customerReportData = [
+    { date: 'Jan', new: 30, returning: 20 },
+    { date: 'Feb', new: 35, returning: 25 },
+    { date: 'Mar', new: 40, returning: 30 },
+    { date: 'Apr', new: 38, returning: 28 },
+    { date: 'May', new: 45, returning: 32 },
+    { date: 'Jun', new: 50, returning: 35 },
+    { date: 'Jul', new: 55, returning: 40 },
+  ];
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      <MetricCard title="New Customers" value={data.newCustomers} Icon={UserPlusIcon} trend="+15.3%" />
-      <MetricCard title="Returning Customers" value={data.returningCustomers} Icon={UserPlusIcon} trend="+6.7%" />
-      <MetricCard title="Churn Rate" value="1.8%" Icon={UserPlusIcon} trend="-0.3%" />
-    </div>
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <MetricCard title="New Customers" value={data.newCustomers} Icon={UserPlusIcon} trend="+15.3%" />
+        <MetricCard title="Returning Customers" value={data.returningCustomers} Icon={UserPlusIcon} trend="+6.7%" />
+        <MetricCard title="Churn Rate" value="1.8%" Icon={UserPlusIcon} trend="-0.3%" />
+      </div>
+      <div className="mb-8">
+        <h4 className="text-lg font-medium text-gray-900 mb-4">Customer Growth</h4>
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={customerReportData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="new" name="New Customers" stroke="#3b82f6" strokeWidth={2} />
+                <Line type="monotone" dataKey="returning" name="Returning Customers" stroke="#16a34a" strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h4 className="text-lg font-medium text-gray-900 mb-4">Customer Segments</h4>
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={[{ name: 'New', value: 35 }, { name: 'Repeat', value: 45 }, { name: 'High Value', value: 20 }]} cx="50%" cy="50%" labelLine={false} outerRadius={80} fill="#8884d8" dataKey="value" label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`}>
+                    <Cell fill="#3b82f6" />
+                    <Cell fill="#16a34a" />
+                    <Cell fill="#8b5cf6" />
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h4 className="text-lg font-medium text-gray-900 mb-4">Customer Retention</h4>
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={[{ month: 'Jan', retention: 65 }, { month: 'Feb', retention: 68 }, { month: 'Mar', retention: 71 }, { month: 'Apr', retention: 69 }, { month: 'May', retention: 74 }, { month: 'Jun', retention: 78 }, { month: 'Jul', retention: 82 }]} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorRetention" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.1} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Area type="monotone" dataKey="retention" name="Retention Rate (%)" stroke="#8b5cf6" fillOpacity={1} fill="url(#colorRetention)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
   );
-};
+}
 
 // 📦 INVENTORY REPORT
 const InventoryReport = ({ data }: { data: InventoryData | null }) => {
