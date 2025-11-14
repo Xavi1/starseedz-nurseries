@@ -43,6 +43,7 @@ interface ProcessedCustomerData {
   newCustomers: number;
   returningCustomers: number;
   totalCustomers: number;
+  growthData?: Array<{ period: string; new: number; returning: number; total: number }>;
 }
 
 interface InventoryCategory {
@@ -496,16 +497,14 @@ const SalesReport = ({
 // 🧍 CUSTOMER REPORT
 const CustomerReport = ({ data }: { data: ProcessedCustomerData | null }) => {
   if (!data) return <div className="text-center py-8 text-gray-500">No customer data available.</div>;
-  // Demo chart data for customer growth
-  const customerReportData = [
-    { date: 'Jan', new: 30, returning: 20 },
-    { date: 'Feb', new: 35, returning: 25 },
-    { date: 'Mar', new: 40, returning: 30 },
-    { date: 'Apr', new: 38, returning: 28 },
-    { date: 'May', new: 45, returning: 32 },
-    { date: 'Jun', new: 50, returning: 35 },
-    { date: 'Jul', new: 55, returning: 40 },
-  ];
+  // Use fetched growthData for chart
+  const customerReportData = Array.isArray(data.growthData)
+    ? data.growthData.map((d: { period: string; new: number; returning: number }) => ({
+        date: d.period,
+        new: d.new,
+        returning: d.returning
+      }))
+    : [];
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
