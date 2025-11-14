@@ -22,6 +22,7 @@ import {
   Bar,
 } from "recharts";
 import jsPDF from 'jspdf';
+import {RepeatIcon, TrendingUpIcon} from 'lucide-react';
 // import { getReportSummary } from './reportService';
 // import {ProcessedSalesData} from './reportService';
 
@@ -509,8 +510,8 @@ const CustomerReport = ({ data }: { data: ProcessedCustomerData | null }) => {
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <MetricCard title="New Customers" value={data.newCustomers} Icon={UserPlusIcon} trend="+15.3%" />
-        <MetricCard title="Returning Customers" value={data.returningCustomers} Icon={UserPlusIcon} trend="+6.7%" />
-        <MetricCard title="Churn Rate" value="1.8%" Icon={UserPlusIcon} trend="-0.3%" />
+        <MetricCard title="Returning Customers" value={data.returningCustomers} Icon={RepeatIcon} trend="+6.7%" />
+        <MetricCard title="Churn Rate" value="1.8%" Icon={TrendingUpIcon} trend="-0.3%" />
       </div>
       <div className="mb-8">
         <h4 className="text-lg font-medium text-gray-900 mb-4">Customer Growth</h4>
