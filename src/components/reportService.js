@@ -4,10 +4,7 @@ import {
   getDocs, 
   query, 
   where, 
-  orderBy,
-  doc,
-  getDoc,
-  Timestamp
+  orderBy
 } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -22,72 +19,38 @@ export const fetchSalesReport = async (timeframe) => {
     // Apply timeframe filter
     const dateFilter = getDateFilter(timeframe);
     if (dateFilter) {
-      // Convert to ISO string for proper date comparison
       const dateString = dateFilter.toISOString();
-      
-      console.log("📅 [fetchSalesReport] Applying date filter:", dateString);
-      console.log("📅 [fetchSalesReport] Current date:", new Date().toISOString());
-      console.log("📅 [fetchSalesReport] Days difference:", Math.floor((new Date() - dateFilter) / (1000 * 60 * 60 * 24)));
-      
       q = query(ordersCollection, where("date", ">=", dateString), orderBy("date", "asc"));
-    } else {
-      console.log("📅 [fetchSalesReport] No date filter applied (fetching all orders)");
     }
 
     console.log("🚀 [fetchSalesReport] Running Firestore query...");
     const snapshot = await getDocs(q);
     console.log("✅ [fetchSalesReport] Query complete. Documents found:", snapshot.size);
 
-    // Debug: Check what dates are actually being returned
-    if (!snapshot.empty) {
-      const dates = snapshot.docs.map(doc => {
-        const data = doc.data();
-        if (data.date) {
-          // Handle both Timestamp and Date objects
-          const dateObj = data.date.toDate ? data.date.toDate() : new Date(data.date);
-          return dateObj.toISOString();
-        }
-        return 'no-date';
-      });
-      console.log("📅 [fetchSalesReport] Date range in results:", {
-        first: dates[0],
-        last: dates[dates.length - 1],
-        total: dates.length
-      });
-    } else {
-      console.log("⚠️ [fetchSalesReport] No documents found with the current filter");
-      console.log("🔍 [fetchSalesReport] Timeframe used:", timeframe);
-      console.log("🔍 [fetchSalesReport] Filter date:", dateFilter ? dateFilter.toISOString() : 'none');
-    }
-
     const orders = snapshot.docs.map((doc) => {
       const data = doc.data();
       let date;
       
       try {
-        // Handle the specific date format from Firebase
         if (typeof data.date === 'string') {
-          // Parse the Firebase date string format
           const [datePart, timePart] = data.date.split('T');
           const [year, month, day] = datePart.split('-');
           const [hours, minutes, secondsMs] = timePart.split(':');
           const seconds = secondsMs.split('.')[0];
           date = new Date(year, month - 1, day, hours, minutes, seconds);
         } else if (data.date && data.date.toDate) {
-          // Handle Firestore Timestamp
           date = data.date.toDate();
         } else {
           date = new Date(data.date);
         }
         
-        // Check if date is valid
         if (isNaN(date.getTime())) {
           console.warn("⚠️ Invalid date for order:", doc.id, data.date);
-          date = new Date(); // Fallback to current date
+          date = new Date();
         }
       } catch (error) {
         console.warn("⚠️ Date conversion error for order:", doc.id, error);
-        date = new Date(); // Fallback to current date
+        date = new Date();
       }
       
       return {
@@ -98,30 +61,13 @@ export const fetchSalesReport = async (timeframe) => {
     });
 
     console.log("🧾 [fetchSalesReport] Orders retrieved:", orders.length);
-    if (orders.length > 0) {
-      console.log("🧾 [fetchSalesReport] First order:", {
-        id: orders[0].id,
-        date: orders[0].date.toISOString(),
-        total: orders[0].total
-      });
-      console.log("🧾 [fetchSalesReport] Last order:", {
-        id: orders[orders.length - 1].id,
-        date: orders[orders.length - 1].date.toISOString(),
-        total: orders[orders.length - 1].total
-      });
-    }
     
-    console.log("🧮 [fetchSalesReport] Processing sales data...");
     const processedData = processSalesData(orders, timeframe);
     console.log("✅ [fetchSalesReport] Processed data points:", processedData.length);
-    if (processedData.length > 0) {
-      console.log("✅ [fetchSalesReport] First data point:", processedData[0]);
-      console.log("✅ [fetchSalesReport] Last data point:", processedData[processedData.length - 1]);
-    }
 
-   return {
-  raw: orders,
-  processed: processedData
+    return {
+      raw: orders,
+      processed: processedData
     };
   } catch (error) {
     console.error("❌ [fetchSalesReport] Error fetching sales report:", error);
@@ -129,44 +75,81 @@ export const fetchSalesReport = async (timeframe) => {
   }
 };
 
-
-// Fetch customer report data
+// Fetch customer report data - UPDATED to use users collection and analyze orders
 export const fetchCustomerReport = async (timeframe) => {
   try {
     console.log("👥 [fetchCustomerReport] Fetching for timeframe:", timeframe);
     
-    const customersCollection = collection(db, 'customers');
-    let q = query(customersCollection);
+    // Get all users
+    const usersCollection = collection(db, 'users');
+    const usersSnapshot = await getDocs(usersCollection);
+    console.log("✅ [fetchCustomerReport] Users found:", usersSnapshot.size);
     
-    const dateFilter = getDateFilter(timeframe);
-    if (dateFilter) {
-      const dateString = dateFilter.toISOString();
-      q = query(q, where('createdAt', '>=', dateString));
-      console.log("📅 [fetchCustomerReport] Filtering from:", dateString);
-    }
+    // Get all orders to analyze customer behavior
+    const ordersCollection = collection(db, 'orders');
+    const ordersSnapshot = await getDocs(ordersCollection);
+    console.log("✅ [fetchCustomerReport] Orders found:", ordersSnapshot.size);
     
-    const snapshot = await getDocs(q);
-    console.log("✅ [fetchCustomerReport] Customers found:", snapshot.size);
+    // Analyze orders to determine returning customers
+    const orderCountByUser = {};
+    const firstOrderDateByUser = {};
     
-    const customerData = snapshot.docs.map(doc => {
-      const data = doc.data();
-      let createdAt;
+    ordersSnapshot.docs.forEach(doc => {
+      const order = doc.data();
+      const userId = order.userId;
       
+      if (userId) {
+        // Count orders per user
+        orderCountByUser[userId] = (orderCountByUser[userId] || 0) + 1;
+        
+        // Track first order date
+        if (!firstOrderDateByUser[userId]) {
+          try {
+            let orderDate;
+            if (typeof order.date === 'string') {
+              orderDate = new Date(order.date);
+            } else if (order.date && order.date.toDate) {
+              orderDate = order.date.toDate();
+            } else {
+              orderDate = new Date(order.date);
+            }
+            firstOrderDateByUser[userId] = orderDate;
+          } catch (error) {
+            console.warn("⚠️ Date conversion error for order:", doc.id, error);
+            firstOrderDateByUser[userId] = new Date();
+          }
+        }
+      }
+    });
+    
+    console.log("📊 [fetchCustomerReport] Order analysis complete. Unique customers with orders:", Object.keys(orderCountByUser).length);
+    
+    // Process users with order data
+    const customerData = usersSnapshot.docs.map(doc => {
+      const userData = doc.data();
+      const userId = doc.id;
+      const orderCount = orderCountByUser[userId] || 0;
+      const firstOrderDate = firstOrderDateByUser[userId];
+      
+      let createdAt;
       try {
-        createdAt = new Date(data.createdAt);
+        // Use lastLogin or fallback to current date
+        createdAt = userData.lastLogin ? new Date(userData.lastLogin) : new Date();
         if (isNaN(createdAt.getTime())) {
-          console.warn("⚠️ Invalid date for customer:", doc.id, data.createdAt);
           createdAt = new Date();
         }
       } catch (error) {
-        console.warn("⚠️ Date conversion error for customer:", doc.id, error);
         createdAt = new Date();
       }
       
       return {
-        id: doc.id,
-        ...data,
+        id: userId,
+        ...userData,
         createdAt: createdAt,
+        orderCount: orderCount,
+        previousOrders: orderCount,
+        isReturningCustomer: orderCount > 1,
+        firstOrderDate: firstOrderDate
       };
     });
     
@@ -201,8 +184,6 @@ export const getDateFilter = (timeframe) => {
   const now = new Date();
   let startDate;
 
-  console.log("🔧 [getDateFilter] Input timeframe:", timeframe, "Type:", typeof timeframe);
-
   switch (timeframe) {
     case '7d':
     case 'week':
@@ -210,7 +191,6 @@ export const getDateFilter = (timeframe) => {
       startDate = new Date(now);
       startDate.setDate(now.getDate() - 7);
       startDate.setHours(0, 0, 0, 0);
-      console.log("📅 [getDateFilter] Week filter: Last 7 days");
       break;
     case '30d':
     case 'month':
@@ -218,7 +198,6 @@ export const getDateFilter = (timeframe) => {
       startDate = new Date(now);
       startDate.setDate(now.getDate() - 30);
       startDate.setHours(0, 0, 0, 0);
-      console.log("📅 [getDateFilter] Month filter: Last 30 days");
       break;
     case '90d':
     case 'quarter':
@@ -226,27 +205,20 @@ export const getDateFilter = (timeframe) => {
       startDate = new Date(now);
       startDate.setDate(now.getDate() - 90);
       startDate.setHours(0, 0, 0, 0);
-      console.log("📅 [getDateFilter] Quarter filter: Last 90 days");
       break;
     case 'ytd':
     case 'year':
       startDate = new Date(now.getFullYear(), 0, 1);
       startDate.setHours(0, 0, 0, 0);
-      console.log("📅 [getDateFilter] Year filter: Year to date");
       break;
     case 'all':
-      console.log("📅 [getDateFilter] All time filter: No date restriction");
       return null;
     default:
-      console.warn('⚠️ [getDateFilter] Unknown timeframe:', timeframe, '- defaulting to last 7 days');
       startDate = new Date(now);
       startDate.setDate(now.getDate() - 7);
       startDate.setHours(0, 0, 0, 0);
   }
 
-  console.log(`📅 [getDateFilter] Final filter date: ${startDate.toISOString()}`);
-  console.log(`📅 [getDateFilter] Days from now: ${Math.floor((now - startDate) / (1000 * 60 * 60 * 24))}`);
-  
   return startDate;
 };
 
@@ -284,7 +256,6 @@ const processSalesData = (orders, timeframe) => {
         key = date.toLocaleDateString('default', { month: 'short' });
         break;
       case "all":
-        // For all time, group by month
         key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
         break;
       default:
@@ -307,7 +278,6 @@ const processSalesData = (orders, timeframe) => {
 
   // Sort results chronologically
   result.sort((a, b) => {
-    // Try to parse dates for proper sorting
     const dateA = new Date(a.date);
     const dateB = new Date(b.date);
     if (!isNaN(dateA) && !isNaN(dateB)) {
@@ -317,39 +287,53 @@ const processSalesData = (orders, timeframe) => {
   });
 
   console.log("✅ [processSalesData] Grouped into", result.length, "data points");
-  console.log("✅ [processSalesData] Total revenue:", result.reduce((sum, item) => sum + item.revenue, 0));
-  console.log("✅ [processSalesData] Sample data:", result.slice(0, 3));
-
   return result;
 };
 
-
-// Process customer data
+// Process customer data - UPDATED for your schema
 const processCustomerData = (customerData, timeframe) => {
+  console.log("👥 [processCustomerData] Processing", customerData.length, "customers");
+  
+  // Use orderCount to determine new vs returning
   const newCustomers = customerData.filter(customer => 
-    customer.type === 'new' || !customer.previousOrders || customer.previousOrders === 0
+    customer.orderCount <= 1
   );
   
   const returningCustomers = customerData.filter(customer => 
-    customer.type === 'returning' || (customer.previousOrders && customer.previousOrders > 0)
+    customer.orderCount > 1
   );
   
-  console.log("👥 [processCustomerData] New:", newCustomers.length, "Returning:", returningCustomers.length);
+  console.log("👥 [processCustomerData] New customers (0-1 orders):", newCustomers.length);
+  console.log("👥 [processCustomerData] Returning customers (2+ orders):", returningCustomers.length);
+  
+  // Debug info
+  const orderCountDistribution = {};
+  customerData.forEach(customer => {
+    const count = customer.orderCount || 0;
+    orderCountDistribution[count] = (orderCountDistribution[count] || 0) + 1;
+  });
+  console.log("📊 [processCustomerData] Order count distribution:", orderCountDistribution);
   
   return {
     newCustomers: newCustomers.length,
     returningCustomers: returningCustomers.length,
-    growthData: calculateCustomerGrowth(customerData, timeframe)
+    growthData: calculateCustomerGrowth(customerData, timeframe),
+    totalCustomers: customerData.length,
+    // Additional stats for debugging
+    _stats: {
+      totalUsers: customerData.length,
+      usersWithOrders: customerData.filter(c => c.orderCount > 0).length,
+      orderCountDistribution: orderCountDistribution
+    }
   };
 };
 
-//Calculate customer growth over time
+// Calculate customer growth over time
 const calculateCustomerGrowth = (customerData, timeframe) => {
   if (!customerData || customerData.length === 0) {
     return [];
   }
 
-  // Group customers by time period
   const groupedData = customerData.reduce((acc, customer) => {
     const date = new Date(customer.createdAt);
     let key;
@@ -385,7 +369,8 @@ const calculateCustomerGrowth = (customerData, timeframe) => {
       acc[key] = { new: 0, returning: 0, total: 0 };
     }
     
-    if (customer.type === 'new' || !customer.previousOrders || customer.previousOrders === 0) {
+    // Use orderCount to determine new vs returning
+    if (customer.orderCount <= 1) {
       acc[key].new += 1;
     } else {
       acc[key].returning += 1;
@@ -396,7 +381,6 @@ const calculateCustomerGrowth = (customerData, timeframe) => {
     return acc;
   }, {});
 
-  // Convert to array format and sort by date
   const result = Object.entries(groupedData).map(([period, data]) => ({
     period,
     new: data.new,
@@ -436,7 +420,7 @@ const processInventoryData = (inventoryData) => {
   return categories;
 };
 
-//function to get report summary
+// Function to get report summary
 export const getReportSummary = async (timeframe = "month") => {
   try {
     console.log("📋 [getReportSummary] Generating report summary for:", timeframe);
@@ -447,14 +431,7 @@ export const getReportSummary = async (timeframe = "month") => {
       fetchInventoryReport(),
     ]);
 
-    console.log("✅ [getReportSummary] Summary data ready:", {
-      salesDataPoints: salesData?.length || 0,
-      totalRevenue: salesData?.reduce((sum, item) => sum + item.revenue, 0) || 0,
-      totalOrders: salesData?.reduce((sum, item) => sum + item.orders, 0) || 0,
-      newCustomers: customerData?.newCustomers || 0,
-      returningCustomers: customerData?.returningCustomers || 0,
-      inventoryCategories: Object.keys(inventoryData || {}).length,
-    });
+    console.log("✅ [getReportSummary] Summary data ready");
 
     return {
       sales: salesData,
