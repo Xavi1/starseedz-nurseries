@@ -625,11 +625,6 @@ const InventoryReport = ({ data }: { data: InventoryData | null }) => {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <MetricCard title="Total Products" value={totalProducts} Icon={BoxIcon} trend="Across categories" />
-        <MetricCard title="Low Stock Items" value="41" Icon={AlertCircleIcon} trend="8.5% of inventory" />
-        <MetricCard title="Out of Stock" value="12" Icon={AlertCircleIcon} trend="2.5% of inventory" />
-      </div>
       <div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-gray-50 rounded-lg p-4">
