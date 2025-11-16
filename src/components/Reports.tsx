@@ -22,9 +22,7 @@ import {
   Bar,
 } from "recharts";
 import jsPDF from 'jspdf';
-import {RepeatIcon, TrendingUpIcon} from 'lucide-react';
-// import { getReportSummary } from './reportService';
-// import {ProcessedSalesData} from './reportService';
+import {RepeatIcon, TrendingUpIcon, XIcon} from 'lucide-react';
 
 // TypeScript interfaces
 interface SalesDataItem {
@@ -56,6 +54,15 @@ interface InventoryData {
   [category: string]: InventoryCategory;
 }
 
+// Add the missing interface
+interface ProcessedInventoryData {
+  [category: string]: {
+    inStock: number;
+    lowStock: number;
+    outOfStock: number;
+  };
+}
+
 interface OrderItem {
   category?: string;
   price?: number;
@@ -77,7 +84,38 @@ interface Order {
   timeline?: TimelineEntry[];
 }
 
-// Icon components
+// Add missing data interfaces
+interface InventoryReportDataItem {
+  category: string;
+  inStock: number;
+  lowStock: number;
+  outOfStock: number;
+}
+
+interface TopProductDataItem {
+  name: string;
+  sales: number;
+}
+
+// Add the missing data arrays
+const inventoryReportData: InventoryReportDataItem[] = [
+  { category: "Indoor Plants", inStock: 120, lowStock: 15, outOfStock: 3 },
+  { category: "Outdoor Plants", inStock: 85, lowStock: 8, outOfStock: 2 },
+  { category: "Succulents", inStock: 65, lowStock: 12, outOfStock: 5 },
+  { category: "Garden Tools", inStock: 42, lowStock: 3, outOfStock: 1 },
+  { category: "Pots & Planters", inStock: 78, lowStock: 6, outOfStock: 1 },
+];
+
+const topProductsData: TopProductDataItem[] = [
+  { name: "Monstera Deliciosa", sales: 156 },
+  { name: "Snake Plant", sales: 142 },
+  { name: "Fiddle Leaf Fig", sales: 128 },
+  { name: "Pothos", sales: 115 },
+  { name: "ZZ Plant", sales: 98 },
+];
+
+// ... (Icon components remain the same)
+
 const DownloadIcon = ({ className }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path
@@ -145,9 +183,6 @@ const AlertCircleIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-// PDF Helper State
-
-
 // Helper function for date formatting
 const formatDateForDisplay = (date: Date, timeframe: string): string => {
   switch (timeframe) {
@@ -164,13 +199,13 @@ const formatDateForDisplay = (date: Date, timeframe: string): string => {
 };
 
 const ReportRenderer = () => {
-  const [loading] = useState<boolean>(false); // setLoading is unused
+  const [loading] = useState<boolean>(false);
   const [reportType, setReportType] = useState<string>("sales");
   const [reportTimeframe, setReportTimeframe] = useState<string>("week");
   const [reportData, setReportData] = useState<{
     sales: { raw: Order[]; processed: SalesDataItem[] } | null;
     customers: ProcessedCustomerData | null;
-  inventory: InventoryData | null;
+    inventory: InventoryData | null;
   }>({
     sales: null,
     customers: null,
@@ -180,12 +215,10 @@ const ReportRenderer = () => {
   useEffect(() => {
     const fetchReportData = async () => {
       try {
-        // Fetch full sales report (should return { raw, processed })
         const salesReport = await fetchSalesReport(reportTimeframe);
         const customers = await fetchCustomerReport(reportTimeframe);
         const inventory = await fetchInventoryReport();
 
-        // Defensive unpacking for salesReport
         let rawOrders: Order[] = [];
         let processedSalesData: SalesDataItem[] = [];
         if (salesReport && typeof salesReport === 'object' && 'raw' in salesReport && 'processed' in salesReport) {
@@ -207,6 +240,7 @@ const ReportRenderer = () => {
     };
     fetchReportData();
   }, [reportTimeframe]);
+
   const calculateSalesMetrics = (rawOrders: Order[] | null): SalesMetrics => {
     if (!rawOrders || rawOrders.length === 0)
       return { totalRevenue: 0, totalOrders: 0, avgOrderValue: 0 };
@@ -217,8 +251,8 @@ const ReportRenderer = () => {
     }, 0);
 
     const totalOrders = rawOrders.length;
-
     const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+    
     return {
       totalRevenue: Number(totalRevenue.toFixed(2)),
       totalOrders,
@@ -226,7 +260,6 @@ const ReportRenderer = () => {
     };
   };
 
-  // Update the metrics calculation
   const salesMetrics = calculateSalesMetrics(reportData.sales?.raw || []);
 
   // PDF Export Handler
@@ -364,7 +397,7 @@ const ReportRenderer = () => {
   );
 };
 
-// 🧾 SALES REPORT (mirrors internal layout)
+// 🧾 SALES REPORT
 const SalesReport = ({
   data,
   rawOrders,
@@ -379,9 +412,10 @@ const SalesReport = ({
   console.log("🔍 [SalesReport] Raw orders:", rawOrders);
   console.log("🔍 [SalesReport] Metrics:", metrics);
   console.log("🔍 [SalesReport] Processed data:", data);
+  
   if (!data || !rawOrders)
     return <div className="text-center py-8 text-gray-500">No sales data available.</div>;
-  console.log("🧾 Full raw order timeline:", rawOrders.map(o => o.timeline));
+
   const ordersStatusData = Array.isArray(rawOrders)
     ? Object.entries(
         rawOrders.reduce<Record<string, number>>((acc, order) => {
@@ -413,22 +447,18 @@ const SalesReport = ({
     sales,
   }));
 
-  // Fixed chartData processing with timeframe
   const chartData = [...(data || [])]
     .map(entry => {
-      // Ensure the date is properly parsed
       const dateObj = new Date(entry.date);
-      
-      // Use ISO string for sorting and consistent display
       return {
-        date: dateObj.toISOString().split('T')[0], // YYYY-MM-DD format for consistency
+        date: dateObj.toISOString().split('T')[0],
         displayDate: formatDateForDisplay(dateObj, timeframe),
         revenue: Number(entry.revenue) || 0,
       };
     })
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .map(item => ({
-      date: item.displayDate, // Use formatted date for display
+      date: item.displayDate,
       revenue: item.revenue,
     }));
 
@@ -497,7 +527,7 @@ const SalesReport = ({
 // 🧍 CUSTOMER REPORT
 const CustomerReport = ({ data }: { data: ProcessedCustomerData | null }) => {
   if (!data) return <div className="text-center py-8 text-gray-500">No customer data available.</div>;
-  // Use fetched growthData for chart
+  
   const customerReportData = Array.isArray(data.growthData)
     ? data.growthData.map((d: { period: string; new: number; returning: number }) => ({
         date: d.period,
@@ -505,6 +535,7 @@ const CustomerReport = ({ data }: { data: ProcessedCustomerData | null }) => {
         returning: d.returning
       }))
     : [];
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -580,16 +611,157 @@ const InventoryReport = ({ data }: { data: InventoryData | null }) => {
   if (!data) return <div className="text-center py-8 text-gray-500">No inventory data available.</div>;
 
   const totalProducts = Object.values(data).reduce(
-    (sum, cat) => sum + cat.inStock + cat.lowStock + cat.outOfStock,
+    (sum: number, cat: InventoryCategory) => sum + cat.inStock + cat.lowStock + cat.outOfStock,
     0
   );
 
+  // Convert the inventory data to the format needed for the chart
+  const chartData: InventoryReportDataItem[] = Object.entries(data).map(([category, stats]) => ({
+    category,
+    inStock: stats.inStock,
+    lowStock: stats.lowStock,
+    outOfStock: stats.outOfStock,
+  }));
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      <MetricCard title="Total Products" value={totalProducts} Icon={BoxIcon} trend="Across categories" />
-      <MetricCard title="Low Stock Items" value="41" Icon={AlertCircleIcon} trend="8.5% of inventory" />
-      <MetricCard title="Out of Stock" value="12" Icon={AlertCircleIcon} trend="2.5% of inventory" />
-    </div>
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <MetricCard title="Total Products" value={totalProducts} Icon={BoxIcon} trend="Across categories" />
+        <MetricCard title="Low Stock Items" value="41" Icon={AlertCircleIcon} trend="8.5% of inventory" />
+        <MetricCard title="Out of Stock" value="12" Icon={AlertCircleIcon} trend="2.5% of inventory" />
+      </div>
+      <div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="bg-gray-50 rounded-lg p-4">
+            <div className="flex justify-between items-center">
+              <h4 className="text-sm font-medium text-gray-500">
+                Total Products
+              </h4>
+              <BoxIcon className="h-5 w-5 text-gray-400" />
+            </div>
+            <p className="mt-2 text-3xl font-bold text-gray-900">482</p>
+            <p className="mt-1 text-sm text-gray-600">
+              Across 8 categories
+            </p>
+          </div>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <div className="flex justify-between items-center">
+              <h4 className="text-sm font-medium text-gray-500">
+                Low Stock Items
+              </h4>
+              <AlertCircleIcon className="h-5 w-5 text-gray-400" />
+            </div>
+            <p className="mt-2 text-3xl font-bold text-gray-900">41</p>
+            <p className="mt-1 text-sm text-yellow-600">
+              8.5% of inventory
+            </p>
+          </div>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <div className="flex justify-between items-center">
+              <h4 className="text-sm font-medium text-gray-500">
+                Out of Stock
+              </h4>
+              <XIcon className="h-5 w-5 text-gray-400" />
+            </div>
+            <p className="mt-2 text-3xl font-bold text-gray-900">12</p>
+            <p className="mt-1 text-sm text-red-600">2.5% of inventory</p>
+          </div>
+        </div>
+        <div className="mb-8">
+          <h4 className="text-lg font-medium text-gray-900 mb-4">
+            Inventory Status by Category
+          </h4>
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{
+                  top: 20,
+                  right: 30,
+                  left: 20,
+                  bottom: 5
+                }} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+                  <XAxis type="number" />
+                  <YAxis dataKey="category" type="category" width={150} />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="inStock" name="In Stock" stackId="a" fill="#16a34a" />
+                  <Bar dataKey="lowStock" name="Low Stock" stackId="a" fill="#eab308" />
+                  <Bar dataKey="outOfStock" name="Out of Stock" stackId="a" fill="#ef4444" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h4 className="text-lg font-medium text-gray-900 mb-4">
+              Top Selling Products
+            </h4>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="space-y-4">
+                {topProductsData.map((product: TopProductDataItem, index: number) => (
+                  <div key={index} className="flex items-center">
+                    <span className="text-sm font-medium text-gray-500 w-6">
+                      {index + 1}
+                    </span>
+                    <div className="flex-1 ml-2">
+                      <div className="text-sm font-medium text-gray-900">
+                        {product.name}
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5 mt-1">
+                        <div className="bg-green-600 h-2.5 rounded-full" style={{
+                          width: `${product.sales / topProductsData[0].sales * 100}%`
+                        }}></div>
+                      </div>
+                    </div>
+                    <span className="ml-4 text-sm font-medium text-gray-900">
+                      {product.sales} units
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div>
+            <h4 className="text-lg font-medium text-gray-900 mb-4">
+              Inventory Value
+            </h4>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={[{
+                      name: 'Indoor Plants',
+                      value: 12500
+                    }, {
+                      name: 'Outdoor Plants',
+                      value: 8750
+                    }, {
+                      name: 'Succulents',
+                      value: 4200
+                    }, {
+                      name: 'Garden Tools',
+                      value: 7800
+                    }, {
+                      name: 'Pots & Planters',
+                      value: 5400
+                    }]} cx="50%" cy="50%" labelLine={false} outerRadius={80} fill="#8884d8" dataKey="value" label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`}>
+                      <Cell fill="#16a34a" />
+                      <Cell fill="#22c55e" />
+                      <Cell fill="#3b82f6" />
+                      <Cell fill="#8b5cf6" />
+                      <Cell fill="#ec4899" />
+                    </Pie>
+                    <Tooltip formatter={value => `$${value}`} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
   );
 };
 
