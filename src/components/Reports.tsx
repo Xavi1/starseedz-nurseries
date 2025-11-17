@@ -717,20 +717,25 @@ const InventoryReport = ({ data }: { data: InventoryData | null }) => {
           <div className="bg-gray-50 p-4 rounded-lg">
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{
-                  top: 20,
-                  right: 30,
-                  left: 20,
-                  bottom: 5
-                }} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-                  <XAxis type="number" />
-                  <YAxis dataKey="category" type="category" width={150} />
+                <BarChart 
+                  data={chartData} 
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="category" 
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                    interval={0}
+                    fontSize={12}
+                  />
+                  <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="inStock" name="In Stock" stackId="a" fill="#16a34a" />
-                  <Bar dataKey="lowStock" name="Low Stock" stackId="a" fill="#eab308" />
-                  <Bar dataKey="outOfStock" name="Out of Stock" stackId="a" fill="#ef4444" />
+                  <Bar dataKey="inStock" name="In Stock" fill="#16a34a" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="lowStock" name="Low Stock" fill="#eab308" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="outOfStock" name="Out of Stock" fill="#ef4444" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
