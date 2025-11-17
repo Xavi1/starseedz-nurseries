@@ -54,15 +54,6 @@ interface InventoryData {
   [category: string]: InventoryCategory;
 }
 
-// Add the missing interface
-interface ProcessedInventoryData {
-  [category: string]: {
-    inStock: number;
-    lowStock: number;
-    outOfStock: number;
-  };
-}
-
 interface OrderItem {
   category?: string;
   price?: number;
@@ -91,28 +82,6 @@ interface InventoryReportDataItem {
   lowStock: number;
   outOfStock: number;
 }
-
-interface TopProductDataItem {
-  name: string;
-  sales: number;
-}
-
-// Add the missing data arrays
-const inventoryReportData: InventoryReportDataItem[] = [
-  { category: "Indoor Plants", inStock: 120, lowStock: 15, outOfStock: 3 },
-  { category: "Outdoor Plants", inStock: 85, lowStock: 8, outOfStock: 2 },
-  { category: "Succulents", inStock: 65, lowStock: 12, outOfStock: 5 },
-  { category: "Garden Tools", inStock: 42, lowStock: 3, outOfStock: 1 },
-  { category: "Pots & Planters", inStock: 78, lowStock: 6, outOfStock: 1 },
-];
-
-const topProductsData: TopProductDataItem[] = [
-  { name: "Monstera Deliciosa", sales: 156 },
-  { name: "Snake Plant", sales: 142 },
-  { name: "Fiddle Leaf Fig", sales: 128 },
-  { name: "Pothos", sales: 115 },
-  { name: "ZZ Plant", sales: 98 },
-];
 
 // ... (Icon components remain the same)
 
@@ -623,6 +592,21 @@ const InventoryReport = ({ data }: { data: InventoryData | null }) => {
     outOfStock: stats.outOfStock,
   }));
 
+  // Calculate inventory value data from Firebase data
+  const inventoryValueData = Object.entries(data).map(([category, stats]) => ({
+    name: category,
+    value: (stats.inStock + stats.lowStock + stats.outOfStock) * 25, // Assuming average value of $25 per item
+  }));
+
+  // Generate top products data from inventory data
+  const topProductsData = Object.entries(data)
+    .map(([category, stats]) => ({
+      name: category,
+      sales: stats.inStock + stats.lowStock + stats.outOfStock, // Using total items as a proxy for sales
+    }))
+    .sort((a, b) => b.sales - a.sales)
+    .slice(0, 5);
+
   return (
     <>
       <div>
@@ -634,9 +618,9 @@ const InventoryReport = ({ data }: { data: InventoryData | null }) => {
               </h4>
               <BoxIcon className="h-5 w-5 text-gray-400" />
             </div>
-            <p className="mt-2 text-3xl font-bold text-gray-900">482</p>
+            <p className="mt-2 text-3xl font-bold text-gray-900">{totalProducts}</p>
             <p className="mt-1 text-sm text-gray-600">
-              Across 8 categories
+              Across {Object.keys(data).length} categories
             </p>
           </div>
           <div className="bg-gray-50 rounded-lg p-4">
@@ -646,9 +630,11 @@ const InventoryReport = ({ data }: { data: InventoryData | null }) => {
               </h4>
               <AlertCircleIcon className="h-5 w-5 text-gray-400" />
             </div>
-            <p className="mt-2 text-3xl font-bold text-gray-900">41</p>
+            <p className="mt-2 text-3xl font-bold text-gray-900">
+              {Object.values(data).reduce((sum, cat) => sum + cat.lowStock, 0)}
+            </p>
             <p className="mt-1 text-sm text-yellow-600">
-              8.5% of inventory
+              {totalProducts > 0 ? ((Object.values(data).reduce((sum, cat) => sum + cat.lowStock, 0) / totalProducts * 100).toFixed(1)) : 0}% of inventory
             </p>
           </div>
           <div className="bg-gray-50 rounded-lg p-4">
@@ -658,8 +644,12 @@ const InventoryReport = ({ data }: { data: InventoryData | null }) => {
               </h4>
               <XIcon className="h-5 w-5 text-gray-400" />
             </div>
-            <p className="mt-2 text-3xl font-bold text-gray-900">12</p>
-            <p className="mt-1 text-sm text-red-600">2.5% of inventory</p>
+            <p className="mt-2 text-3xl font-bold text-gray-900">
+              {Object.values(data).reduce((sum, cat) => sum + cat.outOfStock, 0)}
+            </p>
+            <p className="mt-1 text-sm text-red-600">
+              {totalProducts > 0 ? ((Object.values(data).reduce((sum, cat) => sum + cat.outOfStock, 0) / totalProducts * 100).toFixed(1)) : 0}% of inventory
+            </p>
           </div>
         </div>
         <div className="mb-8">
@@ -695,7 +685,7 @@ const InventoryReport = ({ data }: { data: InventoryData | null }) => {
             </h4>
             <div className="bg-gray-50 p-4 rounded-lg">
               <div className="space-y-4">
-                {topProductsData.map((product: TopProductDataItem, index: number) => (
+                {topProductsData.map((product, index: number) => (
                   <div key={index} className="flex items-center">
                     <span className="text-sm font-medium text-gray-500 w-6">
                       {index + 1}
@@ -706,7 +696,7 @@ const InventoryReport = ({ data }: { data: InventoryData | null }) => {
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2.5 mt-1">
                         <div className="bg-green-600 h-2.5 rounded-full" style={{
-                          width: `${product.sales / topProductsData[0].sales * 100}%`
+                          width: `${topProductsData.length > 0 ? (product.sales / topProductsData[0].sales * 100) : 0}%`
                         }}></div>
                       </div>
                     </div>
@@ -726,29 +716,23 @@ const InventoryReport = ({ data }: { data: InventoryData | null }) => {
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={[{
-                      name: 'Indoor Plants',
-                      value: 12500
-                    }, {
-                      name: 'Outdoor Plants',
-                      value: 8750
-                    }, {
-                      name: 'Succulents',
-                      value: 4200
-                    }, {
-                      name: 'Garden Tools',
-                      value: 7800
-                    }, {
-                      name: 'Pots & Planters',
-                      value: 5400
-                    }]} cx="50%" cy="50%" labelLine={false} outerRadius={80} fill="#8884d8" dataKey="value" label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`}>
+                    <Pie 
+                      data={inventoryValueData} 
+                      cx="50%" 
+                      cy="50%" 
+                      labelLine={false} 
+                      outerRadius={80} 
+                      fill="#8884d8" 
+                      dataKey="value" 
+                      label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`}
+                    >
                       <Cell fill="#16a34a" />
                       <Cell fill="#22c55e" />
                       <Cell fill="#3b82f6" />
                       <Cell fill="#8b5cf6" />
                       <Cell fill="#ec4899" />
                     </Pie>
-                    <Tooltip formatter={value => `$${value}`} />
+                    <Tooltip formatter={value => `$${Number(value).toLocaleString()}`} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
