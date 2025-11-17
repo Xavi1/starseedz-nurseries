@@ -23,6 +23,8 @@ import {
 } from "recharts";
 import jsPDF from 'jspdf';
 import {RepeatIcon, TrendingUpIcon, XIcon} from 'lucide-react';
+import { collection, query, where, onSnapshot, orderBy} from 'firebase/firestore';
+import { db } from '../firebase';
 
 // TypeScript interfaces
 interface SalesDataItem {
@@ -577,6 +579,51 @@ const CustomerReport = ({ data }: { data: ProcessedCustomerData | null }) => {
 
 // 📦 INVENTORY REPORT
 const InventoryReport = ({ data }: { data: InventoryData | null }) => {
+  const [lowStockAlerts, setLowStockAlerts] = useState<any[]>([]);
+  const [outOfStockAlerts, setOutOfStockAlerts] = useState<any[]>([]);
+  const [loadingAlerts, setLoadingAlerts] = useState(true);
+
+  // Firebase: Real-time low stock and out of stock alerts
+  useEffect(() => {
+    const inventoryRef = collection(db, 'products');
+    
+    // Query for low stock items (stock <= 10)
+    const lowStockQuery = query(
+      inventoryRef,
+      where('stock', '<=', 10),
+      where('stock', '>', 0), // Exclude out of stock items
+      orderBy('stock', 'asc')
+    );
+
+    // Query for out of stock items (stock === 0)
+    const outOfStockQuery = query(
+      inventoryRef,
+      where('stock', '==', 0)
+    );
+
+    const unsubscribeLowStock = onSnapshot(lowStockQuery, (snapshot) => {
+      const alerts = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setLowStockAlerts(alerts);
+    });
+
+    const unsubscribeOutOfStock = onSnapshot(outOfStockQuery, (snapshot) => {
+      const alerts = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setOutOfStockAlerts(alerts);
+      setLoadingAlerts(false);
+    });
+
+    return () => {
+      unsubscribeLowStock();
+      unsubscribeOutOfStock();
+    };
+  }, []);
+
   if (!data) return <div className="text-center py-8 text-gray-500">No inventory data available.</div>;
 
   const totalProducts = Object.values(data).reduce(
@@ -607,16 +654,28 @@ const InventoryReport = ({ data }: { data: InventoryData | null }) => {
     .sort((a, b) => b.sales - a.sales)
     .slice(0, 5);
 
-  // Create line chart data for low stock and out of stock trends
-  const stockTrendData = Object.entries(data)
-    .filter(([_, stats]) => stats.lowStock > 0 || stats.outOfStock > 0)
-    .map(([category, stats]) => ({
-      category,
-      lowStock: stats.lowStock,
-      outOfStock: stats.outOfStock,
-      totalStock: stats.inStock + stats.lowStock + stats.outOfStock,
+  // Create line chart data for low stock and out of stock trends using real alerts
+  const stockTrendData = [
+    ...lowStockAlerts.map(alert => ({
+      category: alert.name || alert.category || 'Unknown Product',
+      lowStock: alert.stock || 0,
+      outOfStock: 0,
+      productName: alert.name || 'Unknown',
+      currentStock: alert.stock || 0
+    })),
+    ...outOfStockAlerts.map(alert => ({
+      category: alert.name || alert.category || 'Unknown Product',
+      lowStock: 0,
+      outOfStock: 1,
+      productName: alert.name || 'Unknown',
+      currentStock: 0
     }))
-    .sort((a, b) => (b.lowStock + b.outOfStock) - (a.lowStock + a.outOfStock));
+  ].slice(0, 10); // Limit to top 10 for better visualization
+
+  // Calculate metrics from real Firebase data
+  const totalLowStockItems = lowStockAlerts.reduce((sum, alert) => sum + (alert.stock || 0), 0);
+  const totalOutOfStockItems = outOfStockAlerts.length;
+  const totalLowStockProducts = lowStockAlerts.length;
 
   return (
     <>
@@ -642,10 +701,10 @@ const InventoryReport = ({ data }: { data: InventoryData | null }) => {
               <AlertCircleIcon className="h-5 w-5 text-gray-400" />
             </div>
             <p className="mt-2 text-3xl font-bold text-gray-900">
-              {Object.values(data).reduce((sum, cat) => sum + cat.lowStock, 0)}
+              {loadingAlerts ? '...' : totalLowStockProducts}
             </p>
             <p className="mt-1 text-sm text-yellow-600">
-              {totalProducts > 0 ? ((Object.values(data).reduce((sum, cat) => sum + cat.lowStock, 0) / totalProducts * 100).toFixed(1)) : 0}% of inventory
+              {loadingAlerts ? 'Loading...' : `${totalLowStockProducts} products need attention`}
             </p>
           </div>
           <div className="bg-gray-50 rounded-lg p-4">
@@ -656,59 +715,118 @@ const InventoryReport = ({ data }: { data: InventoryData | null }) => {
               <XIcon className="h-5 w-5 text-gray-400" />
             </div>
             <p className="mt-2 text-3xl font-bold text-gray-900">
-              {Object.values(data).reduce((sum, cat) => sum + cat.outOfStock, 0)}
+              {loadingAlerts ? '...' : totalOutOfStockItems}
             </p>
             <p className="mt-1 text-sm text-red-600">
-              {totalProducts > 0 ? ((Object.values(data).reduce((sum, cat) => sum + cat.outOfStock, 0) / totalProducts * 100).toFixed(1)) : 0}% of inventory
+              {loadingAlerts ? 'Loading...' : `${totalOutOfStockItems} products out of stock`}
             </p>
           </div>
         </div>
 
-        {/* New Line Chart for Low Stock and Out of Stock Trends */}
-        <div className="mb-8">
-          <h4 className="text-lg font-medium text-gray-900 mb-4">
-            Low Stock & Out of Stock Trends by Category
-          </h4>
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={stockTrendData}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="category" 
-                    angle={-45}
-                    textAnchor="end"
-                    height={80}
-                    interval={0}
-                    fontSize={12}
-                  />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="lowStock" 
-                    name="Low Stock Items" 
-                    stroke="#eab308" 
-                    strokeWidth={2}
-                    activeDot={{ r: 8 }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="outOfStock" 
-                    name="Out of Stock Items" 
-                    stroke="#ef4444" 
-                    strokeWidth={2}
-                    activeDot={{ r: 8 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+        {/* Low Stock Products List */}
+        {(lowStockAlerts.length > 0 || outOfStockAlerts.length > 0) && (
+          <div className="mb-8">
+            <h4 className="text-lg font-medium text-gray-900 mb-4">
+              Products Needing Attention
+            </h4>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="space-y-3">
+                {/* Out of Stock Products */}
+                {outOfStockAlerts.slice(0, 5).map((alert, index) => (
+                  <div key={`out-${alert.id}`} className="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="flex items-center">
+                      <XIcon className="h-5 w-5 text-red-500 mr-3" />
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {alert.name || 'Unknown Product'}
+                        </div>
+                        <div className="text-sm text-red-600">
+                          Out of Stock
+                        </div>
+                      </div>
+                    </div>
+                    <span className="text-sm font-medium text-red-700">0 in stock</span>
+                  </div>
+                ))}
+                
+                {/* Low Stock Products */}
+                {lowStockAlerts.slice(0, 5).map((alert, index) => (
+                  <div key={`low-${alert.id}`} className="flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-center">
+                      <AlertCircleIcon className="h-5 w-5 text-yellow-500 mr-3" />
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {alert.name || 'Unknown Product'}
+                        </div>
+                        <div className="text-sm text-yellow-600">
+                          Low Stock Warning
+                        </div>
+                      </div>
+                    </div>
+                    <span className="text-sm font-medium text-yellow-700">
+                      {alert.stock || 0} remaining
+                    </span>
+                  </div>
+                ))}
+              </div>
+              
+              {(lowStockAlerts.length > 5 || outOfStockAlerts.length > 5) && (
+                <div className="mt-3 text-sm text-gray-500 text-center">
+                  +{Math.max(0, lowStockAlerts.length - 5) + Math.max(0, outOfStockAlerts.length - 5)} more products need attention
+                </div>
+              )}
             </div>
           </div>
-        </div>
+        )}
+
+        {/* New Line Chart for Low Stock and Out of Stock Trends */}
+        {stockTrendData.length > 0 && (
+          <div className="mb-8">
+            <h4 className="text-lg font-medium text-gray-900 mb-4">
+              Stock Alert Trends
+            </h4>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={stockTrendData}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="productName" 
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                      interval={0}
+                      fontSize={12}
+                    />
+                    <YAxis />
+                    <Tooltip 
+                      formatter={(value, name) => [
+                        value, 
+                        name === 'lowStock' ? 'Low Stock Items' : 'Out of Stock'
+                      ]}
+                    />
+                    <Legend />
+                    <Bar 
+                      dataKey="lowStock" 
+                      name="Low Stock Items" 
+                      fill="#eab308" 
+                      radius={[4, 4, 0, 0]}
+                    />
+                    <Bar 
+                      dataKey="outOfStock" 
+                      name="Out of Stock Items" 
+                      fill="#ef4444" 
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="mb-8">
           <h4 className="text-lg font-medium text-gray-900 mb-4">
@@ -716,26 +834,30 @@ const InventoryReport = ({ data }: { data: InventoryData | null }) => {
           </h4>
           <div className="bg-gray-50 p-4 rounded-lg">
             <div className="h-80">
-               <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={chartData} margin={{
-                    top: 20,
-                    right: 30,
-                    left: 20,
-                    bottom: 5
-                  }} layout="vertical">
-                        <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-                        <XAxis type="number" />
-                        <YAxis dataKey="category" type="category" width={150} />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="inStock" name="In Stock" stackId="a" fill="#16a34a" />
-                        <Bar dataKey="lowStock" name="Low Stock" stackId="a" fill="#eab308" />
-                        <Bar dataKey="outOfStock" name="Out of Stock" stackId="a" fill="#ef4444" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart 
+                  data={chartData} 
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  layout="vertical"
+                >
+                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+                  <XAxis type="number" />
+                  <YAxis 
+                    dataKey="category" 
+                    type="category" 
+                    width={100}
+                    fontSize={12}
+                  />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="inStock" name="In Stock" fill="#16a34a" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="lowStock" name="Low Stock" fill="#eab308" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="outOfStock" name="Out of Stock" fill="#ef4444" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <h4 className="text-lg font-medium text-gray-900 mb-4">
