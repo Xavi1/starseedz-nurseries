@@ -607,6 +607,17 @@ const InventoryReport = ({ data }: { data: InventoryData | null }) => {
     .sort((a, b) => b.sales - a.sales)
     .slice(0, 5);
 
+  // Create line chart data for low stock and out of stock trends
+  const stockTrendData = Object.entries(data)
+    .filter(([_, stats]) => stats.lowStock > 0 || stats.outOfStock > 0)
+    .map(([category, stats]) => ({
+      category,
+      lowStock: stats.lowStock,
+      outOfStock: stats.outOfStock,
+      totalStock: stats.inStock + stats.lowStock + stats.outOfStock,
+    }))
+    .sort((a, b) => (b.lowStock + b.outOfStock) - (a.lowStock + a.outOfStock));
+
   return (
     <>
       <div>
@@ -652,6 +663,53 @@ const InventoryReport = ({ data }: { data: InventoryData | null }) => {
             </p>
           </div>
         </div>
+
+        {/* New Line Chart for Low Stock and Out of Stock Trends */}
+        <div className="mb-8">
+          <h4 className="text-lg font-medium text-gray-900 mb-4">
+            Low Stock & Out of Stock Trends by Category
+          </h4>
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={stockTrendData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="category" 
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                    interval={0}
+                    fontSize={12}
+                  />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="lowStock" 
+                    name="Low Stock Items" 
+                    stroke="#eab308" 
+                    strokeWidth={2}
+                    activeDot={{ r: 8 }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="outOfStock" 
+                    name="Out of Stock Items" 
+                    stroke="#ef4444" 
+                    strokeWidth={2}
+                    activeDot={{ r: 8 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
         <div className="mb-8">
           <h4 className="text-lg font-medium text-gray-900 mb-4">
             Inventory Status by Category
