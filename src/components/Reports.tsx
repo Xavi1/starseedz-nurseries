@@ -716,30 +716,26 @@ const InventoryReport = ({ data }: { data: InventoryData | null }) => {
           </h4>
           <div className="bg-gray-50 p-4 rounded-lg">
             <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart 
-                  data={chartData} 
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                  layout="vertical"
-                >
-                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-                  <XAxis type="number" />
-                  <YAxis 
-                    dataKey="category" 
-                    type="category" 
-                    width={100}
-                    fontSize={12}
-                  />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="inStock" name="In Stock" fill="#16a34a" radius={[0, 4, 4, 0]} />
-                  <Bar dataKey="lowStock" name="Low Stock" fill="#eab308" radius={[0, 4, 4, 0]} />
-                  <Bar dataKey="outOfStock" name="Out of Stock" fill="#ef4444" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
+               <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={chartData} margin={{
+                    top: 20,
+                    right: 30,
+                    left: 20,
+                    bottom: 5
+                  }} layout="vertical">
+                        <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+                        <XAxis type="number" />
+                        <YAxis dataKey="category" type="category" width={150} />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="inStock" name="In Stock" stackId="a" fill="#16a34a" />
+                        <Bar dataKey="lowStock" name="Low Stock" stackId="a" fill="#eab308" />
+                        <Bar dataKey="outOfStock" name="Out of Stock" stackId="a" fill="#ef4444" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <h4 className="text-lg font-medium text-gray-900 mb-4">
