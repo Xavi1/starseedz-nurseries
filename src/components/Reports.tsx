@@ -829,32 +829,54 @@ const InventoryReport = ({ data }: { data: InventoryData | null }) => {
         )}
 
         <div className="mb-8">
-          <h4 className="text-lg font-medium text-gray-900 mb-4">
-            Inventory Status by Category
-          </h4>
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="h-80">
+          <h4 className="text-lg font-medium text-gray-900 mb-4">Inventory Status by Category</h4>
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <div className="h-80 flex flex-col justify-center">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart 
-                  data={chartData} 
+                <BarChart
+                  data={chartData}
                   margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                   layout="vertical"
+                  barCategoryGap="20%"
                 >
                   <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-                  <XAxis type="number" />
-                  <YAxis 
-                    dataKey="category" 
-                    type="category" 
-                    width={100}
-                    fontSize={12}
+                  <XAxis type="number" axisLine={false} tickLine={false} />
+                  <YAxis
+                    dataKey="category"
+                    type="category"
+                    width={130}
+                    fontSize={16}
+                    axisLine={false}
+                    tickLine={false}
                   />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="inStock" name="In Stock" fill="#16a34a" radius={[0, 4, 4, 0]} />
-                  <Bar dataKey="lowStock" name="Low Stock" fill="#eab308" radius={[0, 4, 4, 0]} />
-                  <Bar dataKey="outOfStock" name="Out of Stock" fill="#ef4444" radius={[0, 4, 4, 0]} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
+                    labelStyle={{ fontWeight: 600, fontSize: 16 }}
+                    formatter={(value, name) => {
+                      if (name === 'inStock') return [`${value} : In Stock`, 'In Stock'];
+                      if (name === 'lowStock') return [`${value} : Low Stock`, 'Low Stock'];
+                      if (name === 'outOfStock') return [`${value} : Out of Stock`, 'Out of Stock'];
+                      return value;
+                    }}
+                  />
+                  <Bar dataKey="inStock" name="In Stock" fill="#16a34a" radius={[0, 8, 8, 0]} />
+                  <Bar dataKey="lowStock" name="Low Stock" fill="#eab308" radius={[0, 8, 8, 0]} />
+                  <Bar dataKey="outOfStock" name="Out of Stock" fill="#ef4444" radius={[0, 8, 8, 0]} />
                 </BarChart>
               </ResponsiveContainer>
+              <div className="flex justify-center mt-6">
+                <div className="flex items-center gap-6">
+                  <span className="flex items-center gap-2 text-green-700 text-base font-medium">
+                    <span className="inline-block w-5 h-5 rounded bg-green-600"></span> In Stock
+                  </span>
+                  <span className="flex items-center gap-2 text-yellow-700 text-base font-medium">
+                    <span className="inline-block w-5 h-5 rounded bg-yellow-400"></span> Low Stock
+                  </span>
+                  <span className="flex items-center gap-2 text-red-700 text-base font-medium">
+                    <span className="inline-block w-5 h-5 rounded bg-red-500"></span> Out of Stock
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
