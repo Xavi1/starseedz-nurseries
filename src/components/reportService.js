@@ -394,7 +394,6 @@ const calculateCustomerGrowth = (customerData, timeframe) => {
 // Process inventory data
 const processInventoryData = (inventoryData) => {
   const categories = {};
-  
   inventoryData.forEach(product => {
     const category = product.category || 'Uncategorized';
     if (!categories[category]) {
@@ -405,18 +404,17 @@ const processInventoryData = (inventoryData) => {
         totalValue: 0
       };
     }
-    
-    if (product.quantity === 0) {
+    const stock = product.stock ?? product.quantity ?? 0;
+    const lowStockThreshold = product.lowStockThreshold ?? 10;
+    if (stock === 0) {
       categories[category].outOfStock++;
-    } else if (product.quantity <= (product.lowStockThreshold || 10)) {
+    } else if (stock > 0 && stock <= lowStockThreshold) {
       categories[category].lowStock++;
-    } else {
+    } else if (stock > lowStockThreshold) {
       categories[category].inStock++;
     }
-    
-    categories[category].totalValue += (product.price || 0) * (product.quantity || 0);
+    categories[category].totalValue += (product.price || 0) * stock;
   });
-  
   return categories;
 };
 
