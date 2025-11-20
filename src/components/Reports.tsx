@@ -310,22 +310,49 @@ const ReportRenderer = () => {
 
   // CSV Export Handler
   const handleExportCSV = () => {
-    const rows = reportData.sales?.processed || [];
-    if (!rows.length) return;
-    const header = ['Date', 'Revenue', 'Orders'];
-    const csv = [
-      header.join(','),
-      ...rows.map(row => [
-        `"${row.date}"`,
-        row.revenue.toFixed(2),
-        row.orders
-      ].join(','))
-    ].join('\r\n');
+    let csv = '';
+    let filename = '';
+    if (reportType === 'sales') {
+      const rows = reportData.sales?.processed || [];
+      if (!rows.length) return;
+      const header = ['Date', 'Revenue', 'Orders'];
+      csv = [
+        header.join(','),
+        ...rows.map(row => [
+          `"${row.date}"`,
+          row.revenue.toFixed(2),
+          row.orders
+        ].join(','))
+      ].join('\r\n');
+      filename = 'sales_report.csv';
+    } else if (reportType === 'customers') {
+      const customers = reportData.customers;
+      const header = ['Period', 'New', 'Returning', 'Total'];
+      const rows = (customers?.growthData || []).map(row => [
+        `"${row.period}"`,
+        row.new,
+        row.returning,
+        row.total
+      ].join(','));
+      csv = [header.join(','), ...rows].join('\r\n');
+      filename = 'customer_report.csv';
+    } else if (reportType === 'inventory') {
+      const header = ['Category', 'In Stock', 'Low Stock', 'Out of Stock'];
+      const rows = Object.entries(reportData.inventory || {}).map(([category, stats]) => [
+        `"${category}"`,
+        stats.inStock,
+        stats.lowStock,
+        stats.outOfStock
+      ].join(','));
+      csv = [header.join(','), ...rows].join('\r\n');
+      filename = 'inventory_report.csv';
+    }
+    if (!csv) return;
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'sales_report.csv';
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
