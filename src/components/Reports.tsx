@@ -237,33 +237,75 @@ const ReportRenderer = () => {
   const handleExportPDF = () => {
     const doc = new jsPDF();
     doc.setFontSize(18);
-    doc.text('Sales Report', 14, 20);
-    doc.setFontSize(12);
-    doc.text(`Timeframe: ${reportTimeframe}`, 14, 30);
-    doc.text(`Total Revenue: $${salesMetrics.totalRevenue.toFixed(2)}`, 14, 40);
-    doc.text(`Total Orders: ${salesMetrics.totalOrders}`, 14, 50);
-    doc.text(`Avg. Order Value: $${salesMetrics.avgOrderValue.toFixed(2)}`, 14, 60);
-
-    // Table header
-    doc.setFontSize(12);
-    doc.text('Date', 14, 75);
-    doc.text('Revenue', 60, 75);
-    doc.text('Orders', 110, 75);
-
-    // Table rows
-    let y = 85;
-    (reportData.sales?.processed || []).forEach((row) => {
-      doc.text(row.date, 14, y);
-      doc.text(`$${row.revenue.toFixed(2)}`, 60, y);
-      doc.text(`${row.orders}`, 110, y);
-      y += 10;
-      if (y > 270) {
-        doc.addPage();
-        y = 20;
-      }
-    });
-
-    doc.save('sales_report.pdf');
+    if (reportType === 'sales') {
+      doc.text('Sales Report', 14, 20);
+      doc.setFontSize(12);
+      doc.text(`Timeframe: ${reportTimeframe}`, 14, 30);
+      doc.text(`Total Revenue: $${salesMetrics.totalRevenue.toFixed(2)}`, 14, 40);
+      doc.text(`Total Orders: ${salesMetrics.totalOrders}`, 14, 50);
+      doc.text(`Avg. Order Value: $${salesMetrics.avgOrderValue.toFixed(2)}`, 14, 60);
+      doc.setFontSize(12);
+      doc.text('Date', 14, 75);
+      doc.text('Revenue', 60, 75);
+      doc.text('Orders', 110, 75);
+      let y = 85;
+      (reportData.sales?.processed || []).forEach((row) => {
+        doc.text(row.date, 14, y);
+        doc.text(`$${row.revenue.toFixed(2)}`, 60, y);
+        doc.text(`${row.orders}`, 110, y);
+        y += 10;
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+      });
+      doc.save('sales_report.pdf');
+    } else if (reportType === 'customers') {
+      doc.text('Customer Report', 14, 20);
+      doc.setFontSize(12);
+      doc.text(`Timeframe: ${reportTimeframe}`, 14, 30);
+      const customers = reportData.customers;
+      doc.text(`New Customers: ${customers?.newCustomers ?? 0}`, 14, 40);
+      doc.text(`Returning Customers: ${customers?.returningCustomers ?? 0}`, 14, 50);
+      doc.text(`Total Customers: ${customers?.totalCustomers ?? 0}`, 14, 60);
+      doc.setFontSize(12);
+      doc.text('Period', 14, 75);
+      doc.text('New', 60, 75);
+      doc.text('Returning', 110, 75);
+      let y = 85;
+      (customers?.growthData || []).forEach((row) => {
+        doc.text(row.period, 14, y);
+        doc.text(`${row.new}`, 60, y);
+        doc.text(`${row.returning}`, 110, y);
+        y += 10;
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+      });
+      doc.save('customer_report.pdf');
+    } else if (reportType === 'inventory') {
+      doc.text('Inventory Report', 14, 20);
+      doc.setFontSize(12);
+      doc.text(`Categories: ${Object.keys(reportData.inventory || {}).length}`, 14, 30);
+      doc.text('Category', 14, 45);
+      doc.text('In Stock', 60, 45);
+      doc.text('Low Stock', 100, 45);
+      doc.text('Out of Stock', 150, 45);
+      let y = 55;
+      Object.entries(reportData.inventory || {}).forEach(([category, stats]) => {
+        doc.text(category, 14, y);
+        doc.text(`${stats.inStock}`, 60, y);
+        doc.text(`${stats.lowStock}`, 100, y);
+        doc.text(`${stats.outOfStock}`, 150, y);
+        y += 10;
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+      });
+      doc.save('inventory_report.pdf');
+    }
   };
 
   // CSV Export Handler
