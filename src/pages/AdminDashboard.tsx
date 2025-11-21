@@ -18,6 +18,7 @@ import { ProductCard } from '../components/ProductCard';
 import OrderItems from '../components/OrderItems';
 import { fetchOrderByNumber} from '../components/orderHelpers';
 import ReportRenderer from '../components/Reports';
+import SettingsPanel from './SettingsPanel';
 
 // =============================
 // AdminDashboard.tsx
@@ -5321,7 +5322,12 @@ const orders = customerOrders;
       </div>
     </div>; */}
   // Render settings content
-  const renderSettingsContent = () => <div className="bg-white shadow rounded-lg">
+  const renderSettingsContent = () => <div className="p-6">
+      <SettingsPanel 
+        activeSettingsTab={activeSettingsTab}
+        onTabChange={setActiveSettingsTab}
+      />
+    </div>;{/* <div className="bg-white shadow rounded-lg">
       <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
         <h3 className="text-lg leading-6 font-medium text-gray-900">
           Settings
@@ -6063,7 +6069,7 @@ Trinidad and Tobago" className="shadow-sm focus:ring-green-500 focus:border-gree
             </div>
           </div>}
       </div>
-    </div>;
+    </div>; */}
   return <div className="flex h-screen bg-gray-50">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && <div className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 md:hidden" onClick={() => setSidebarOpen(false)}></div>}
