@@ -81,163 +81,236 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ activeSettingsTab, onTabC
 };
 
 // Individual tab components
-const StoreSettings: React.FC = () => (
-  <div className="space-y-6">
-    <div>
-      <h4 className="text-lg font-medium text-gray-900 mb-4">
-        Store Information
-      </h4>
-      <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-        <div className="sm:col-span-3">
-          <label htmlFor="store-name" className="block text-sm font-medium text-gray-700">
-            Store Name
-          </label>
-          <div className="mt-1">
-            <input type="text" name="store-name" id="store-name" defaultValue="Starseedz Nurseries" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+const StoreSettings: React.FC = () => {
+  const [logoPreview, setLogoPreview] = React.useState<string>(
+    "https://images.unsplash.com/photo-1585676623595-7761e1c5f38b?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80"
+  );
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Check file size (max 1MB)
+      if (file.size > 1024 * 1024) {
+        alert('File size must be less than 1MB');
+        return;
+      }
+
+      // Check file type
+      const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'];
+      if (!validTypes.includes(file.type)) {
+        alert('Please select a PNG, JPG, or GIF file');
+        return;
+      }
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLogoPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+
+      // Here you would typically upload the file to your server
+      // For now, we'll just log it and update the preview
+      console.log('Selected file:', file.name);
+      
+      // Simulate file upload - in a real app, you would make an API call here
+      // uploadLogoToServer(file).then(response => {
+      //   setLogoPreview(response.url);
+      // });
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    setLogoPreview('');
+    // In a real app, you would also make an API call to remove the logo from the server
+    // removeLogoFromServer().then(() => {
+    //   setLogoPreview('');
+    // });
+  };
+
+  const handleChangeClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h4 className="text-lg font-medium text-gray-900 mb-4">
+          Store Information
+        </h4>
+        <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+          <div className="sm:col-span-3">
+            <label htmlFor="store-name" className="block text-sm font-medium text-gray-700">
+              Store Name
+            </label>
+            <div className="mt-1">
+              <input type="text" name="store-name" id="store-name" defaultValue="Starseedz Nurseries" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+            </div>
           </div>
-        </div>
-        <div className="sm:col-span-3">
-          <label htmlFor="store-email" className="block text-sm font-medium text-gray-700">
-            Email Address
-          </label>
-          <div className="mt-1">
-            <input type="email" name="store-email" id="store-email" defaultValue="info@starseedz.com" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+          <div className="sm:col-span-3">
+            <label htmlFor="store-email" className="block text-sm font-medium text-gray-700">
+              Email Address
+            </label>
+            <div className="mt-1">
+              <input type="email" name="store-email" id="store-email" defaultValue="info@starseedz.com" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+            </div>
           </div>
-        </div>
-        <div className="sm:col-span-3">
-          <label htmlFor="store-phone" className="block text-sm font-medium text-gray-700">
-            Phone Number
-          </label>
-          <div className="mt-1">
-            <input type="text" name="store-phone" id="store-phone" defaultValue="(555) 123-4567" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+          <div className="sm:col-span-3">
+            <label htmlFor="store-phone" className="block text-sm font-medium text-gray-700">
+              Phone Number
+            </label>
+            <div className="mt-1">
+              <input type="text" name="store-phone" id="store-phone" defaultValue="(555) 123-4567" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+            </div>
           </div>
-        </div>
-        <div className="sm:col-span-3">
-          <label htmlFor="currency" className="block text-sm font-medium text-gray-700">
-            Currency
-          </label>
-          <div className="mt-1">
-            <select id="currency" name="currency" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md">
-              <option>USD ($)</option>
-              <option>EUR (€)</option>
-              <option>GBP (£)</option>
-              <option>CAD ($)</option>
-              <option>AUD ($)</option>
-              <option>TTD ($)</option>
-            </select>
+          <div className="sm:col-span-3">
+            <label htmlFor="currency" className="block text-sm font-medium text-gray-700">
+              Currency
+            </label>
+            <div className="mt-1">
+              <select id="currency" name="currency" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                <option>USD ($)</option>
+                <option>EUR (€)</option>
+                <option>GBP (£)</option>
+                <option>CAD ($)</option>
+                <option>AUD ($)</option>
+                <option>TTD ($)</option>
+              </select>
+            </div>
           </div>
-        </div>
-        <div className="sm:col-span-6">
-          <label htmlFor="store-address" className="block text-sm font-medium text-gray-700">
-            Address
-          </label>
-          <div className="mt-1">
-            <input type="text" name="store-address" id="store-address" defaultValue="Couva, Couva-Tabaquite-Talparo Regional Corporation, Trinidad and Tobago" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+          <div className="sm:col-span-6">
+            <label htmlFor="store-address" className="block text-sm font-medium text-gray-700">
+              Address
+            </label>
+            <div className="mt-1">
+              <input type="text" name="store-address" id="store-address" defaultValue="Couva, Couva-Tabaquite-Talparo Regional Corporation, Trinidad and Tobago" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    <div>
-      <h4 className="text-lg font-medium text-gray-900 mb-4">
-        Store Logo
-      </h4>
-      <div className="flex items-center">
-        <div className="h-12 w-12 rounded-md overflow-hidden bg-gray-100">
-          <img src="https://images.unsplash.com/photo-1585676623595-7761e1c5f38b?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" alt="Store logo" className="h-full w-full object-cover" />
+      <div>
+        <h4 className="text-lg font-medium text-gray-900 mb-4">
+          Store Logo
+        </h4>
+        <div className="flex items-center">
+          <div className="h-12 w-12 rounded-md overflow-hidden bg-gray-100">
+            {logoPreview ? (
+              <img src={logoPreview} alt="Store logo" className="h-full w-full object-cover" />
+            ) : (
+              <div className="h-full w-full flex items-center justify-center bg-gray-200">
+                <span className="text-xs text-gray-500">No logo</span>
+              </div>
+            )}
+          </div>
+          <div className="ml-5">
+            <div className="flex space-x-2">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleLogoChange}
+                accept=".png,.jpg,.jpeg,.gif"
+                className="hidden"
+              />
+              <button 
+                onClick={handleChangeClick}
+                className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+              >
+                Change
+              </button>
+              <button 
+                onClick={handleRemoveLogo}
+                className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+              >
+                Remove
+              </button>
+            </div>
+            <p className="mt-1 text-xs text-gray-500">
+              PNG, JPG, or GIF. Max size 1MB.
+            </p>
+          </div>
         </div>
-        <div className="ml-5">
-          <div className="flex space-x-2">
+      </div>
+      {/* Rest of the StoreSettings component remains the same */}
+      <div>
+        <h4 className="text-lg font-medium text-gray-900 mb-4">
+          Tax Settings
+        </h4>
+        <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+          <div className="sm:col-span-3">
+            <label htmlFor="tax-rate" className="block text-sm font-medium text-gray-700">
+              Tax Rate (%)
+            </label>
+            <div className="mt-1">
+              <input type="text" name="tax-rate" id="tax-rate" defaultValue="8.5" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+            </div>
+          </div>
+          <div className="sm:col-span-3">
+            <label htmlFor="tax-name" className="block text-sm font-medium text-gray-700">
+              Tax Name
+            </label>
+            <div className="mt-1">
+              <input type="text" name="tax-name" id="tax-name" defaultValue="Sales Tax" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h4 className="text-lg font-medium text-gray-900 mb-4">
+          Shipping Methods
+        </h4>
+        <div className="border border-gray-200 rounded-md divide-y divide-gray-200">
+          <div className="p-4 flex justify-between items-center">
+            <div>
+              <h5 className="text-sm font-medium text-gray-900">
+                Standard Shipping
+              </h5>
+              <p className="text-sm text-gray-500">3-5 business days</p>
+            </div>
+            <div className="flex items-center">
+              <span className="text-sm font-medium text-gray-900 mr-4">
+                $5.00
+              </span>
+              <button className="text-sm text-gray-500 hover:text-gray-700">
+                <EditIcon className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+          <div className="p-4 flex justify-between items-center">
+            <div>
+              <h5 className="text-sm font-medium text-gray-900">
+                Express Shipping
+              </h5>
+              <p className="text-sm text-gray-500">1-2 business days</p>
+            </div>
+            <div className="flex items-center">
+              <span className="text-sm font-medium text-gray-900 mr-4">
+                $15.00
+              </span>
+              <button className="text-sm text-gray-500 hover:text-gray-700">
+                <EditIcon className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+          <div className="p-4">
             <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-              Change
+              <PlusIcon className="h-4 w-4 mr-1.5" />
+              Add Shipping Method
             </button>
-            <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-              Remove
-            </button>
-          </div>
-          <p className="mt-1 text-xs text-gray-500">
-            PNG, JPG, or GIF. Max size 1MB.
-          </p>
-        </div>
-      </div>
-    </div>
-    <div>
-      <h4 className="text-lg font-medium text-gray-900 mb-4">
-        Tax Settings
-      </h4>
-      <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-        <div className="sm:col-span-3">
-          <label htmlFor="tax-rate" className="block text-sm font-medium text-gray-700">
-            Tax Rate (%)
-          </label>
-          <div className="mt-1">
-            <input type="text" name="tax-rate" id="tax-rate" defaultValue="8.5" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
-          </div>
-        </div>
-        <div className="sm:col-span-3">
-          <label htmlFor="tax-name" className="block text-sm font-medium text-gray-700">
-            Tax Name
-          </label>
-          <div className="mt-1">
-            <input type="text" name="tax-name" id="tax-name" defaultValue="Sales Tax" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
           </div>
         </div>
       </div>
-    </div>
-    <div>
-      <h4 className="text-lg font-medium text-gray-900 mb-4">
-        Shipping Methods
-      </h4>
-      <div className="border border-gray-200 rounded-md divide-y divide-gray-200">
-        <div className="p-4 flex justify-between items-center">
-          <div>
-            <h5 className="text-sm font-medium text-gray-900">
-              Standard Shipping
-            </h5>
-            <p className="text-sm text-gray-500">3-5 business days</p>
-          </div>
-          <div className="flex items-center">
-            <span className="text-sm font-medium text-gray-900 mr-4">
-              $5.00
-            </span>
-            <button className="text-sm text-gray-500 hover:text-gray-700">
-              <EditIcon className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-        <div className="p-4 flex justify-between items-center">
-          <div>
-            <h5 className="text-sm font-medium text-gray-900">
-              Express Shipping
-            </h5>
-            <p className="text-sm text-gray-500">1-2 business days</p>
-          </div>
-          <div className="flex items-center">
-            <span className="text-sm font-medium text-gray-900 mr-4">
-              $15.00
-            </span>
-            <button className="text-sm text-gray-500 hover:text-gray-700">
-              <EditIcon className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-        <div className="p-4">
-          <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-            <PlusIcon className="h-4 w-4 mr-1.5" />
-            Add Shipping Method
-          </button>
-        </div>
+      <div className="pt-5 flex justify-end">
+        <button type="button" className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+          Cancel
+        </button>
+        <button type="submit" className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+          Save Changes
+        </button>
       </div>
     </div>
-    <div className="pt-5 flex justify-end">
-      <button type="button" className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-        Cancel
-      </button>
-      <button type="submit" className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-        Save Changes
-      </button>
-    </div>
-  </div>
-);
+  );
+};
 
 const UserManagement: React.FC = () => (
   <div className="space-y-6">
