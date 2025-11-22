@@ -85,7 +85,31 @@ const StoreSettings: React.FC = () => {
   const [logoPreview, setLogoPreview] = React.useState<string>(
     "https://images.unsplash.com/photo-1585676623595-7761e1c5f38b?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80"
   );
+  const [formData, setFormData] = React.useState({
+    storeName: "Starseedz Nurseries",
+    storeEmail: "info@starseedz.com",
+    storePhone: "(555) 123-4567",
+    currency: "USD ($)",
+    storeAddress: "Couva, Couva-Tabaquite-Talparo Regional Corporation, Trinidad and Tobago",
+    taxRate: "8.5",
+    taxName: "Sales Tax"
+  });
+  const [isDirty, setIsDirty] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
+
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Store initial data for reset functionality
+  const initialFormData = React.useRef(formData);
+  const initialLogoPreview = React.useRef(logoPreview);
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    setIsDirty(true);
+  };
 
   const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -107,30 +131,68 @@ const StoreSettings: React.FC = () => {
       const reader = new FileReader();
       reader.onload = (e) => {
         setLogoPreview(e.target?.result as string);
+        setIsDirty(true);
       };
       reader.readAsDataURL(file);
 
       // Here you would typically upload the file to your server
-      // For now, we'll just log it and update the preview
       console.log('Selected file:', file.name);
-      
-      // Simulate file upload - in a real app, you would make an API call here
-      // uploadLogoToServer(file).then(response => {
-      //   setLogoPreview(response.url);
-      // });
     }
   };
 
   const handleRemoveLogo = () => {
     setLogoPreview('');
-    // In a real app, you would also make an API call to remove the logo from the server
-    // removeLogoFromServer().then(() => {
-    //   setLogoPreview('');
-    // });
+    setIsDirty(true);
   };
 
   const handleChangeClick = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleSaveChanges = async () => {
+    setIsLoading(true);
+    
+    try {
+      // Simulate API call to save settings
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // In a real app, you would make API calls here:
+      // await saveStoreSettings(formData);
+      // if (logoPreview !== initialLogoPreview.current) {
+      //   await uploadStoreLogo(logoPreview);
+      // }
+      
+      console.log('Settings saved:', formData);
+      console.log('Logo updated:', logoPreview ? 'Yes' : 'No');
+      
+      // Update initial data reference
+      initialFormData.current = { ...formData };
+      initialLogoPreview.current = logoPreview;
+      setIsDirty(false);
+      
+      // Show success message
+      alert('Settings saved successfully!');
+      
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+      alert('Failed to save settings. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    // Reset form to initial state
+    setFormData({ ...initialFormData.current });
+    setLogoPreview(initialLogoPreview.current);
+    setIsDirty(false);
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    
+    console.log('Changes cancelled');
   };
 
   return (
@@ -145,7 +207,14 @@ const StoreSettings: React.FC = () => {
               Store Name
             </label>
             <div className="mt-1">
-              <input type="text" name="store-name" id="store-name" defaultValue="Starseedz Nurseries" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+              <input 
+                type="text" 
+                name="store-name" 
+                id="store-name" 
+                value={formData.storeName}
+                onChange={(e) => handleInputChange('storeName', e.target.value)}
+                className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" 
+              />
             </div>
           </div>
           <div className="sm:col-span-3">
@@ -153,7 +222,14 @@ const StoreSettings: React.FC = () => {
               Email Address
             </label>
             <div className="mt-1">
-              <input type="email" name="store-email" id="store-email" defaultValue="info@starseedz.com" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+              <input 
+                type="email" 
+                name="store-email" 
+                id="store-email" 
+                value={formData.storeEmail}
+                onChange={(e) => handleInputChange('storeEmail', e.target.value)}
+                className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" 
+              />
             </div>
           </div>
           <div className="sm:col-span-3">
@@ -161,7 +237,14 @@ const StoreSettings: React.FC = () => {
               Phone Number
             </label>
             <div className="mt-1">
-              <input type="text" name="store-phone" id="store-phone" defaultValue="(555) 123-4567" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+              <input 
+                type="text" 
+                name="store-phone" 
+                id="store-phone" 
+                value={formData.storePhone}
+                onChange={(e) => handleInputChange('storePhone', e.target.value)}
+                className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" 
+              />
             </div>
           </div>
           <div className="sm:col-span-3">
@@ -169,7 +252,13 @@ const StoreSettings: React.FC = () => {
               Currency
             </label>
             <div className="mt-1">
-              <select id="currency" name="currency" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md">
+              <select 
+                id="currency" 
+                name="currency" 
+                value={formData.currency}
+                onChange={(e) => handleInputChange('currency', e.target.value)}
+                className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              >
                 <option>USD ($)</option>
                 <option>EUR (€)</option>
                 <option>GBP (£)</option>
@@ -184,11 +273,20 @@ const StoreSettings: React.FC = () => {
               Address
             </label>
             <div className="mt-1">
-              <input type="text" name="store-address" id="store-address" defaultValue="Couva, Couva-Tabaquite-Talparo Regional Corporation, Trinidad and Tobago" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+              <input 
+                type="text" 
+                name="store-address" 
+                id="store-address" 
+                value={formData.storeAddress}
+                onChange={(e) => handleInputChange('storeAddress', e.target.value)}
+                className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" 
+              />
             </div>
           </div>
         </div>
       </div>
+      
+      {/* Logo section remains the same */}
       <div>
         <h4 className="text-lg font-medium text-gray-900 mb-4">
           Store Logo
@@ -231,7 +329,7 @@ const StoreSettings: React.FC = () => {
           </div>
         </div>
       </div>
-      {/* Rest of the StoreSettings component remains the same */}
+      
       <div>
         <h4 className="text-lg font-medium text-gray-900 mb-4">
           Tax Settings
@@ -242,7 +340,14 @@ const StoreSettings: React.FC = () => {
               Tax Rate (%)
             </label>
             <div className="mt-1">
-              <input type="text" name="tax-rate" id="tax-rate" defaultValue="8.5" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+              <input 
+                type="text" 
+                name="tax-rate" 
+                id="tax-rate" 
+                value={formData.taxRate}
+                onChange={(e) => handleInputChange('taxRate', e.target.value)}
+                className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" 
+              />
             </div>
           </div>
           <div className="sm:col-span-3">
@@ -250,11 +355,20 @@ const StoreSettings: React.FC = () => {
               Tax Name
             </label>
             <div className="mt-1">
-              <input type="text" name="tax-name" id="tax-name" defaultValue="Sales Tax" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+              <input 
+                type="text" 
+                name="tax-name" 
+                id="tax-name" 
+                value={formData.taxName}
+                onChange={(e) => handleInputChange('taxName', e.target.value)}
+                className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" 
+              />
             </div>
           </div>
         </div>
       </div>
+      
+      {/* Shipping Methods section remains the same */}
       <div>
         <h4 className="text-lg font-medium text-gray-900 mb-4">
           Shipping Methods
@@ -300,12 +414,33 @@ const StoreSettings: React.FC = () => {
           </div>
         </div>
       </div>
+      
       <div className="pt-5 flex justify-end">
-        <button type="button" className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+        <button 
+          type="button" 
+          onClick={handleCancel}
+          disabled={isLoading}
+          className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           Cancel
         </button>
-        <button type="submit" className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-          Save Changes
+        <button 
+          type="button" 
+          onClick={handleSaveChanges}
+          disabled={!isDirty || isLoading}
+          className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isLoading ? (
+            <>
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Saving...
+            </>
+          ) : (
+            'Save Changes'
+          )}
         </button>
       </div>
     </div>
