@@ -36,50 +36,6 @@ interface SettingsPanelProps {
   onTabChange: (tab: string) => void;
 }
 
-const SettingsPanel: React.FC<SettingsPanelProps> = ({ activeSettingsTab, onTabChange }) => {
-  const tabs = [
-    { id: 'store', label: 'Store Settings' },
-    { id: 'users', label: 'User Management' },
-    { id: 'payment', label: 'Payment Methods' },
-    { id: 'notifications', label: 'Notifications' },
-    { id: 'security', label: 'Security' }
-  ];
-
-  return (
-    <div className="bg-white shadow rounded-lg">
-      <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-        <h3 className="text-lg leading-6 font-medium text-gray-900">
-          Settings
-        </h3>
-      </div>
-      <div className="border-b border-gray-200">
-        <nav className="flex -mb-px">
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => onTabChange(tab.id)}
-              className={`whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm ${
-                activeSettingsTab === tab.id
-                  ? 'border-green-500 text-green-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </nav>
-      </div>
-      <div className="p-4 sm:p-6">
-        {activeSettingsTab === 'store' && <StoreSettings />}
-        {activeSettingsTab === 'users' && <UserManagement />}
-        {activeSettingsTab === 'payment' && <PaymentMethods />}
-        {activeSettingsTab === 'notifications' && <NotificationSettings />}
-        {activeSettingsTab === 'security' && <SecuritySettings />}
-      </div>
-    </div>
-  );
-};
-
 // Individual tab components
 const StoreSettings: React.FC = () => {
   const [logoPreview, setLogoPreview] = React.useState<string>(
@@ -447,216 +403,210 @@ const StoreSettings: React.FC = () => {
   );
 };
 
-const UserManagement: React.FC = () => (
-  <div className="space-y-6">
-    <div>
-      <div className="flex justify-between items-center mb-4">
-        <h4 className="text-lg font-medium text-gray-900">
-          User Management
-        </h4>
-        <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-          <PlusIcon className="h-4 w-4 mr-2" />
-          Add User
-        </button>
-      </div>
-      <div className="overflow-x-auto border border-gray-200 rounded-md">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Name
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Email
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Role
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            <tr>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="flex items-center">
-                  <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
-                    <span className="text-lg font-medium text-green-700">
-                      A
-                    </span>
-                  </div>
-                  <div className="ml-4">
-                    <div className="text-sm font-medium text-gray-900">
-                      Admin User
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                admin@greenthumb.com
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
-                  Administrator
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                  Active
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <div className="flex justify-end space-x-2">
-                  <button className="text-gray-500 hover:text-gray-700">
-                    <EditIcon className="h-5 w-5" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="flex items-center">
-                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                    <span className="text-lg font-medium text-blue-700">
-                      J
-                    </span>
-                  </div>
-                  <div className="ml-4">
-                    <div className="text-sm font-medium text-gray-900">
-                      John Smith
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                john@greenthumb.com
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                  Manager
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                  Active
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <div className="flex justify-end space-x-2">
-                  <button className="text-gray-500 hover:text-gray-700">
-                    <EditIcon className="h-5 w-5" />
-                  </button>
-                  <button className="text-gray-500 hover:text-red-700">
-                    <TrashIcon className="h-5 w-5" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="flex items-center">
-                  <div className="h-10 w-10 rounded-full bg-pink-100 flex items-center justify-center">
-                    <span className="text-lg font-medium text-pink-700">
-                      S
-                    </span>
-                  </div>
-                  <div className="ml-4">
-                    <div className="text-sm font-medium text-gray-900">
-                      Sarah Johnson
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                sarah@greenthumb.com
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                  Staff
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                  Active
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <div className="flex justify-end space-x-2">
-                  <button className="text-gray-500 hover:text-gray-700">
-                    <EditIcon className="h-5 w-5" />
-                  </button>
-                  <button className="text-gray-500 hover:text-red-700">
-                    <TrashIcon className="h-5 w-5" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <div>
-      <h4 className="text-lg font-medium text-gray-900 mb-4">
-        User Roles
-      </h4>
-      <div className="border border-gray-200 rounded-md divide-y divide-gray-200">
-        <div className="p-4 flex justify-between items-center">
-          <div>
-            <h5 className="text-sm font-medium text-gray-900">
-              Administrator
-            </h5>
-            <p className="text-sm text-gray-500">
-              Full access to all settings and data
-            </p>
-          </div>
-          <div>
-            <button className="text-sm text-gray-500 hover:text-gray-700">
-              <EditIcon className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-        <div className="p-4 flex justify-between items-center">
-          <div>
-            <h5 className="text-sm font-medium text-gray-900">
-              Manager
-            </h5>
-            <p className="text-sm text-gray-500">
-              Can manage products, orders, and customers
-            </p>
-          </div>
-          <div>
-            <button className="text-sm text-gray-500 hover:text-gray-700">
-              <EditIcon className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-        <div className="p-4 flex justify-between items-center">
-          <div>
-            <h5 className="text-sm font-medium text-gray-900">Staff</h5>
-            <p className="text-sm text-gray-500">
-              Can view orders and manage inventory
-            </p>
-          </div>
-          <div>
-            <button className="text-sm text-gray-500 hover:text-gray-700">
-              <EditIcon className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-        <div className="p-4">
-          <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-            <PlusIcon className="h-4 w-4 mr-1.5" />
-            Add Role
+const UserManagement: React.FC = () => {
+  const [users, setUsers] = React.useState([
+    {
+      name: 'Admin User',
+      email: 'admin@greenthumb.com',
+      role: 'Administrator',
+      status: 'Active',
+      color: 'green',
+      initial: 'A',
+    },
+    {
+      name: 'John Smith',
+      email: 'john@greenthumb.com',
+      role: 'Manager',
+      status: 'Active',
+      color: 'blue',
+      initial: 'J',
+    },
+    {
+      name: 'Sarah Johnson',
+      email: 'sarah@greenthumb.com',
+      role: 'Staff',
+      status: 'Active',
+      color: 'pink',
+      initial: 'S',
+    },
+  ]);
+  const [showModal, setShowModal] = React.useState(false);
+  const [form, setForm] = React.useState({ name: '', email: '', role: 'Staff', status: 'Active' });
+
+  const handleAddUser = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.name || !form.email) return;
+    setUsers([
+      ...users,
+      {
+        name: form.name,
+        email: form.email,
+        role: form.role,
+        status: form.status,
+        color: 'gray',
+        initial: form.name.charAt(0).toUpperCase(),
+      },
+    ]);
+    setForm({ name: '', email: '', role: 'Staff', status: 'Active' });
+    setShowModal(false);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <div className="flex justify-between items-center mb-4">
+          <h4 className="text-lg font-medium text-gray-900">User Management</h4>
+          <button
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            onClick={() => setShowModal(true)}
+          >
+            <PlusIcon className="h-4 w-4 mr-2" />
+            Add User
           </button>
         </div>
+        <div className="overflow-x-auto border border-gray-200 rounded-md">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {users.map((user, idx) => (
+                <tr key={user.email + idx}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className={`h-10 w-10 rounded-full bg-${user.color}-100 flex items-center justify-center`}>
+                        <span className={`text-lg font-medium text-${user.color}-700`}>
+                          {user.initial}
+                        </span>
+                      </div>
+                      <div className="ml-4">
+                        <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{user.email}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${user.role === 'Administrator' ? 'bg-purple-100 text-purple-800' : user.role === 'Manager' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>
+                      {user.role}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">{user.status}</span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="flex justify-end space-x-2">
+                      <button className="text-gray-500 hover:text-gray-700"><EditIcon className="h-5 w-5" /></button>
+                      <button className="text-gray-500 hover:text-red-700"><TrashIcon className="h-5 w-5" /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {/* Modal for Add User */}
+        {showModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Add New User</h3>
+              <form onSubmit={handleAddUser} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Name</label>
+                  <input type="text" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Email</label>
+                  <input type="email" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Role</label>
+                  <select className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
+                    <option value="Administrator">Administrator</option>
+                    <option value="Manager">Manager</option>
+                    <option value="Staff">Staff</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Status</label>
+                  <select className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
+                </div>
+                <div className="flex justify-end">
+                  <button type="button" className="mr-2 px-4 py-2 rounded bg-gray-200 text-gray-700" onClick={() => setShowModal(false)}>Cancel</button>
+                  <button type="submit" className="px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800">Add User</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
+      <div>
+        <h4 className="text-lg font-medium text-gray-900 mb-4">
+          User Roles
+        </h4>
+        <div className="border border-gray-200 rounded-md divide-y divide-gray-200">
+          <div className="p-4 flex justify-between items-center">
+            <div>
+              <h5 className="text-sm font-medium text-gray-900">
+                Administrator
+              </h5>
+              <p className="text-sm text-gray-500">
+                Full access to all settings and data
+              </p>
+            </div>
+            <div>
+              <button className="text-sm text-gray-500 hover:text-gray-700">
+                <EditIcon className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+          <div className="p-4 flex justify-between items-center">
+            <div>
+              <h5 className="text-sm font-medium text-gray-900">
+                Manager
+              </h5>
+              <p className="text-sm text-gray-500">
+                Can manage products, orders, and customers
+              </p>
+            </div>
+            <div>
+              <button className="text-sm text-gray-500 hover:text-gray-700">
+                <EditIcon className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+          <div className="p-4 flex justify-between items-center">
+            <div>
+              <h5 className="text-sm font-medium text-gray-900">Staff</h5>
+              <p className="text-sm text-gray-500">
+                Can view orders and manage inventory
+              </p>
+            </div>
+            <div>
+              <button className="text-sm text-gray-500 hover:text-gray-700">
+                <EditIcon className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+          <div className="p-4">
+            <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+              <PlusIcon className="h-4 w-4 mr-1.5" />
+              Add Role
+            </button>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const PaymentMethods: React.FC = () => (
   <div className="space-y-6">
@@ -1024,5 +974,17 @@ const SecuritySettings: React.FC = () => (
     </div>
   </div>
 );
+
+const SettingsPanel: React.FC<SettingsPanelProps> = ({ activeSettingsTab, onTabChange }) => {
+  return (
+    <div>
+      {activeSettingsTab === 'store' && <StoreSettings />}
+      {activeSettingsTab === 'users' && <UserManagement />}
+      {activeSettingsTab === 'payment' && <PaymentMethods />}
+      {activeSettingsTab === 'notifications' && <NotificationSettings />}
+      {activeSettingsTab === 'security' && <SecuritySettings />}
+    </div>
+  );
+};
 
 export default SettingsPanel;
