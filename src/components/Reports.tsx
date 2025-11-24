@@ -23,7 +23,7 @@ import {
 } from "recharts";
 import jsPDF from 'jspdf';
 import {RepeatIcon, TrendingUpIcon, XIcon} from 'lucide-react';
-import { collection, query, where, onSnapshot, orderBy} from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, limit} from 'firebase/firestore';
 import { db } from '../firebase';
 
 // TypeScript interfaces
@@ -651,10 +651,17 @@ const InventoryReport = ({ data }: { data: InventoryData | null }) => {
   const [lowStockAlerts, setLowStockAlerts] = useState<any[]>([]);
   const [outOfStockAlerts, setOutOfStockAlerts] = useState<any[]>([]);
   const [loadingAlerts, setLoadingAlerts] = useState(true);
+  const [topSellingProducts, setTopSellingProducts] = useState<any[]>([]);
 
   // Firebase: Real-time low stock and out of stock alerts
   useEffect(() => {
     const inventoryRef = collection(db, 'products');
+
+    const topSellingQuery = query(
+  collection(db, 'products'),
+  orderBy('sales', 'desc'), // Assuming you have a 'sales' field
+  limit(5)
+  );
     
     // Query for low stock items (stock <= 10)
     const lowStockQuery = query(
@@ -669,6 +676,14 @@ const InventoryReport = ({ data }: { data: InventoryData | null }) => {
       inventoryRef,
       where('stock', '==', 0)
     );
+
+     const unsubscribeTopSelling = onSnapshot(topSellingQuery, (snapshot) => {
+    const products = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    setTopSellingProducts(products);
+  });
 
     const unsubscribeLowStock = onSnapshot(lowStockQuery, (snapshot) => {
       const alerts = snapshot.docs.map(doc => ({
@@ -690,6 +705,7 @@ const InventoryReport = ({ data }: { data: InventoryData | null }) => {
     return () => {
       unsubscribeLowStock();
       unsubscribeOutOfStock();
+      unsubscribeTopSelling(); 
     };
   }, []);
 
@@ -716,13 +732,15 @@ console.log("Inventory chart data:", inventoryReportData);
   }));
 
   // Generate top products data from inventory data
-  const topProductsData = Object.entries(data)
-    .map(([category, stats]) => ({
-      name: category,
-      sales: stats.inStock + stats.lowStock + stats.outOfStock, // Using total items as a proxy for sales
-    }))
-    .sort((a, b) => b.sales - a.sales)
-    .slice(0, 5);
+  const topProductsData = [...lowStockAlerts, ...outOfStockAlerts]
+  .filter(product => product.name) // Only products with names
+  .map(product => ({
+    name: product.name,
+    sales: product.popularity || product.rating || (product.isBestSeller ? 100 : 50), // Use bestSeller flag, rating, or fallback
+    stock: product.stock || 0
+  }))
+  .sort((a, b) => b.sales - a.sales)
+  .slice(0, 5);
 
   // Create line chart data for low stock and out of stock trends using real alerts
   const stockTrendData = [
