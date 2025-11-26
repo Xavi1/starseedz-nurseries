@@ -659,7 +659,7 @@ const InventoryReport = ({ data }: { data: InventoryData | null }) => {
 
     const topSellingQuery = query(
   collection(db, 'products'),
-  orderBy('sales', 'desc'), // Assuming you have a 'sales' field
+  orderBy('sales', 'desc'),
   limit(5)
   );
     
@@ -667,7 +667,7 @@ const InventoryReport = ({ data }: { data: InventoryData | null }) => {
     const lowStockQuery = query(
       inventoryRef,
       where('stock', '<=', 10),
-      where('stock', '>', 0), // Exclude out of stock items
+      where('stock', '>', 0),
       orderBy('stock', 'asc')
     );
 
@@ -966,14 +966,14 @@ console.log("Inventory chart data:", inventoryReportData);
                     name="In Stock"
                     stackId="a"
                     fill="#16a34a"
-                    radius={[0, 0, 0, 0]}   // SQUARE
+                    radius={[0, 0, 0, 0]}
                   />
                   <Bar
                     dataKey="lowStock"
                     name="Low Stock"
                     stackId="a"
                     fill="#eab308"
-                    radius={[0, 0, 0, 0]}   // SQUARE
+                    radius={[0, 0, 0, 0]} 
                   />
                   <Bar
                     dataKey="outOfStock"
