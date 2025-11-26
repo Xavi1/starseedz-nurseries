@@ -659,7 +659,7 @@ const InventoryReport = ({ data }: { data: InventoryData | null }) => {
 
     const topSellingQuery = query(
   collection(db, 'products'),
-  orderBy('sales', 'desc'),
+  orderBy('stock', 'desc'),
   limit(5)
   );
     
