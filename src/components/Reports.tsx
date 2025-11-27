@@ -844,7 +844,7 @@ console.log("Inventory chart data:", inventoryReportData);
                       <AlertCircleIcon className="h-5 w-5 text-yellow-500 mr-3" />
                       <div>
                         <div className="text-sm font-medium text-gray-900">
-                          {alert.name || 'Unknown Product'}
+                          {index + 1}. {alert.name || 'Unknown Product'}
                         </div>
                         <div className="text-sm text-yellow-600">
                           Low Stock Warning
