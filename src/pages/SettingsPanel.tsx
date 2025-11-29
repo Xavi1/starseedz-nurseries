@@ -946,8 +946,36 @@ const SecuritySettings: React.FC = () => (
 );
 
 const SettingsPanel: React.FC<SettingsPanelProps> = ({ activeSettingsTab, onTabChange }) => {
+  const tabs = [
+    { key: 'store', label: 'Store Settings' },
+    { key: 'users', label: 'User Management' },
+    { key: 'payment', label: 'Payment Methods' },
+    { key: 'notifications', label: 'Notifications' },
+    { key: 'security', label: 'Security' },
+  ];
+
   return (
     <div>
+      {/* Tab Bar */}
+      <div className="flex border-b border-gray-200 mb-6">
+        {tabs.map(tab => (
+          <button
+            key={tab.key}
+            className={`px-4 py-2 -mb-px font-medium text-sm border-b-2 transition-colors duration-200 focus:outline-none ${
+              activeSettingsTab === tab.key
+                ? 'border-green-600 text-green-700 bg-white'
+                : 'border-transparent text-gray-500 hover:text-green-700 hover:border-green-400 bg-gray-50'
+            }`}
+            onClick={() => onTabChange(tab.key)}
+            type="button"
+            aria-current={activeSettingsTab === tab.key ? 'page' : undefined}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab Content */}
       {activeSettingsTab === 'store' && <StoreSettings />}
       {activeSettingsTab === 'users' && <UserManagement />}
       {activeSettingsTab === 'payment' && <PaymentMethods />}
