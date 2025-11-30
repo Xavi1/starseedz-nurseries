@@ -667,15 +667,16 @@ console.log("Inventory chart data:", inventoryReportData);
   }));
 
   // Generate top products data from inventory data
-  const topProductsData = [...lowStockAlerts, ...outOfStockAlerts]
-  .filter(product => product.name) // Only products with names
-  .map(product => ({
-    name: product.name,
-    sales: product.popularity || product.rating || (product.isBestSeller ? 100 : 50), // Use bestSeller flag, rating, or fallback
-    stock: product.stock || 0
-  }))
-  .sort((a, b) => b.sales - a.sales)
-  .slice(0, 5);
+  // Use real top selling products from Firebase
+  const topProductsData = topSellingProducts
+    .filter(product => product.name)
+    .map(product => ({
+      name: product.name,
+      sales: product.sales || product.popularity || product.rating || 0, // Prefer sales, fallback to popularity/rating
+      stock: product.stock || 0
+    }))
+    .sort((a, b) => b.sales - a.sales)
+    .slice(0, 5);
 
   // Create line chart data for low stock and out of stock trends using real alerts
   const stockTrendData = [
@@ -943,12 +944,15 @@ console.log("Inventory chart data:", inventoryReportData);
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2.5 mt-1">
                         <div className="bg-green-600 h-2.5 rounded-full" style={{
-                          width: `${topProductsData.length > 0 ? (product.sales / topProductsData[0].sales * 100) : 0}%`
+                          width: `${topProductsData.length > 0 && topProductsData[0].sales > 0 ? (product.sales / topProductsData[0].sales * 100) : 0}%`
                         }}></div>
                       </div>
                     </div>
                     <span className="ml-4 text-sm font-medium text-gray-900">
-                      {product.sales} units
+                      {product.sales} sold
+                    </span>
+                    <span className="ml-4 text-xs text-gray-500">
+                      {product.stock} in stock
                     </span>
                   </div>
                 ))}
