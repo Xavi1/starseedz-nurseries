@@ -93,25 +93,25 @@ const StoreSettings: React.FC = () => {
           <div className="sm:col-span-3">
             <label htmlFor="store-name" className="block text-sm font-medium text-gray-700">Store Name</label>
             <div className="mt-1">
-              <input type="text" name="store-name" id="store-name" value={formData.storeName} onChange={(e) => handleInputChange('storeName', e.target.value)} className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+              <input type="text" name="store-name" id="store-name" value={formData.storeName} onChange={(e) => handleInputChange('storeName', e.target.value)} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-green-500 focus:border-green-500" />
             </div>
           </div>
           <div className="sm:col-span-3">
             <label htmlFor="store-email" className="block text-sm font-medium text-gray-700">Email Address</label>
             <div className="mt-1">
-              <input type="email" name="store-email" id="store-email" value={formData.storeEmail} onChange={(e) => handleInputChange('storeEmail', e.target.value)} className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+              <input type="email" name="store-email" id="store-email" value={formData.storeEmail} onChange={(e) => handleInputChange('storeEmail', e.target.value)} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-green-500 focus:border-green-500" />
             </div>
           </div>
           <div className="sm:col-span-3">
             <label htmlFor="store-phone" className="block text-sm font-medium text-gray-700">Phone Number</label>
             <div className="mt-1">
-              <input type="text" name="store-phone" id="store-phone" value={formData.storePhone} onChange={(e) => handleInputChange('storePhone', e.target.value)} className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+              <input type="text" name="store-phone" id="store-phone" value={formData.storePhone} onChange={(e) => handleInputChange('storePhone', e.target.value)} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-green-500 focus:border-green-500" />
             </div>
           </div>
           <div className="sm:col-span-3">
             <label htmlFor="currency" className="block text-sm font-medium text-gray-700">Currency</label>
             <div className="mt-1">
-              <select id="currency" name="currency" value={formData.currency} onChange={(e) => handleInputChange('currency', e.target.value)} className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md">
+              <select id="currency" name="currency" value={formData.currency} onChange={(e) => handleInputChange('currency', e.target.value)} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-green-500 focus:border-green-500">
                 <option>USD ($)</option>
                 <option>EUR (€)</option>
                 <option>GBP (£)</option>
@@ -124,7 +124,7 @@ const StoreSettings: React.FC = () => {
           <div className="sm:col-span-6">
             <label htmlFor="store-address" className="block text-sm font-medium text-gray-700">Address</label>
             <div className="mt-1">
-              <input type="text" name="store-address" id="store-address" value={formData.storeAddress} onChange={(e) => handleInputChange('storeAddress', e.target.value)} className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+              <input type="text" name="store-address" id="store-address" value={formData.storeAddress} onChange={(e) => handleInputChange('storeAddress', e.target.value)} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-green-500 focus:border-green-500" />
             </div>
           </div>
         </div>
