@@ -157,13 +157,13 @@ const StoreSettings: React.FC = () => {
           <div className="sm:col-span-3">
             <label htmlFor="tax-rate" className="block text-sm font-medium text-gray-700">Tax Rate (%)</label>
             <div className="mt-1">
-              <input type="text" name="tax-rate" id="tax-rate" value={formData.taxRate} onChange={(e) => handleInputChange('taxRate', e.target.value)} className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+              <input type="text" name="tax-rate" id="tax-rate" value={formData.taxRate} onChange={(e) => handleInputChange('taxRate', e.target.value)} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-green-500 focus:border-green-500" />
             </div>
           </div>
           <div className="sm:col-span-3">
             <label htmlFor="tax-name" className="block text-sm font-medium text-gray-700">Tax Name</label>
             <div className="mt-1">
-              <input type="text" name="tax-name" id="tax-name" value={formData.taxName} onChange={(e) => handleInputChange('taxName', e.target.value)} className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+              <input type="text" name="tax-name" id="tax-name" value={formData.taxName} onChange={(e) => handleInputChange('taxName', e.target.value)} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-green-500 focus:border-green-500" />
             </div>
           </div>
         </div>
