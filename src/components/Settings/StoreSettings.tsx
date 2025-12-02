@@ -130,7 +130,7 @@ const StoreSettings: React.FC = () => {
         </div>
       </div>
       <div>
-        <h4 className="text-lg font-medium text-gray-900 mb-4">Store Logo</h4>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Store Logo</h3>
         <div className="flex items-center">
           <div className="h-12 w-12 rounded-md overflow-hidden bg-gray-100">
             {logoPreview ? (
@@ -147,7 +147,7 @@ const StoreSettings: React.FC = () => {
               <button onClick={handleChangeClick} className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Change</button>
               <button onClick={handleRemoveLogo} className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Remove</button>
             </div>
-            <p className="mt-1 text-xs text-gray-500">PNG, JPG, or GIF. Max size 1MB.</p>
+            <p className="mt-2 text-sm text-gray-500"> Recommended: Square PNG, JPG or GIF, at least 400x400px. Max 1MB.</p>
           </div>
         </div>
       </div>
