@@ -2,7 +2,7 @@ import React from 'react';
 import StoreSettings from '../components/Settings/StoreSettings';
 
 // User Management UI matching screenshot
-import { Pencil, Trash2, Plus } from 'lucide-react';
+import { Pencil, Trash2, Plus, CreditCard } from 'lucide-react';
 const initialUsers = [
   {
     name: 'Admin User',
@@ -207,16 +207,102 @@ const UserManagement: React.FC = () => {
   );
 };
 
-const PaymentMethods: React.FC = () => (
-  <div className="space-y-6">
-    <div className="bg-white rounded-lg shadow p-6">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">Payment Methods</h3>
-      <div className="text-center py-12 text-gray-500">
-        Payment methods configuration would appear here
+const PaymentMethods: React.FC = () => {
+  const [methods] = React.useState([
+    {
+      name: 'Credit Card',
+      description: 'Accept Visa, Mastercard, Amex, Discover',
+      icon: <span className="inline-flex items-center justify-center h-10 w-10 rounded bg-gray-100"><CreditCard className="h-6 w-6 text-gray-700" /></span>,
+      status: 'Enabled',
+      statusColor: 'bg-green-100 text-green-700',
+    },
+    {
+      name: 'PayPal',
+      description: 'Accept payments via PayPal',
+      icon: <span className="inline-flex items-center justify-center h-10 w-10 rounded bg-blue-100"><span className="font-bold text-blue-700 text-lg">PayPal</span></span>,
+      status: 'Enabled',
+      statusColor: 'bg-green-100 text-green-700',
+    },
+    {
+      name: 'Apple Pay',
+      description: 'Accept payments via Apple Pay',
+      icon: <span className="inline-flex items-center justify-center h-10 w-10 rounded bg-yellow-100"><span className="font-bold text-yellow-700 text-base">Apple</span></span>,
+      status: 'Disabled',
+      statusColor: 'bg-gray-100 text-gray-700',
+    },
+  ]);
+  const [showAddModal, setShowAddModal] = React.useState(false);
+  // Payment processor state
+  const [processor, setProcessor] = React.useState('Stripe');
+  const [mode, setMode] = React.useState('Test Mode');
+  const [apiKey, setApiKey] = React.useState('sk_test_************');
+
+  return (
+    <div className="space-y-8">
+      <div className="bg-white rounded-lg shadow p-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Payment Methods</h3>
+        <div className="bg-gray-50 rounded-lg border border-gray-200">
+          {methods.map((method, idx) => (
+            <div key={idx} className={`flex items-center px-6 py-4 ${idx !== methods.length - 1 ? 'border-b border-gray-200' : ''}`}>
+              <div className="flex-shrink-0 mr-4">{method.icon}</div>
+              <div className="flex-1">
+                <div className="font-medium text-gray-900">{method.name}</div>
+                <div className="text-sm text-gray-500">{method.description}</div>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className={`px-2 py-1 rounded text-xs font-semibold ${method.status === 'Enabled' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>{method.status}</span>
+                <button className="p-2 rounded hover:bg-gray-100" title="Edit"><Pencil className="h-4 w-4 text-gray-500" /></button>
+              </div>
+            </div>
+          ))}
+          <div className="px-6 py-4">
+            <button type="button" onClick={() => setShowAddModal(true)} className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"><Plus className="h-4 w-4" /> Add Payment Method</button>
+          </div>
+        </div>
+      </div>
+
+      {/* Add Payment Method Modal (stub) */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Add Payment Method</h3>
+            <div className="text-gray-500 mb-4">(Form UI not implemented)</div>
+            <div className="flex justify-end gap-2">
+              <button type="button" className="px-4 py-2 rounded bg-gray-200 text-gray-700" onClick={() => setShowAddModal(false)}>Cancel</button>
+              <button type="button" className="px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800" onClick={() => setShowAddModal(false)}>Add</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Processor Section */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Payment Processor</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Processor</label>
+            <select className="block w-full border border-gray-300 rounded-md shadow-sm p-2" value={processor} onChange={e => setProcessor(e.target.value)}>
+              <option value="Stripe">Stripe</option>
+              <option value="PayPal">PayPal</option>
+              <option value="Square">Square</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Mode</label>
+            <select className="block w-full border border-gray-300 rounded-md shadow-sm p-2" value={mode} onChange={e => setMode(e.target.value)}>
+              <option value="Test Mode">Test Mode</option>
+              <option value="Live Mode">Live Mode</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+            <input type="password" className="block w-full border border-gray-300 rounded-md shadow-sm p-2" value={apiKey} onChange={e => setApiKey(e.target.value)} />
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const NotificationSettings: React.FC = () => (
   <div className="space-y-6">
