@@ -304,16 +304,110 @@ const PaymentMethods: React.FC = () => {
   );
 };
 
-const NotificationSettings: React.FC = () => (
-  <div className="space-y-6">
-    <div className="bg-white rounded-lg shadow p-6">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">Notification Settings</h3>
-      <div className="text-center py-12 text-gray-500">
-        Notification settings configuration would appear here
+const NotificationSettings: React.FC = () => {
+  const [emailNotifications, setEmailNotifications] = React.useState({
+    newOrder: true,
+    orderStatus: true,
+    lowStock: false,
+    customerRegistration: true,
+  });
+  const [smsNotifications, setSmsNotifications] = React.useState({
+    orderStatus: false,
+    delivery: false,
+  });
+  const [adminEmail] = React.useState('admin@greenthumb.com');
+
+  const toggleEmail = (key: keyof typeof emailNotifications) => {
+    setEmailNotifications(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+  const toggleSms = (key: keyof typeof smsNotifications) => {
+    setSmsNotifications(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  // Switch UI
+  const Switch = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => (
+    <button
+      type="button"
+      onClick={onChange}
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${checked ? 'bg-green-600' : 'bg-gray-200'}`}
+      aria-pressed={checked}
+    >
+      <span
+        className={`inline-block h-5 w-5 transform rounded-full bg-white border border-gray-300 transition-transform ${checked ? 'translate-x-5' : 'translate-x-1'}`}
+      />
+    </button>
+  );
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Email Notifications</h3>
+        <div className="bg-white rounded-lg border border-gray-200">
+          <div className="divide-y divide-gray-200">
+            <div className="flex items-center justify-between px-6 py-4">
+              <div>
+                <div className="font-medium text-gray-900">New Order</div>
+                <div className="text-sm text-gray-500">Send email when a new order is placed</div>
+              </div>
+              <Switch checked={emailNotifications.newOrder} onChange={() => toggleEmail('newOrder')} />
+            </div>
+            <div className="flex items-center justify-between px-6 py-4">
+              <div>
+                <div className="font-medium text-gray-900">Order Status Update</div>
+                <div className="text-sm text-gray-500">Send email when an order status changes</div>
+              </div>
+              <Switch checked={emailNotifications.orderStatus} onChange={() => toggleEmail('orderStatus')} />
+            </div>
+            <div className="flex items-center justify-between px-6 py-4">
+              <div>
+                <div className="font-medium text-gray-900">Low Stock Alert</div>
+                <div className="text-sm text-gray-500">Send email when product stock is low</div>
+              </div>
+              <Switch checked={emailNotifications.lowStock} onChange={() => toggleEmail('lowStock')} />
+            </div>
+            <div className="flex items-center justify-between px-6 py-4">
+              <div>
+                <div className="font-medium text-gray-900">Customer Registration</div>
+                <div className="text-sm text-gray-500">Send email when a new customer registers</div>
+              </div>
+              <Switch checked={emailNotifications.customerRegistration} onChange={() => toggleEmail('customerRegistration')} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">SMS Notifications</h3>
+        <div className="bg-white rounded-lg border border-gray-200">
+          <div className="divide-y divide-gray-200">
+            <div className="flex items-center justify-between px-6 py-4">
+              <div>
+                <div className="font-medium text-gray-900">Order Status Updates</div>
+                <div className="text-sm text-gray-500">Send SMS when order status changes</div>
+              </div>
+              <Switch checked={smsNotifications.orderStatus} onChange={() => toggleSms('orderStatus')} />
+            </div>
+            <div className="flex items-center justify-between px-6 py-4">
+              <div>
+                <div className="font-medium text-gray-900">Delivery Notifications</div>
+                <div className="text-sm text-gray-500">Send SMS when order is delivered</div>
+              </div>
+              <Switch checked={smsNotifications.delivery} onChange={() => toggleSms('delivery')} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Admin Notifications</h3>
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="text-sm text-gray-700 mb-1">Notification Email</div>
+          <div className="font-medium text-gray-900">{adminEmail}</div>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const SecuritySettings: React.FC = () => (
   <div className="space-y-6">
