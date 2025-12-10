@@ -409,78 +409,103 @@ const NotificationSettings: React.FC = () => {
   );
 };
 
-const SecuritySettings: React.FC = () => (
-  <div className="space-y-6">
-    <div className="bg-white rounded-lg shadow">
-      <div className="p-4 flex justify-between items-center">
-        <div>
-          <h5 className="text-sm font-medium text-gray-900">
-            Password Expiry
-          </h5>
-          <p className="text-sm text-gray-500">
-            Force users to reset password periodically
-          </p>
-        </div>
-        <div className="flex items-center">
-          <label className="inline-flex items-center cursor-pointer">
-            <input type="checkbox" className="sr-only peer" />
-            <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-          </label>
+const SecuritySettings: React.FC = () => {
+  const [twoFactor, setTwoFactor] = React.useState(false);
+  const [strongPassword, setStrongPassword] = React.useState(true);
+  const [passwordExpiry, setPasswordExpiry] = React.useState(false);
+  const [apiAccess, setApiAccess] = React.useState(true);
+  const [sessionTimeout, setSessionTimeout] = React.useState(30);
+
+  // Switch UI
+  const Switch = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => (
+    <button
+      type="button"
+      onClick={onChange}
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${checked ? 'bg-green-600' : 'bg-gray-200'}`}
+      aria-pressed={checked}
+    >
+      <span
+        className={`inline-block h-5 w-5 transform rounded-full bg-white border border-gray-300 transition-transform ${checked ? 'translate-x-5' : 'translate-x-1'}`}
+      />
+    </button>
+  );
+
+  return (
+    <div className="space-y-10">
+      {/* Two-Factor Authentication */}
+      <div>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Two-Factor Authentication</h3>
+        <div className="bg-gray-50 rounded-lg flex items-center justify-between px-6 py-4 mb-6">
+          <div>
+            <div className="font-medium text-gray-900">Enable Two-Factor Authentication</div>
+            <div className="text-sm text-gray-500">Add an extra layer of security to your account</div>
+          </div>
+          <Switch checked={twoFactor} onChange={() => setTwoFactor(v => !v)} />
         </div>
       </div>
-    </div>
-    
-    <div className="bg-white rounded-lg shadow">
-      <div className="p-6">
-        <h4 className="text-lg font-medium text-gray-900 mb-4">
-          API Access
-        </h4>
-        <div className="bg-gray-50 p-4 rounded-md">
-          <div className="flex items-center justify-between">
-            <div>
-              <h5 className="text-sm font-medium text-gray-900">
-                API Access
-              </h5>
-              <p className="text-sm text-gray-500 mt-1">
-                Allow external applications to access your store data
-              </p>
+
+      {/* Password Settings */}
+      <div>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Password Settings</h3>
+        <div className="bg-white rounded-lg border border-gray-200">
+          <div className="divide-y divide-gray-200">
+            <div className="flex items-center justify-between px-6 py-4">
+              <div>
+                <div className="font-medium text-gray-900">Require Strong Passwords</div>
+                <div className="text-sm text-gray-500">Passwords must include letters, numbers, and special characters</div>
+              </div>
+              <Switch checked={strongPassword} onChange={() => setStrongPassword(v => !v)} />
             </div>
-            <div className="flex items-center">
-              <label className="inline-flex items-center cursor-pointer">
-                <input type="checkbox" className="sr-only peer" defaultChecked />
-                <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-              </label>
+            <div className="flex items-center justify-between px-6 py-4">
+              <div>
+                <div className="font-medium text-gray-900">Password Expiry</div>
+                <div className="text-sm text-gray-500">Force users to reset password periodically</div>
+              </div>
+              <Switch checked={passwordExpiry} onChange={() => setPasswordExpiry(v => !v)} />
             </div>
           </div>
-          <div className="mt-4">
-            <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+        </div>
+      </div>
+
+      {/* API Access */}
+      <div>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">API Access</h3>
+        <div className="bg-gray-50 rounded-lg flex items-center justify-between px-6 py-4 mb-6">
+          <div>
+            <div className="font-medium text-gray-900">API Access</div>
+            <div className="text-sm text-gray-500">Allow external applications to access your store data</div>
+            <button className="inline-flex items-center mt-3 px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
               <svg className="h-4 w-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
               </svg>
               Manage API Keys
             </button>
           </div>
+          <Switch checked={apiAccess} onChange={() => setApiAccess(v => !v)} />
         </div>
       </div>
-    </div>
-    
-    <div className="bg-white rounded-lg shadow p-6">
-      <h4 className="text-lg font-medium text-gray-900 mb-4">
-        Session Settings
-      </h4>
-      <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-        <div className="sm:col-span-3">
-          <label htmlFor="session-timeout" className="block text-sm font-medium text-gray-700">
+
+      {/* Session Settings */}
+      <div>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Session Settings</h3>
+        <div className="bg-white rounded-lg border border-gray-200 p-6 max-w-xs">
+          <label htmlFor="session-timeout" className="block text-sm font-medium text-gray-700 mb-1">
             Session Timeout (minutes)
           </label>
-          <div className="mt-1">
-            <input type="number" name="session-timeout" id="session-timeout" defaultValue="30" className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md" />
-          </div>
+          <input
+            type="number"
+            name="session-timeout"
+            id="session-timeout"
+            min={1}
+            value={sessionTimeout}
+            onChange={e => setSessionTimeout(Number(e.target.value))}
+            className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md"
+          />
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 interface SettingsPanelProps {
   activeSettingsTab: string;
