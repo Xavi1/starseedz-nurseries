@@ -54,6 +54,9 @@ const UserManagement: React.FC = () => {
   const [showRoleModal, setShowRoleModal] = React.useState(false);
   const [form, setForm] = React.useState({ name: '', email: '', role: 'Staff', status: 'Active' });
   const [roleForm, setRoleForm] = React.useState({ name: '', description: '' });
+  const [showEditModal, setShowEditModal] = React.useState(false);
+  const [editIndex, setEditIndex] = React.useState<number | null>(null);
+  const [editForm, setEditForm] = React.useState({ name: '', email: '', role: 'Staff', status: 'Active' });
 
   // Add user
   const handleAddUser = (e: React.FormEvent) => {
@@ -61,6 +64,24 @@ const UserManagement: React.FC = () => {
     setUsers([...users, form]);
     setShowUserModal(false);
     setForm({ name: '', email: '', role: 'Staff', status: 'Active' });
+  };
+
+  // Edit user
+  const handleEditUser = (idx: number) => {
+    setEditIndex(idx);
+    setEditForm(users[idx]);
+    setShowEditModal(true);
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editIndex !== null) {
+      const updatedUsers = [...users];
+      updatedUsers[editIndex] = editForm;
+      setUsers(updatedUsers);
+      setShowEditModal(false);
+      setEditIndex(null);
+    }
   };
   // Add role
   const handleAddRole = (e: React.FormEvent) => {
@@ -114,7 +135,7 @@ const UserManagement: React.FC = () => {
                     <span className={`px-2 py-1 rounded text-xs font-semibold ${(statusColors as Record<string, string>)[user.status] || 'bg-gray-100 text-gray-700'}`}>{user.status}</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap flex gap-2">
-                    <button className="p-2 rounded hover:bg-gray-100" title="Edit"><Pencil className="h-4 w-4 text-gray-500" /></button>
+                    <button className="p-2 rounded hover:bg-gray-100" title="Edit" onClick={() => handleEditUser(idx)}><Pencil className="h-4 w-4 text-gray-500" /></button>
                     <button className="p-2 rounded hover:bg-gray-100" title="Delete" onClick={() => handleDeleteUser(idx)}><Trash2 className="h-4 w-4 text-gray-500" /></button>
                   </td>
                 </tr>
@@ -156,6 +177,44 @@ const UserManagement: React.FC = () => {
               <div className="flex justify-end gap-2">
                 <button type="button" className="px-4 py-2 rounded bg-gray-200 text-gray-700" onClick={() => setShowUserModal(false)}>Cancel</button>
                 <button type="submit" className="px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800">Add User</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit User Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Edit User</h3>
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <input type="text" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Email</label>
+                <input type="email" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={editForm.email} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Role</label>
+                <select className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={editForm.role} onChange={e => setEditForm(f => ({ ...f, role: e.target.value }))}>
+                  <option value="Administrator">Administrator</option>
+                  <option value="Manager">Manager</option>
+                  <option value="Staff">Staff</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Status</label>
+                <select className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))}>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-2">
+                <button type="button" className="px-4 py-2 rounded bg-gray-200 text-gray-700" onClick={() => setShowEditModal(false)}>Cancel</button>
+                <button type="submit" className="px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800">Save Changes</button>
               </div>
             </form>
           </div>
