@@ -57,6 +57,26 @@ const UserManagement: React.FC = () => {
   const [showEditModal, setShowEditModal] = React.useState(false);
   const [editIndex, setEditIndex] = React.useState<number | null>(null);
   const [editForm, setEditForm] = React.useState({ name: '', email: '', role: 'Staff', status: 'Active' });
+  const [showEditRoleModal, setShowEditRoleModal] = React.useState(false);
+  const [editRoleIndex, setEditRoleIndex] = React.useState<number | null>(null);
+  const [editRoleForm, setEditRoleForm] = React.useState({ name: '', description: '' });
+  // Edit role
+  const handleEditRole = (idx: number) => {
+    setEditRoleIndex(idx);
+    setEditRoleForm(roles[idx]);
+    setShowEditRoleModal(true);
+  };
+
+  const handleEditRoleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editRoleIndex !== null) {
+      const updatedRoles = [...roles];
+      updatedRoles[editRoleIndex] = editRoleForm;
+      setRoles(updatedRoles);
+      setShowEditRoleModal(false);
+      setEditRoleIndex(null);
+    }
+  };
 
   // Add user
   const handleAddUser = (e: React.FormEvent) => {
@@ -231,7 +251,7 @@ const UserManagement: React.FC = () => {
                 <span className="font-semibold text-gray-900">{role.name}</span>
                 <p className="text-sm text-gray-500">{role.description}</p>
               </div>
-              <button className="p-2 rounded hover:bg-gray-100" title="Edit"><Pencil className="h-4 w-4 text-gray-500" /></button>
+              <button className="p-2 rounded hover:bg-gray-100" title="Edit" onClick={() => handleEditRole(idx)}><Pencil className="h-4 w-4 text-gray-500" /></button>
             </div>
           ))}
         </div>
@@ -239,6 +259,29 @@ const UserManagement: React.FC = () => {
           <button onClick={() => setShowRoleModal(true)} className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"><Plus className="h-4 w-4" /> Add Role</button>
         </div>
       </div>
+
+      {/* Edit Role Modal */}
+      {showEditRoleModal && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Edit Role</h3>
+            <form onSubmit={handleEditRoleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Role Name</label>
+                <input type="text" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={editRoleForm.name} onChange={e => setEditRoleForm(f => ({ ...f, name: e.target.value }))} required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Description</label>
+                <input type="text" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={editRoleForm.description} onChange={e => setEditRoleForm(f => ({ ...f, description: e.target.value }))} required />
+              </div>
+              <div className="flex justify-end gap-2">
+                <button type="button" className="px-4 py-2 rounded bg-gray-200 text-gray-700" onClick={() => setShowEditRoleModal(false)}>Cancel</button>
+                <button type="submit" className="px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800">Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Add Role Modal */}
       {showRoleModal && (
