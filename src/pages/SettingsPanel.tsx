@@ -310,7 +310,7 @@ const UserManagement: React.FC = () => {
 };
 
 const PaymentMethods: React.FC = () => {
-  const [methods] = React.useState([
+  const [methods, setMethods] = React.useState([
     {
       name: 'Credit Card',
       description: 'Accept Visa, Mastercard, Amex, Discover',
@@ -333,6 +333,35 @@ const PaymentMethods: React.FC = () => {
       statusColor: 'bg-gray-100 text-gray-700',
     },
   ]);
+  const [showEditMethodModal, setShowEditMethodModal] = React.useState(false);
+  const [editMethodIndex, setEditMethodIndex] = React.useState<number | null>(null);
+  const [editMethodForm, setEditMethodForm] = React.useState({ name: '', description: '', status: 'Enabled' });
+    // Edit payment method
+    const handleEditMethod = (idx: number) => {
+      setEditMethodIndex(idx);
+      setEditMethodForm({
+        name: methods[idx].name,
+        description: methods[idx].description,
+        status: methods[idx].status,
+      });
+      setShowEditMethodModal(true);
+    };
+
+    const handleEditMethodSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (editMethodIndex !== null) {
+        const updatedMethods = [...methods];
+        updatedMethods[editMethodIndex] = {
+          ...updatedMethods[editMethodIndex],
+          name: editMethodForm.name,
+          description: editMethodForm.description,
+          status: editMethodForm.status,
+        };
+        setMethods(updatedMethods);
+        setShowEditMethodModal(false);
+        setEditMethodIndex(null);
+      }
+    };
   const [showAddModal, setShowAddModal] = React.useState(false);
   // Payment processor state
   const [processor, setProcessor] = React.useState('Stripe');
@@ -352,11 +381,39 @@ const PaymentMethods: React.FC = () => {
                 <div className="text-sm text-gray-500">{method.description}</div>
               </div>
               <div className="flex items-center gap-4">
-                <span className={`px-2 py-1 rounded text-xs font-semibold ${method.status === 'Enabled' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>{method.status}</span>
-                <button className="p-2 rounded hover:bg-gray-100" title="Edit"><Pencil className="h-4 w-4 text-gray-500" /></button>
+                <span className={`px-2 py-1 rounded text-xs font-semibold ${method.status === 'Enabled' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>{method.status}</span>                 <button className="p-2 rounded hover:bg-gray-100" title="Edit" onClick={() => handleEditMethod(idx)}><Pencil className="h-4 w-4 text-gray-500" /></button>
               </div>
             </div>
           ))}
+                {/* Edit Payment Method Modal */}
+                {showEditMethodModal && (
+                  <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">Edit Payment Method</h3>
+                      <form onSubmit={handleEditMethodSubmit} className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Name</label>
+                          <input type="text" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={editMethodForm.name} onChange={e => setEditMethodForm(f => ({ ...f, name: e.target.value }))} required />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Description</label>
+                          <input type="text" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={editMethodForm.description} onChange={e => setEditMethodForm(f => ({ ...f, description: e.target.value }))} required />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Status</label>
+                          <select className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={editMethodForm.status} onChange={e => setEditMethodForm(f => ({ ...f, status: e.target.value }))}>
+                            <option value="Enabled">Enabled</option>
+                            <option value="Disabled">Disabled</option>
+                          </select>
+                        </div>
+                        <div className="flex justify-end gap-2">
+                          <button type="button" className="px-4 py-2 rounded bg-gray-200 text-gray-700" onClick={() => setShowEditMethodModal(false)}>Cancel</button>
+                          <button type="submit" className="px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800">Save Changes</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
           <div className="px-6 py-4">
             <button type="button" onClick={() => setShowAddModal(true)} className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"><Plus className="h-4 w-4" /> Add Payment Method</button>
           </div>
