@@ -363,10 +363,39 @@ const PaymentMethods: React.FC = () => {
       }
     };
   const [showAddModal, setShowAddModal] = React.useState(false);
+  const [addMethodForm, setAddMethodForm] = React.useState({ name: '', description: '', status: 'Enabled' });
   // Payment processor state
   const [processor, setProcessor] = React.useState('Stripe');
   const [mode, setMode] = React.useState('Test Mode');
   const [apiKey, setApiKey] = React.useState('sk_test_************');
+
+  // Add payment method
+  const handleAddMethodSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    let icon = null;
+    if (addMethodForm.name.toLowerCase().includes('credit')) {
+      icon = <span className="inline-flex items-center justify-center h-10 w-10 rounded bg-gray-100"><CreditCard className="h-6 w-6 text-gray-700" /></span>;
+    } else if (addMethodForm.name.toLowerCase().includes('paypal')) {
+      icon = <span className="inline-flex items-center justify-center h-10 w-10 rounded bg-blue-100"><span className="font-bold text-blue-700 text-lg">PayPal</span></span>;
+    } else if (addMethodForm.name.toLowerCase().includes('apple')) {
+      icon = <span className="inline-flex items-center justify-center h-10 w-10 rounded bg-yellow-100"><span className="font-bold text-yellow-700 text-base">Apple</span></span>;
+    } else {
+      icon = <span className="inline-flex items-center justify-center h-10 w-10 rounded bg-gray-200"><span className="font-bold text-gray-700 text-base">{addMethodForm.name.charAt(0).toUpperCase()}</span></span>;
+    }
+    const statusColor = addMethodForm.status === 'Enabled' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700';
+    setMethods([
+      ...methods,
+      {
+        name: addMethodForm.name,
+        description: addMethodForm.description,
+        icon,
+        status: addMethodForm.status,
+        statusColor,
+      },
+    ]);
+    setShowAddModal(false);
+    setAddMethodForm({ name: '', description: '', status: 'Enabled' });
+  };
 
   return (
     <div className="space-y-8">
@@ -420,16 +449,32 @@ const PaymentMethods: React.FC = () => {
         </div>
       </div>
 
-      {/* Add Payment Method Modal (stub) */}
+      {/* Add Payment Method Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Add Payment Method</h3>
-            <div className="text-gray-500 mb-4">(Form UI not implemented)</div>
-            <div className="flex justify-end gap-2">
-              <button type="button" className="px-4 py-2 rounded bg-gray-200 text-gray-700" onClick={() => setShowAddModal(false)}>Cancel</button>
-              <button type="button" className="px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800" onClick={() => setShowAddModal(false)}>Add</button>
-            </div>
+            <form onSubmit={handleAddMethodSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <input type="text" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={addMethodForm.name} onChange={e => setAddMethodForm(f => ({ ...f, name: e.target.value }))} required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Description</label>
+                <input type="text" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={addMethodForm.description} onChange={e => setAddMethodForm(f => ({ ...f, description: e.target.value }))} required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Status</label>
+                <select className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={addMethodForm.status} onChange={e => setAddMethodForm(f => ({ ...f, status: e.target.value }))}>
+                  <option value="Enabled">Enabled</option>
+                  <option value="Disabled">Disabled</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-2">
+                <button type="button" className="px-4 py-2 rounded bg-gray-200 text-gray-700" onClick={() => setShowAddModal(false)}>Cancel</button>
+                <button type="submit" className="px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800">Add</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
