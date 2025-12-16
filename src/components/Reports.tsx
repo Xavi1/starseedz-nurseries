@@ -484,15 +484,19 @@ const SalesReport = ({
         </Section>
 
         <Section title="Sales by Category">
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={categoryChartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="sales" fill="#16a34a" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <div style={{ width: '100%', overflowX: 'auto' }}>
+            <div style={{ minWidth: 700 }}>
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={categoryChartData} barCategoryGap={30} barGap={4}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="sales" fill="#16a34a" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </Section>
       </div>
     </div>
@@ -854,76 +858,50 @@ console.log("Inventory chart data:", inventoryReportData);
 
         <div className="mb-8">
           <h4 className="text-lg font-medium text-gray-900 mb-4">Inventory Status by Category</h4>
-          <div className="bg-white rounded-2xl shadow-sm p-6">
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={inventoryReportData}
-                  layout="vertical"
-                  margin={{ top: 20, right: 30, left: 120, bottom: 20 }}
-                  barGap={6}
-                  barCategoryGap="18%"
-                >
-                  {/* Soft dashed grid lines like screenshot */}
-                  <CartesianGrid 
-                    strokeDasharray="4 4" 
-                    horizontal={true} 
-                    vertical={false} 
-                    stroke="#d1d5db"
-                  />
-
-                  <XAxis 
-                    type="number"
-                    domain={[0, 'dataMax + 15']}
-                    axisLine={false}
-                    tickLine={false}
-                    fontSize={12}
-                  />
-
-                  <YAxis
-                    dataKey="category"
-                    type="category"
-                    width={140}
-                    axisLine={false}
-                    tickLine={false}
-                    fontSize={14}
-                  />
-
-                  <Tooltip />
-
-                  <Legend 
-                    verticalAlign="bottom" 
-                    height={36}
-                    iconType="circle"
-                  />
-
-                 <Bar
-                    dataKey="inStock"
-                    name="In Stock"
-                    stackId="a"
-                    fill="#16a34a"
-                    radius={[0, 0, 0, 0]}
-                  />
-                  <Bar
-                    dataKey="lowStock"
-                    name="Low Stock"
-                    stackId="a"
-                    fill="#eab308"
-                    radius={[0, 0, 0, 0]} 
-                  />
-                  <Bar
-                    dataKey="outOfStock"
-                    name="Out of Stock"
-                    stackId="a"
-                    fill="#ef4444"
-                    radius={[0, 0, 0, 0]}
-                  />
-
-                </BarChart>
-              </ResponsiveContainer>
-
-            </div>
-          </div>
+          <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={inventoryReportData}
+                        margin={{
+                          top: 20,
+                          right: 30,
+                          left: 20,
+                          bottom: 5,
+                        }}
+                        layout="vertical"
+                      >
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          horizontal={true}
+                          vertical={false}
+                        />
+                        <XAxis type="number" />
+                        <YAxis dataKey="category" type="category" width={150} />
+                        <Tooltip />
+                        <Legend />
+                        <Bar
+                          dataKey="inStock"
+                          name="In Stock"
+                          stackId="a"
+                          fill="#16a34a"
+                        />
+                        <Bar
+                          dataKey="lowStock"
+                          name="Low Stock"
+                          stackId="a"
+                          fill="#eab308"
+                        />
+                        <Bar
+                          dataKey="outOfStock"
+                          name="Out of Stock"
+                          stackId="a"
+                          fill="#ef4444"
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
