@@ -656,12 +656,27 @@ const InventoryReport = ({ data }: { data: InventoryData | null }) => {
   );
 
   // Convert the inventory data to the format needed for the chart
-const inventoryReportData = Object.entries(data).map(([category, stats]) => ({
-  category,
-  inStock: Number(stats.inStock || 0),
-  lowStock: Number(stats.lowStock || 0),
-  outOfStock: Number(stats.outOfStock || 0),
-}));
+// Deduplicate categories so each appears only once
+const categoryMap = new Map();
+Object.entries(data).forEach(([category, stats]) => {
+  const key = category.trim().toLowerCase();
+  if (!categoryMap.has(key)) {
+    categoryMap.set(key, {
+      category,
+      inStock: Number(stats.inStock || 0),
+      lowStock: Number(stats.lowStock || 0),
+      outOfStock: Number(stats.outOfStock || 0),
+    });
+  } else {
+    // If duplicate, sum the values
+    const prev = categoryMap.get(key);
+    prev.inStock += Number(stats.inStock || 0);
+    prev.lowStock += Number(stats.lowStock || 0);
+    prev.outOfStock += Number(stats.outOfStock || 0);
+    categoryMap.set(key, prev);
+  }
+});
+const inventoryReportData = Array.from(categoryMap.values());
 console.log("Inventory chart data:", inventoryReportData);
 
   // Calculate inventory value data from Firebase data
