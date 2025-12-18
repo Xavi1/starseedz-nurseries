@@ -1,5 +1,4 @@
-
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import { Hero } from './components/Hero';
 import FeaturedCategories from './components/FeaturedCategories';
@@ -27,50 +26,60 @@ import { OrderDetails } from './pages/OrderDetails';
 import { AdminDashboard } from './pages/AdminDashboard';
 import ReturnsRefunds  from './pages/ReturnsRefunds'
 
-export function App() {
+function App() {
   return (
     <div className="overflow-x-hidden">
-    <WishlistProvider>
-      <CartProvider>
-        <Router>
-          <div className="min-h-screen bg-white">
-            <Header />
-            <main>
-              <Routes>
-                <Route path="/" element={
-                  <>
-                    <Hero />
-                    <FeaturedCategories />
-                    <ProductGrid />
-                    <AboutSection />
-                    <Newsletter />
-                  </>
-                } />
-                <Route path="/shop" element={<Shop />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/product/:id" element={<ProductDetail />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/wishlist" element={<WishlistPage />} />
-                <Route path="/contact" element={<ContactPage />} />
-                <Route path="/faq" element={<FAQPage />} />
-                <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-                <Route path="/terms-of-service" element={<TermsOfServicePage />} />
-                <Route path="/shipping-policy" element={<ShippingPolicyPage />} />
-                <Route path="/checkout"  element={<Checkout />} />
-                <Route path="/account"  element={<Account />} />
-                <Route path="/signup"  element={<SignUp />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/order-details/:orderId" element={<OrderDetails />} />
-                <Route path="/admin" element={<AdminDashboard/>}/>
-                <Route path="/returns" element={<ReturnsRefunds/>}/>
-              </Routes>
-            </main>
-            <Footer />
-          </div>
-        </Router>
-      </CartProvider>
-    </WishlistProvider>
+      <WishlistProvider>
+        <CartProvider>
+          <Router>
+            <AppContent />
+          </Router>
+        </CartProvider>
+      </WishlistProvider>
     </div>
   );
 }
 
+function AppContent() {
+  const location = useLocation();
+  const hideFooter = location.pathname.startsWith('/admin');
+
+  return (
+    <div className="min-h-screen bg-white">
+      <Header />
+      <main>
+        <Routes>
+          <Route path="/" element={
+            <>
+              <Hero />
+              <FeaturedCategories />
+              <ProductGrid />
+              <AboutSection />
+              <Newsletter />
+            </>
+          } />
+          <Route path="/shop" element={<Shop />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/wishlist" element={<WishlistPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/faq" element={<FAQPage />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+          <Route path="/shipping-policy" element={<ShippingPolicyPage />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/account" element={<Account />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/order-details/:orderId" element={<OrderDetails />} />
+          <Route path="/admin" element={<AdminDashboard/>} />
+          <Route path="/returns" element={<ReturnsRefunds/>} />
+        </Routes>
+      </main>
+      {!hideFooter && <Footer />}
+    </div>
+  );
+}
+
+export { App };
