@@ -5101,4 +5101,4 @@ const orders = customerOrders;
   );
 };
 
-export default AdminDashboard;
+export { AdminDashboard };
