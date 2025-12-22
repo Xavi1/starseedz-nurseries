@@ -1,14 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useState, useEffect } from 'react';
 import ReactModal from 'react-modal';
 import { formatDate } from '../utils/formatDate';
 import OrderSummaryCard from '../components/OrderSummaryCard';
 import OrderTrackingWidget from '../components/OrderTrackingWidget';
-import React, { useState } from 'react';
 import jsPDF from 'jspdf';
 import CustomerDetail from './AdminDashboard/Customers/CustomerDetail';
 import autoTable from 'jspdf-autotable';
 import { addProduct, getAllProducts } from '../firebaseHelpers';
-import { useEffect } from 'react';
 import { collection, query, where, onSnapshot, orderBy, getDoc, getDocs, updateDoc, doc, deleteDoc, addDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
@@ -19,6 +18,9 @@ import OrderItems from '../components/OrderItems';
 import { fetchOrderByNumber} from '../components/orderHelpers';
 import ReportRenderer from '../components/Reports';
 import SettingsPanel from './SettingsPanel';
+import DashboardSidebar from './AdminDashboard/layout/DashboardSidebar';
+import DashboardHeader from './AdminDashboard/layout/DashboardHeader';
+import DashboardMainLayout from './AdminDashboard/layout/DashboardMainLayout';
 
 // =============================
 // AdminDashboard.tsx
@@ -4857,247 +4859,142 @@ const orders = customerOrders;
         onTabChange={setActiveSettingsTab}
       />
     </div>
-  return ( <div className="flex h-screen bg-gray-50">
-      {/* Mobile sidebar backdrop */}
-      {sidebarOpen && <div className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 md:hidden" onClick={() => setSidebarOpen(false)}></div>}
-      {/* Sidebar */}
-      <div className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:static md:z-0
-      `}>
-        <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
-          <Link to="/admin" className="flex items-center">
-            <span className="text-xl font-bold text-green-700">
-              Admin Panel
-            </span>
-          </Link>
-          <button className="md:hidden text-gray-500 hover:text-gray-700" onClick={() => setSidebarOpen(false)}>
-            <XIcon className="w-6 h-6" />
-          </button>
-        </div>
-        <nav className="mt-5 px-2 space-y-1">
-          {navItems.map(item => <a key={item.id} href="#" className={`
-                group flex items-center px-3 py-3 text-sm font-medium rounded-md transition-colors
-                ${activeNav === item.id ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-100'}
-              `} onClick={e => {
-          e.preventDefault();
-          setActiveNav(item.id);
-          // Reset detail views when changing tabs
-          setSelectedOrder(null);
-          setSelectedProduct(null);
-          setSelectedCustomer(null);
-        }}>
-              <span className="mr-3">{item.icon}</span>
-              {item.name}
-            </a>)}
-        </nav>
-      </div>
-      {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top navigation */}
-        <header className="bg-white shadow-sm z-10">
-          <div className="px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <div className="flex">
-                <button className="md:hidden px-4 text-gray-500 focus:outline-none" onClick={() => setSidebarOpen(true)}>
-                  <MenuIcon className="h-6 w-6" />
-                </button>
-                <div className="flex-1 flex items-center md:ml-0">
-                  <div className="max-w-lg w-full lg:max-w-xs">
-                    <label htmlFor="search" className="sr-only">
-                      Search
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <SearchIcon className="h-5 w-5 text-gray-400" />
-                      </div>
-                      <input id="search" name="search" className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:border-green-500 focus:ring-1 focus:ring-green-500 sm:text-sm" placeholder="Search" type="search" />
-                    </div>
-                  </div>
-                </div>
+  return (
+    <DashboardMainLayout
+      sidebar={
+        <DashboardSidebar
+          navItems={navItems}
+          activeNav={activeNav}
+          setActiveNav={setActiveNav}
+          setSelectedOrder={setSelectedOrder}
+          setSelectedProduct={setSelectedProduct}
+          setSelectedCustomer={setSelectedCustomer}
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+        />
+      }
+      header={
+        <DashboardHeader
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+          showNotificationsDropdown={showNotificationsDropdown}
+          setShowNotificationsDropdown={setShowNotificationsDropdown}
+          showProfileDropdown={showProfileDropdown}
+          setShowProfileDropdown={setShowProfileDropdown}
+          notifications={notifications}
+          currentUser={currentUser}
+        />
+      }
+    >
+      {/* Main content area */}
+      <div className="pb-5 border-b border-gray-200 sm:flex sm:items-center sm:justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">
+          {activeNav === 'dashboard' && 'Dashboard'}
+          {activeNav === 'orders' && 'Orders'}
+          {activeNav === 'products' && 'Products'}
+          {activeNav === 'customers' && 'Customers'}
+          {activeNav === 'reports' && 'Reports'}
+          {activeNav === 'settings' && 'Settings'}
+        </h1>
+        {activeNav !== 'settings' && activeNav !== 'reports' && !selectedOrder && !selectedProduct && !selectedCustomer && (
+          <div className="mt-3 sm:mt-0 sm:ml-4">
+            <button type="button" className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" onClick={() => setIsFilterOpen(true)}>
+              <FilterIcon className="h-4 w-4 mr-2" />
+              Filter
+            </button>
+          </div>
+        )}
+        <ReactModal
+          isOpen={isFilterOpen}
+          onRequestClose={() => setIsFilterOpen(false)}
+          className="fixed inset-0 flex items-center justify-center z-50"
+          overlayClassName="fixed inset-0 bg-black bg-opacity-30 z-40"
+          ariaHideApp={false}
+        >
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <h2 className="text-lg font-bold mb-4">Filter Options</h2>
+            {activeNav === 'products' && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">Category</label>
+                <select
+                  value={productCategoryFilter}
+                  onChange={e => setProductCategoryFilter(e.target.value)}
+                  className="w-full border border-gray-300 rounded px-2 py-1"
+                >
+                  <option value="all">All</option>
+                  {Object.entries(categoryMap).map(([key, label]) => (
+                    <option key={key} value={key}>{label}</option>
+                  ))}
+                </select>
               </div>
-              <div className="flex items-center">
-                {/* Notification Bell Dropdown */}
-                <div className="relative">
-                  <button
-                    className="p-2 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none"
-                    onClick={() => {
-                      setShowNotificationsDropdown((prev) => !prev);
-                      setShowProfileDropdown(false);
-                    }}
+            )}
+            {activeNav === 'orders' && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">Sort Orders</label>
+                <div className="flex space-x-2 mb-2">
+                  <select
+                    value={orderSortField}
+                    onChange={e => setOrderSortField(e.target.value as any)}
+                    className="flex-1 w-full border border-gray-300 rounded px-2 py-1"
                   >
-                    <span className="sr-only">View notifications</span>
-                    <div className="relative">
-                      <BellIcon className="h-6 w-6" />
-                      <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
-                    </div>
-                  </button>
-                  {showNotificationsDropdown && (
-                    <div className="origin-top-right absolute right-0 mt-2 w-80 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
-                      <div className="py-2 px-4 border-b font-semibold text-gray-700">Notifications</div>
-                      <ul className="max-h-60 overflow-y-auto">
-                        {notifications.length === 0 ? (
-                          <li className="px-4 py-3 text-gray-500 text-sm">No new notifications.</li>
-                        ) : (
-                          notifications.map((notif, idx) => (
-                            <li key={idx} className="px-4 py-3 hover:bg-gray-100 text-sm border-b last:border-b-0">
-                              {notif}
-                            </li>
-                          ))
-                        )}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-                {/* Profile dropdown */}
-                <div className="ml-3 relative">
-                  <button
-                    className="flex items-center focus:outline-none"
-                    onClick={() => {
-                      setShowProfileDropdown((prev) => !prev);
-                      setShowNotificationsDropdown(false);
-                    }}
+                    <option value="none">None</option>
+                    <option value="date">Date</option>
+                    <option value="customer">Customer</option>
+                    <option value="total">Total</option>
+                    <option value="payment">Payment Method</option>
+                  </select>
+                  <select
+                    value={orderSortDir}
+                    onChange={e => setOrderSortDir(e.target.value as 'asc' | 'desc')}
+                    className="w-32 border border-gray-300 rounded px-2 py-1"
                   >
-                    <div className="h-8 w-8 rounded-full bg-green-700 flex items-center justify-center text-white font-medium">
-                      {currentUser && (typeof currentUser === 'object') && ('displayName' in currentUser || 'email' in currentUser)
-                        ? (currentUser.displayName?.[0] || currentUser.email?.[0] || 'A')
-                        : 'A'}
-                    </div>
-                    <span className="hidden md:flex md:items-center ml-2">
-                      <span className="text-sm font-medium text-gray-700 mr-1">
-                        {currentUser && (typeof currentUser === 'object') && ('displayName' in currentUser || 'email' in currentUser)
-                          ? (currentUser.displayName || currentUser.email || 'Admin User')
-                          : 'Admin User'}
-                      </span>
-                      <ChevronDownIcon className="h-4 w-4 text-gray-400" />
-                    </span>
-                  </button>
-                  {showProfileDropdown && (
-                    <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
-                      <Link to={currentUser ? `/account` : '#'} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setShowProfileDropdown(false)}>
-                        Profile
-                      </Link>
-                      <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => { setShowProfileDropdown(false); alert('Settings clicked!'); }}>Settings</button>
-                      <button className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50" onClick={() => { setShowProfileDropdown(false); auth.signOut(); }}>Logout</button>
-                    </div>
-                  )}
+                    <option value="desc">Desc</option>
+                    <option value="asc">Asc</option>
+                  </select>
                 </div>
+                <div className="text-sm text-gray-500">Note: Sorting is applied on the currently loaded orders.</div>
               </div>
+            )}
+            {activeNav === 'customers' && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">Segment</label>
+                <select
+                  value={customerSegmentFilter}
+                  onChange={e => setCustomerSegmentFilter(e.target.value)}
+                  className="w-full border border-gray-300 rounded px-2 py-1"
+                >
+                  <option value="all">All</option>
+                  <option value="retail">Retail</option>
+                  <option value="wholesale">Wholesale</option>
+                </select>
+              </div>
+            )}
+            <div className="flex justify-end mt-6">
+              <button
+                className="px-4 py-2 bg-green-700 text-white rounded hover:bg-green-800 mr-2"
+                onClick={() => setIsFilterOpen(false)}
+              >
+                Apply
+              </button>
+              <button
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                onClick={() => setIsFilterOpen(false)}
+              >
+                Cancel
+              </button>
             </div>
           </div>
-        </header>
-        {/* Main content area */}
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8" onClick={() => { setShowNotificationsDropdown(false); setShowProfileDropdown(false); }}>
-          <div className="pb-5 border-b border-gray-200 sm:flex sm:items-center sm:justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">
-              {activeNav === 'dashboard' && 'Dashboard'}
-              {activeNav === 'orders' && 'Orders'}
-              {activeNav === 'products' && 'Products'}
-              {activeNav === 'customers' && 'Customers'}
-              {activeNav === 'reports' && 'Reports'}
-              {activeNav === 'settings' && 'Settings'}
-            </h1>
-            {activeNav !== 'settings' && activeNav !== 'reports' && !selectedOrder && !selectedProduct && !selectedCustomer && <div className="mt-3 sm:mt-0 sm:ml-4">
-                  <button type="button" className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" onClick={() => setIsFilterOpen(true)}>
-                    <FilterIcon className="h-4 w-4 mr-2" />
-                    Filter
-                  </button>
-                </div>}
-            {/* Filter Modal */}
-            <ReactModal
-              isOpen={isFilterOpen}
-              onRequestClose={() => setIsFilterOpen(false)}
-              className="fixed inset-0 flex items-center justify-center z-50"
-              overlayClassName="fixed inset-0 bg-black bg-opacity-30 z-40"
-              ariaHideApp={false}
-            >
-              <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-                <h2 className="text-lg font-bold mb-4">Filter Options</h2>
-                {/* Example filter controls, you can expand as needed */}
-                {activeNav === 'products' && (
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2">Category</label>
-                    <select
-                      value={productCategoryFilter}
-                      onChange={e => setProductCategoryFilter(e.target.value)}
-                      className="w-full border border-gray-300 rounded px-2 py-1"
-                    >
-                      <option value="all">All</option>
-                      {Object.entries(categoryMap).map(([key, label]) => (
-                        <option key={key} value={key}>{label}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-                {activeNav === 'orders' && (
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2">Sort Orders</label>
-                    <div className="flex space-x-2 mb-2">
-                      <select
-                        value={orderSortField}
-                        onChange={e => setOrderSortField(e.target.value as any)}
-                        className="flex-1 w-full border border-gray-300 rounded px-2 py-1"
-                      >
-                        <option value="none">None</option>
-                        <option value="date">Date</option>
-                        <option value="customer">Customer</option>
-                        <option value="total">Total</option>
-                        <option value="payment">Payment Method</option>
-                      </select>
-                      <select
-                        value={orderSortDir}
-                        onChange={e => setOrderSortDir(e.target.value as 'asc' | 'desc')}
-                        className="w-32 border border-gray-300 rounded px-2 py-1"
-                      >
-                        <option value="desc">Desc</option>
-                        <option value="asc">Asc</option>
-                      </select>
-                    </div>
-                    <div className="text-sm text-gray-500">Note: Sorting is applied on the currently loaded orders.</div>
-                  </div>
-                )}
-                {activeNav === 'customers' && (
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2">Segment</label>
-                    <select
-                      value={customerSegmentFilter}
-                      onChange={e => setCustomerSegmentFilter(e.target.value)}
-                      className="w-full border border-gray-300 rounded px-2 py-1"
-                    >
-                      <option value="all">All</option>
-                      <option value="retail">Retail</option>
-                      <option value="wholesale">Wholesale</option>
-                    </select>
-                  </div>
-                )}
-                <div className="flex justify-end mt-6">
-                  <button
-                    className="px-4 py-2 bg-green-700 text-white rounded hover:bg-green-800 mr-2"
-                    onClick={() => setIsFilterOpen(false)}
-                  >
-                    Apply
-                  </button>
-                  <button
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-                    onClick={() => setIsFilterOpen(false)}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </ReactModal>
-          </div>
-          <div className="mt-6">
-            {activeNav === 'dashboard' && renderDashboardContent()}
-            {activeNav === 'orders' && renderOrdersContent()}
-            {activeNav === 'products' && renderProductsContent()}
-            {activeNav === 'customers' && renderCustomersContent()}
-            {activeNav === 'reports' && renderReportsContent()}
-            {activeNav === 'settings' && renderSettingsContent()}
-          </div>
-        </main>
+        </ReactModal>
       </div>
-  </div>
+      <div className="mt-6">
+        {activeNav === 'dashboard' && renderDashboardContent()}
+        {activeNav === 'orders' && renderOrdersContent()}
+        {activeNav === 'products' && renderProductsContent()}
+        {activeNav === 'customers' && renderCustomersContent()}
+        {activeNav === 'reports' && renderReportsContent()}
+        {activeNav === 'settings' && renderSettingsContent()}
+      </div>
+    </DashboardMainLayout>
   );
 };
 
