@@ -1,3 +1,4 @@
+import SectionTitleBar from './AdminDashboard/layout/SectionTitleBar';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
 import ReactModal from 'react-modal';
@@ -4887,105 +4888,104 @@ const orders = customerOrders;
       }
     >
       {/* Main content area */}
-      <div className="pb-5 border-b border-gray-200 sm:flex sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">
-          {activeNav === 'dashboard' && 'Dashboard'}
-          {activeNav === 'orders' && 'Orders'}
-          {activeNav === 'products' && 'Products'}
-          {activeNav === 'customers' && 'Customers'}
-          {activeNav === 'reports' && 'Reports'}
-          {activeNav === 'settings' && 'Settings'}
-        </h1>
+      <SectionTitleBar
+        title={
+          activeNav === 'dashboard' ? 'Dashboard' :
+          activeNav === 'orders' ? 'Orders' :
+          activeNav === 'products' ? 'Products' :
+          activeNav === 'customers' ? 'Customers' :
+          activeNav === 'reports' ? 'Reports' :
+          activeNav === 'settings' ? 'Settings' : ''
+        }
+      >
         {activeNav !== 'settings' && activeNav !== 'reports' && !selectedOrder && !selectedProduct && !selectedCustomer && (
-          <div className="mt-3 sm:mt-0 sm:ml-4">
-            <button type="button" className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" onClick={() => setIsFilterOpen(true)}>
-              <FilterIcon className="h-4 w-4 mr-2" />
-              Filter
+          <button type="button" className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" onClick={() => setIsFilterOpen(true)}>
+            <FilterIcon className="h-4 w-4 mr-2" />
+            Filter
+          </button>
+        )}
+      </SectionTitleBar>
+      <ReactModal
+        isOpen={isFilterOpen}
+        onRequestClose={() => setIsFilterOpen(false)}
+        className="fixed inset-0 flex items-center justify-center z-50"
+        overlayClassName="fixed inset-0 bg-black bg-opacity-30 z-40"
+        ariaHideApp={false}
+      >
+        <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+          <h2 className="text-lg font-bold mb-4">Filter Options</h2>
+          {activeNav === 'products' && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-2">Category</label>
+              <select
+                value={productCategoryFilter}
+                onChange={e => setProductCategoryFilter(e.target.value)}
+                className="w-full border border-gray-300 rounded px-2 py-1"
+              >
+                <option value="all">All</option>
+                {Object.entries(categoryMap).map(([key, label]) => (
+                  <option key={key} value={key}>{label}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          {activeNav === 'orders' && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-2">Sort Orders</label>
+              <div className="flex space-x-2 mb-2">
+                <select
+                  value={orderSortField}
+                  onChange={e => setOrderSortField(e.target.value as any)}
+                  className="flex-1 w-full border border-gray-300 rounded px-2 py-1"
+                >
+                  <option value="none">None</option>
+                  <option value="date">Date</option>
+                  <option value="customer">Customer</option>
+                  <option value="total">Total</option>
+                  <option value="payment">Payment Method</option>
+                </select>
+                <select
+                  value={orderSortDir}
+                  onChange={e => setOrderSortDir(e.target.value as 'asc' | 'desc')}
+                  className="w-32 border border-gray-300 rounded px-2 py-1"
+                >
+                  <option value="desc">Desc</option>
+                  <option value="asc">Asc</option>
+                </select>
+              </div>
+              <div className="text-sm text-gray-500">Note: Sorting is applied on the currently loaded orders.</div>
+            </div>
+          )}
+          {activeNav === 'customers' && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-2">Segment</label>
+              <select
+                value={customerSegmentFilter}
+                onChange={e => setCustomerSegmentFilter(e.target.value)}
+                className="w-full border border-gray-300 rounded px-2 py-1"
+              >
+                <option value="all">All</option>
+                <option value="retail">Retail</option>
+                <option value="wholesale">Wholesale</option>
+              </select>
+            </div>
+          )}
+          <div className="flex justify-end mt-6">
+            <button
+              className="px-4 py-2 bg-green-700 text-white rounded hover:bg-green-800 mr-2"
+              onClick={() => setIsFilterOpen(false)}
+            >
+              Apply
+            </button>
+            <button
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+              onClick={() => setIsFilterOpen(false)}
+            >
+              Cancel
             </button>
           </div>
-        )}
-        <ReactModal
-          isOpen={isFilterOpen}
-          onRequestClose={() => setIsFilterOpen(false)}
-          className="fixed inset-0 flex items-center justify-center z-50"
-          overlayClassName="fixed inset-0 bg-black bg-opacity-30 z-40"
-          ariaHideApp={false}
-        >
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-            <h2 className="text-lg font-bold mb-4">Filter Options</h2>
-            {activeNav === 'products' && (
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">Category</label>
-                <select
-                  value={productCategoryFilter}
-                  onChange={e => setProductCategoryFilter(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-2 py-1"
-                >
-                  <option value="all">All</option>
-                  {Object.entries(categoryMap).map(([key, label]) => (
-                    <option key={key} value={key}>{label}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-            {activeNav === 'orders' && (
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">Sort Orders</label>
-                <div className="flex space-x-2 mb-2">
-                  <select
-                    value={orderSortField}
-                    onChange={e => setOrderSortField(e.target.value as any)}
-                    className="flex-1 w-full border border-gray-300 rounded px-2 py-1"
-                  >
-                    <option value="none">None</option>
-                    <option value="date">Date</option>
-                    <option value="customer">Customer</option>
-                    <option value="total">Total</option>
-                    <option value="payment">Payment Method</option>
-                  </select>
-                  <select
-                    value={orderSortDir}
-                    onChange={e => setOrderSortDir(e.target.value as 'asc' | 'desc')}
-                    className="w-32 border border-gray-300 rounded px-2 py-1"
-                  >
-                    <option value="desc">Desc</option>
-                    <option value="asc">Asc</option>
-                  </select>
-                </div>
-                <div className="text-sm text-gray-500">Note: Sorting is applied on the currently loaded orders.</div>
-              </div>
-            )}
-            {activeNav === 'customers' && (
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">Segment</label>
-                <select
-                  value={customerSegmentFilter}
-                  onChange={e => setCustomerSegmentFilter(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-2 py-1"
-                >
-                  <option value="all">All</option>
-                  <option value="retail">Retail</option>
-                  <option value="wholesale">Wholesale</option>
-                </select>
-              </div>
-            )}
-            <div className="flex justify-end mt-6">
-              <button
-                className="px-4 py-2 bg-green-700 text-white rounded hover:bg-green-800 mr-2"
-                onClick={() => setIsFilterOpen(false)}
-              >
-                Apply
-              </button>
-              <button
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-                onClick={() => setIsFilterOpen(false)}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </ReactModal>
-      </div>
+        </div>
+      </ReactModal>
       <div className="mt-6">
         {activeNav === 'dashboard' && renderDashboardContent()}
         {activeNav === 'orders' && renderOrdersContent()}
