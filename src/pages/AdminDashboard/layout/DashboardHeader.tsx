@@ -105,7 +105,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 <Link to={currentUser ? `/account` : '#'} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setShowProfileDropdown(false)}>
                   Profile
                 </Link>
-                <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => { setShowProfileDropdown(false); alert('Settings clicked!'); }}>Settings</button>
+                <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => { setShowProfileDropdown(false); if (typeof window !== 'undefined' && window.setAdminDashboardNav) window.setAdminDashboardNav('settings'); }}>Settings</button>
                 <button className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50" onClick={() => { setShowProfileDropdown(false); }}>Logout</button>
               </div>
             )}

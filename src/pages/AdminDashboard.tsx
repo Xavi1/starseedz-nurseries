@@ -4860,7 +4860,11 @@ const orders = customerOrders;
         onTabChange={setActiveSettingsTab}
       />
     </div>
-  return (
+    // Expose setActiveNav globally for settings button in header
+    if (typeof window !== 'undefined') {
+      window.setAdminDashboardNav = setActiveNav;
+    }
+    return (
     <DashboardMainLayout
       sidebar={
         <DashboardSidebar
