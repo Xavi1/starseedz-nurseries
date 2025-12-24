@@ -1,4 +1,7 @@
 import React from 'react';
+import { signOut } from 'firebase/auth';
+import { auth } from '../../../firebase';
+import { useNavigate } from 'react-router-dom';
 import { BellIcon, ChevronDownIcon, MenuIcon, SearchIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -22,8 +25,20 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   setShowProfileDropdown,
   notifications,
   currentUser,
-}) => (
-  <header className="bg-white shadow-sm z-10">
+}) => {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/login');
+    } catch (error) {
+      alert('Logout failed. Please try again.');
+    }
+  };
+
+  return (
+    <header className="bg-white shadow-sm z-10">
     <div className="px-4 sm:px-6 lg:px-8">
       <div className="flex justify-between h-16">
         <div className="flex">
@@ -106,7 +121,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                   Profile
                 </Link>
                 <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => { setShowProfileDropdown(false); if (typeof window !== 'undefined' && window.setAdminDashboardNav) window.setAdminDashboardNav('settings'); }}>Settings</button>
-                <button className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50" onClick={() => { setShowProfileDropdown(false); }}>Logout</button>
+                <button className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50" onClick={() => { setShowProfileDropdown(false); handleLogout(); }}>Logout</button>
               </div>
             )}
           </div>
@@ -114,6 +129,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
       </div>
     </div>
   </header>
-);
+  );
+};
 
 export default DashboardHeader;
