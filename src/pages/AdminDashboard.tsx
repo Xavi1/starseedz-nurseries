@@ -216,7 +216,6 @@ const AdminDashboard = () => {
   const [restocking, setRestocking] = useState<string | null>(null);
   const [showOrderSummary, setShowOrderSummary] = useState(false);
   const [fullOrderData, setFullOrderData] = useState<FullOrder | null>(null);
-  // Track previous inventory state (rollback support)
 
 /* //Order Items
 const OrderItems: React.FC<OrderItemsProps> = ({ orderId }) => {
