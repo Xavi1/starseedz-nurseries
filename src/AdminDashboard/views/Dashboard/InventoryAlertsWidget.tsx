@@ -1,5 +1,7 @@
 import React from 'react'
 import { AlertCircleIcon, RefreshCwIcon } from 'lucide-react'
+import RestockModal from './RestockModal'
+
 
 /* ---------- Types ---------- */
 export interface InventoryAlertItem {
@@ -128,72 +130,20 @@ const InventoryAlertsWidget: React.FC<InventoryAlertsWidgetProps> = ({
         </ul>
       </div>
 
-      {/* Restock Modal */}
-      {restockModal.isOpen && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <h3 className="text-lg font-medium text-gray-900">
-              Restock Inventory
-            </h3>
-
-            <div className="mt-2 text-sm text-gray-500">
-              <p>
-                Restocking: <strong>{restockModal.itemName}</strong>
-              </p>
-              <p>
-                Current stock:{' '}
-                <strong>{restockModal.currentStock}</strong>
-              </p>
-            </div>
-
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Restock Amount
-              </label>
-              <input
-                type="number"
-                min={1}
-                value={restockModal.restockAmount}
-                onChange={(e) =>
-                  handleRestockAmountChange(Number(e.target.value))
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500"
-              />
-            </div>
-
-            <div className="flex justify-end space-x-3 mt-4">
-              <button
-                onClick={() =>
-                  setRestockModal((prev) => ({ ...prev, isOpen: false }))
-                }
-                className="px-4 py-2 text-sm border rounded-md"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={() =>
-                  handleRestock(
-                    restockModal.itemId!,
-                    restockModal.itemName!,
-                    restockModal.currentStock!,
-                    restockModal.restockAmount
-                  )
-                }
-                disabled={
-                  restocking === restockModal.itemId ||
-                  restockModal.restockAmount <= 0
-                }
-                className="px-4 py-2 text-sm text-white bg-green-600 rounded-md disabled:opacity-50"
-              >
-                {restocking === restockModal.itemId
-                  ? 'Restocking...'
-                  : `Restock ${restockModal.restockAmount} Units`}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+    <RestockModal
+      isOpen={restockModal.isOpen}
+      itemId={restockModal.itemId}
+      itemName={restockModal.itemName}
+      currentStock={restockModal.currentStock}
+      restockAmount={restockModal.restockAmount}
+      restocking={restocking}
+      onClose={() =>
+        setRestockModal((prev) => ({ ...prev, isOpen: false }))
+      }
+      onAmountChange={handleRestockAmountChange}
+      onConfirm={handleRestock}
+    />
+ 
     </div>
   )
 }
