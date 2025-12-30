@@ -35,7 +35,7 @@ export interface Product {
   inStock: boolean;
   featured?: boolean;
   lowStockThreshold: number;
-  description?: string;
+  description: string;
   longDescription?: string;
   isBestSeller?: boolean;
   rating?: number;

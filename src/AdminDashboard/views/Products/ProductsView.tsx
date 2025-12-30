@@ -65,9 +65,19 @@ const ProductsView: React.FC<ProductsViewProps> = ({
     reviews: ''
   });
 
-  useEffect(() => {
-    // Fetch products
-    getAllProducts().then(setProducts);
+useEffect(() => {
+    // Fetch products and map them to the UI's Product type
+    getAllProducts().then((fetchedData: any[]) => {
+      const mappedProducts = fetchedData.map((item) => ({
+        ...item,
+        // Provide defaults for missing properties required by the UI
+        sku: item.sku || 'N/A',
+        image: item.image || '', // Prevents undefined image errors
+        inStock: item.inStock ?? (item.stock > 0),
+        lowStockThreshold: item.lowStockThreshold || 5,
+      }));
+      setProducts(mappedProducts);
+    });
   }, []);
 
   // Filter Logic
@@ -480,11 +490,18 @@ const ProductsView: React.FC<ProductsViewProps> = ({
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
-                          <img className="h-10 w-10 rounded-md object-cover" src={product.image} alt={product.name} />
+                          <img 
+                            className="h-10 w-10 rounded-md object-cover" 
+                            src={product.image || '/placeholder-image.jpg'} 
+                            alt={product.name} 
+                          />
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">
                             {product.name}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {product.description?.substring(0, 50) || 'No description'}
                           </div>
                         </div>
                       </div>
@@ -493,7 +510,9 @@ const ProductsView: React.FC<ProductsViewProps> = ({
                       {product.sku || 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      {Array.isArray(product.category) ? product.category.join(', ') : product.category}
+                      {Array.isArray(product.category) 
+                        ? product.category.join(', ') 
+                        : (product.category || 'Uncategorized')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                       ${typeof product.price === 'number' ? product.price.toFixed(2) : '0.00'}
