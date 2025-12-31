@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { getAllProducts } from '../../../firebaseHelpers';
 import { Product } from '../../types';
-import { SearchIcon, PlusIcon, EyeIcon, EditIcon, TrashIcon, XIcon, ChevronRightIcon } from 'lucide-react';
+import { SearchIcon, PlusIcon, EyeIcon, EditIcon, TrashIcon, XIcon } from 'lucide-react';
 import Pagination from '../../components/Pagination';
 
 interface ProductsViewProps {
@@ -270,6 +270,10 @@ useEffect(() => {
 
   const handleCancelEditSave = () => {
     setShowEditConfirm(false);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   const renderProductDetail = () => {
@@ -625,73 +629,14 @@ useEffect(() => {
                   Apply
                 </button>
               </div>
-              <div className="flex items-center">
-                <span className="text-sm text-gray-700 mr-4">
-                  Showing <span className="font-medium">{totalProducts === 0 ? 0 : startIdx + 1}</span> to{' '}
-                  <span className="font-medium">{endIdx}</span> of{' '}
-                  <span className="font-medium">{totalProducts}</span>{' '}
-                  results
-                </span>
-                
-                {/* Pagination Navigation */}
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                  {/* Previous Page Button */}
-                  <button
-                    type="button"
-                    className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    aria-label="Previous"
-                  >
-                    <span className="sr-only">Previous</span>
-                    <ChevronRightIcon className="h-5 w-5 transform rotate-180" />
-                  </button>
-                  
-                  {/* Page Numbers */}
-                  {(() => {
-                    let pageNumbers: (number | string)[] = [];
-                    if (totalPages <= 5) {
-                      pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
-                    } else {
-                      if (currentPage <= 3) {
-                        pageNumbers = [1, 2, 3, 4, '...', totalPages];
-                      } else if (currentPage >= totalPages - 2) {
-                        pageNumbers = [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-                      } else {
-                        pageNumbers = [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
-                      }
-                    }
-                    
-                    return pageNumbers.map((num, idx) =>
-                      typeof num === 'number' ? (
-                        <button
-                          key={num}
-                          type="button"
-                          className={`relative inline-flex items-center px-4 py-2 border border-gray-300 ${num === currentPage ? 'bg-green-50 text-green-700' : 'bg-white text-gray-700 hover:bg-gray-50'} text-sm font-medium`}
-                          onClick={() => setCurrentPage(num)}
-                          aria-current={num === currentPage ? 'page' : undefined}
-                        >
-                          {num}
-                        </button>
-                      ) : (
-                        <span key={idx} className="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-400 select-none">…</span>
-                      )
-                    );
-                  })()}
-                  
-                  {/* Next Page Button */}
-                  <button
-                    type="button"
-                    className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                    aria-label="Next"
-                  >
-                    <span className="sr-only">Next</span>
-                    <ChevronRightIcon className="h-5 w-5" />
-                  </button>
-                </nav>
-              </div>
+              
+              {/* Replaced custom pagination with Pagination component */}
+              <Pagination
+                currentPage={currentPage}
+                totalItems={totalProducts}
+                pageSize={pageSize}
+                onPageChange={handlePageChange}
+              />
             </div>
           </div>
         </div>
