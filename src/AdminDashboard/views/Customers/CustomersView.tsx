@@ -1,8 +1,8 @@
 import React from 'react';
-import { SearchIcon, PlusIcon, EyeIcon, EditIcon, MessageCircleIcon, ChevronRightIcon } from '@heroicons/react/outline';
+import { SearchIcon, PlusIcon, EyeIcon, EditIcon, MessageCircleIcon, ChevronRightIcon } from 'lucide-react';
 import CustomerDetail from './CustomerDetail';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { db } from '../../../firebase';
 
 interface CustomersViewProps {
   editingCustomer: any;
