@@ -9,7 +9,7 @@ import {
   UserPlusIcon 
 } from 'lucide-react';
 import { doc, updateDoc, collection, getDocs } from 'firebase/firestore';
-import { db } from '../path/to/your/firebase/config';
+import { db } from '../../../firebase';
 
 interface Order {
   id: string;
