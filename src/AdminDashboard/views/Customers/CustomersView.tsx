@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';  // Added useEffect import
 import { SearchIcon, PlusIcon, EyeIcon, EditIcon, MessageCircleIcon, ChevronRightIcon } from 'lucide-react';
 import CustomerDetail from './CustomerDetail';
 import { collection, getDocs } from 'firebase/firestore';
@@ -19,7 +19,7 @@ interface CustomersViewProps {
   handleAddCustomer: () => void;
   paginatedCustomers: any[];
   customers: any[];
-  allCustomers: any[];
+  allCustomers: any[]; // This prop is passed but not used - consider removing if unnecessary
   setAllCustomers: (customers: any[]) => void;
   activeNav: string;
 }
@@ -108,6 +108,11 @@ const CustomersView: React.FC<CustomersViewProps> = ({
       console.error('Error fetching customers:', error);
     }
   };
+
+  // Added useEffect to fetch customers when component mounts or activeNav changes
+  useEffect(() => {
+    fetchCustomers();
+  }, [activeNav]);
 
   const renderCustomersContent = () => <>
     {editingCustomer && (
@@ -245,116 +250,93 @@ const CustomersView: React.FC<CustomersViewProps> = ({
             </tbody>
           </table>
         </div>
-        {/**
- * Table/List Management Footer Component
- * 
- * Purpose: Provides bulk action controls and pagination for data tables/lists
- * 
- * Features:
- * - Bulk action controls (dropdown with export/email options + apply button)
- * - Pagination with previous/next navigation
- * - Results summary showing current view range and total items
- * - Responsive design that stacks vertically on mobile devices
- * 
- * Props/Dependencies:
- * - customers: Array - Total dataset of all items
- * - filteredCustomers: Array - Currently filtered/displayed items subset
- * - ChevronRightIcon: Component - Required icon for pagination arrows
- * 
- * Accessibility:
- * - Screen reader labels for pagination buttons (sr-only)
- * - ARIA labels for navigation elements
- * - Focus management with visible focus rings
- * 
- * Usage: Typically placed below data tables where bulk operations and navigation are needed
- */}
-<div className="px-4 py-3 bg-gray-50 border-t border-gray-200 sm:px-6">
-  <div className="flex flex-col sm:flex-row items-center justify-between">
-    {/* Bulk Actions Section - Left side */}
-    <div className="flex items-center mb-4 sm:mb-0">
-      <select 
-        className="mr-2 text-sm border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
-        aria-label="Bulk actions"
-      >
-        <option>Bulk Actions</option>
-        <option>Export Selected</option>
-        <option>Send Email</option>
-      </select>
-      <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-        Apply
-      </button>
-    </div>
+        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 sm:px-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between">
+            {/* Bulk Actions Section - Left side */}
+            <div className="flex items-center mb-4 sm:mb-0">
+              <select 
+                className="mr-2 text-sm border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
+                aria-label="Bulk actions"
+              >
+                <option>Bulk Actions</option>
+                <option>Export Selected</option>
+                <option>Send Email</option>
+              </select>
+              <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                Apply
+              </button>
+            </div>
 
-    {/* Pagination & Results Section - Right side */}
-    <div className="flex items-center">
-      {(() => {
-        // --- Pagination logic for Customers ---
-        const pageSize = 10;
-        const totalCustomers = customers.length;
-        const totalPages = Math.ceil(totalCustomers / pageSize) || 1;
-        const startIdx = (customersCurrentPage - 1) * pageSize;
-        const endIdx = Math.min(startIdx + pageSize, totalCustomers);
-        let pageNumbers = [];
-        if (totalPages <= 5) {
-          pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
-        } else {
-          if (customersCurrentPage <= 3) {
-            pageNumbers = [1, 2, 3, 4, '...', totalPages];
-          } else if (customersCurrentPage >= totalPages - 2) {
-            pageNumbers = [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-          } else {
-            pageNumbers = [1, '...', customersCurrentPage - 1, customersCurrentPage, customersCurrentPage + 1, '...', totalPages];
-          }
-        }
-        return <>
-          <span className="text-sm text-gray-700 mr-4">
-            Showing <span className="font-medium">{totalCustomers === 0 ? 0 : startIdx + 1}</span> to{' '}
-            <span className="font-medium">{endIdx}</span> of{' '}
-            <span className="font-medium">{totalCustomers}</span>{' '}
-            results
-          </span>
-          <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-            <button
-              type="button"
-              className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${customersCurrentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
-              onClick={() => setCustomersCurrentPage(p => Math.max(1, p - 1))}
-              disabled={customersCurrentPage === 1}
-              aria-label="Previous"
-            >
-              <span className="sr-only">Previous</span>
-              <ChevronRightIcon className="h-5 w-5 transform rotate-180" />
-            </button>
-            {pageNumbers.map((num, idx) =>
-              typeof num === 'number' ? (
-                <button
-                  key={num}
-                  type="button"
-                  className={`relative inline-flex items-center px-4 py-2 border border-gray-300 ${num === customersCurrentPage ? 'bg-green-50 text-green-700' : 'bg-white text-gray-700 hover:bg-gray-50'} text-sm font-medium`}
-                  onClick={() => setCustomersCurrentPage(num)}
-                  aria-current={num === customersCurrentPage ? 'page' : undefined}
-                >
-                  {num}
-                </button>
-              ) : (
-                <span key={idx} className="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-400 select-none">…</span>
-              )
-            )}
-            <button
-              type="button"
-              className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${customersCurrentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
-              onClick={() => setCustomersCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={customersCurrentPage === totalPages}
-              aria-label="Next"
-            >
-              <span className="sr-only">Next</span>
-              <ChevronRightIcon className="h-5 w-5" />
-            </button>
-          </nav>
-        </>
-      })()}
-    </div>
-  </div>
-</div>
+            {/* Pagination & Results Section - Right side */}
+            <div className="flex items-center">
+              {(() => {
+                // --- Pagination logic for Customers ---
+                const pageSize = 10;
+                const totalCustomers = customers.length;
+                const totalPages = Math.ceil(totalCustomers / pageSize) || 1;
+                const startIdx = (customersCurrentPage - 1) * pageSize;
+                const endIdx = Math.min(startIdx + pageSize, totalCustomers);
+                let pageNumbers = [];
+                if (totalPages <= 5) {
+                  pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+                } else {
+                  if (customersCurrentPage <= 3) {
+                    pageNumbers = [1, 2, 3, 4, '...', totalPages];
+                  } else if (customersCurrentPage >= totalPages - 2) {
+                    pageNumbers = [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+                  } else {
+                    pageNumbers = [1, '...', customersCurrentPage - 1, customersCurrentPage, customersCurrentPage + 1, '...', totalPages];
+                  }
+                }
+                return <>
+                  <span className="text-sm text-gray-700 mr-4">
+                    Showing <span className="font-medium">{totalCustomers === 0 ? 0 : startIdx + 1}</span> to{' '}
+                    <span className="font-medium">{endIdx}</span> of{' '}
+                    <span className="font-medium">{totalCustomers}</span>{' '}
+                    results
+                  </span>
+                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <button
+                      type="button"
+                      className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${customersCurrentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
+                      onClick={() => setCustomersCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={customersCurrentPage === 1}
+                      aria-label="Previous"
+                    >
+                      <span className="sr-only">Previous</span>
+                      <ChevronRightIcon className="h-5 w-5 transform rotate-180" />
+                    </button>
+                    {pageNumbers.map((num, idx) =>
+                      typeof num === 'number' ? (
+                        <button
+                          key={num}
+                          type="button"
+                          className={`relative inline-flex items-center px-4 py-2 border border-gray-300 ${num === customersCurrentPage ? 'bg-green-50 text-green-700' : 'bg-white text-gray-700 hover:bg-gray-50'} text-sm font-medium`}
+                          onClick={() => setCustomersCurrentPage(num)}
+                          aria-current={num === customersCurrentPage ? 'page' : undefined}
+                        >
+                          {num}
+                        </button>
+                      ) : (
+                        <span key={idx} className="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-400 select-none">…</span>
+                      )
+                    )}
+                    <button
+                      type="button"
+                      className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${customersCurrentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
+                      onClick={() => setCustomersCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={customersCurrentPage === totalPages}
+                      aria-label="Next"
+                    >
+                      <span className="sr-only">Next</span>
+                      <ChevronRightIcon className="h-5 w-5" />
+                    </button>
+                  </nav>
+                </>
+              })()}
+            </div>
+          </div>
+        </div>
       </div>}
   </>;
 
