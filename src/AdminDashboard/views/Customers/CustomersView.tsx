@@ -1,12 +1,29 @@
-import React, { useEffect } from 'react';  // Added useEffect import
+import React, { useEffect, useCallback } from 'react';
 import { SearchIcon, PlusIcon, EyeIcon, EditIcon, MessageCircleIcon, ChevronRightIcon } from 'lucide-react';
 import CustomerDetail from './CustomerDetail';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../../firebase';
 
+// Define proper types
+interface Customer {
+  id: string;
+  uid?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  location?: string;
+  lastLogin?: any;
+  createdAt?: any;
+  receiveEmails?: boolean;
+  ordersCount: number;
+  totalSpent: number;
+  segment: 'new' | 'repeat' | 'high';
+}
+
 interface CustomersViewProps {
-  editingCustomer: any;
-  setEditingCustomer: (customer: any) => void;
+  editingCustomer: Customer | null;
+  setEditingCustomer: (customer: Customer | null) => void;
   selectedCustomer: string | null;
   renderCustomerDetail: () => JSX.Element;
   setSelectedCustomer: (id: string) => void;
@@ -17,10 +34,9 @@ interface CustomersViewProps {
   customerSegmentFilter: string;
   setCustomerSegmentFilter: (filter: string) => void;
   handleAddCustomer: () => void;
-  paginatedCustomers: any[];
-  customers: any[];
-  allCustomers: any[]; // This prop is passed but not used - consider removing if unnecessary
-  setAllCustomers: (customers: any[]) => void;
+  paginatedCustomers: Customer[];
+  customers: Customer[];
+  setAllCustomers: (customers: Customer[]) => void;
   activeNav: string;
 }
 
@@ -39,11 +55,10 @@ const CustomersView: React.FC<CustomersViewProps> = ({
   handleAddCustomer,
   paginatedCustomers,
   customers,
-  allCustomers,
   setAllCustomers,
   activeNav
 }) => {
-  const fetchCustomers = async () => {
+  const fetchCustomers = useCallback(async () => {
     if (activeNav !== 'customers') return;
     
     try {
@@ -100,19 +115,18 @@ const CustomersView: React.FC<CustomersViewProps> = ({
           ordersCount: customerOrders.length,
           totalSpent,
           segment
-        };
+        } as Customer;
       }));
 
       setAllCustomers(customersData);
     } catch (error) {
       console.error('Error fetching customers:', error);
     }
-  };
+  }, [activeNav, setAllCustomers]);
 
-  // Added useEffect to fetch customers when component mounts or activeNav changes
   useEffect(() => {
     fetchCustomers();
-  }, [activeNav]);
+  }, [fetchCustomers]);
 
   const renderCustomersContent = () => <>
     {editingCustomer && (
@@ -299,7 +313,7 @@ const CustomersView: React.FC<CustomersViewProps> = ({
                     <button
                       type="button"
                       className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${customersCurrentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
-                      onClick={() => setCustomersCurrentPage(p => Math.max(1, p - 1))}
+                      onClick={() => setCustomersCurrentPage(Math.max(1, customersCurrentPage - 1))}
                       disabled={customersCurrentPage === 1}
                       aria-label="Previous"
                     >
@@ -324,7 +338,7 @@ const CustomersView: React.FC<CustomersViewProps> = ({
                     <button
                       type="button"
                       className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${customersCurrentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
-                      onClick={() => setCustomersCurrentPage(p => Math.min(totalPages, p + 1))}
+                      onClick={() => setCustomersCurrentPage(Math.min(totalPages, customersCurrentPage + 1))}
                       disabled={customersCurrentPage === totalPages}
                       aria-label="Next"
                     >
