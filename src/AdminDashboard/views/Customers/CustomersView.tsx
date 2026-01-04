@@ -3,6 +3,7 @@ import { SearchIcon, PlusIcon, EyeIcon, EditIcon, MessageCircleIcon, ChevronRigh
 import CustomerDetail from './CustomerDetail';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../../firebase';
+import CustomerEditModal from './CustomerEditModal';
 
 // Define proper types
 interface Customer {
@@ -129,12 +130,11 @@ const CustomersView: React.FC<CustomersViewProps> = ({
   }, [fetchCustomers]);
 
   const renderCustomersContent = () => <>
-    {editingCustomer && (
-      <CustomerDetail 
+        {editingCustomer && (
+      <CustomerEditModal 
         customer={editingCustomer}
         onClose={() => setEditingCustomer(null)}
         onSave={() => {
-          // After saving, refresh the customers list
           setEditingCustomer(null);
           fetchCustomers();
         }}
