@@ -4457,7 +4457,6 @@ const orders = customerOrders;
               </div>
               <div className="flex items-center">
                 {/* Pagination State and Logic */}
-                {/* ...existing code... */}
                 {(() => {
                   // --- Pagination logic ---
                   
