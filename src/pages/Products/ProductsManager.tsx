@@ -7,7 +7,7 @@ import {
   EditIcon, 
   TrashIcon, 
   ChevronRightIcon 
-} from '@heroicons/react/outline';
+} from 'lucide-react';
 
 interface Product {
   id: string;
