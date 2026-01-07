@@ -10,7 +10,7 @@ type OrdersListProps = {
   getStatusBadgeClass: (status: string) => string;
 };
 
-const OrdersList: React.FC<OrdersListProps> = ({
+export const OrdersList: React.FC<OrdersListProps> = ({
   allOrders,
   filteredOrders,
   orderStatusFilter,
