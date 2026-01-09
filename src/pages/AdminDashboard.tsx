@@ -2876,7 +2876,7 @@ const orders = customerOrders;
                                 {pageNumbers.map((num, idx) =>
                                   typeof num === 'number' ? (
                                     <button
-                                      key={num}
+                                      key={`${num}-${idx}`}
                                       type="button"
                                       className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium ${
                                         num === currentPage 
@@ -2890,7 +2890,7 @@ const orders = customerOrders;
                                     </button>
                                   ) : (
                                     <span 
-                                      key={idx} 
+                                      key={`ellipsis-${idx}`}
                                       className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-400 select-none"
                                     >
                                       …
@@ -3695,7 +3695,7 @@ const orders = customerOrders;
                       {pageNumbers.map((num, idx) =>
                         typeof num === 'number' ? (
                           <button
-                            key={num}
+                            key={`${num}-${idx}`}
                             type="button"
                             className={`relative inline-flex items-center px-4 py-2 border border-gray-300 ${num === ordersCurrentPage ? 'bg-green-50 text-green-700' : 'bg-white text-gray-700 hover:bg-gray-50'} text-sm font-medium`}
                             onClick={() => setOrdersCurrentPage(num)}
@@ -3704,7 +3704,7 @@ const orders = customerOrders;
                             {num}
                           </button>
                         ) : (
-                          <span key={idx} className="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-400 select-none">…</span>
+                          <span key={`ellipsis-${idx}`} className="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-400 select-none">…</span>
                         )
                       )}
                       <button
