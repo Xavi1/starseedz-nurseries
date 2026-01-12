@@ -1,9 +1,23 @@
 
-import React from "react";
+import { Product } from "../../../AdminDashboard/types";
 import { XIcon, EditIcon, RefreshCwIcon } from "lucide-react";
 import { ResponsiveContainer, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Line } from "recharts";
 
-const ProductDetail = ({ product, setSelectedProduct, setEditProductId, setEditProductForm, setShowEditProductModal, setProducts, db, updateDoc }) => {
+
+import { Firestore, DocumentData, UpdateData, DocumentReference } from "firebase/firestore";
+
+interface ProductDetailProps {
+  product: Product;
+  setSelectedProduct: (product: Product | null) => void;
+  setEditProductId: (id: string) => void;
+  setEditProductForm: (form: Partial<Product>) => void;
+  setShowEditProductModal: (show: boolean) => void;
+  setProducts: (updater: (prev: Product[]) => Product[]) => void;
+  db: Firestore;
+  updateDoc: (ref: DocumentReference<DocumentData>, data: UpdateData<DocumentData>) => Promise<void>;
+}
+
+const ProductDetail: React.FC<ProductDetailProps> = ({ product, setSelectedProduct, setEditProductId, setEditProductForm, setShowEditProductModal, setProducts, db, updateDoc }) => {
   if (!product) return null;
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
@@ -64,8 +78,34 @@ const ProductDetail = ({ product, setSelectedProduct, setEditProductId, setEditP
               </div>
             </div>
             <div className="mt-6 flex justify-end space-x-3">
-              <button className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" onClick={() => { setEditProductId(product.id); setEditProductForm({ ...product, image: product.imageUrl || product.image || '', price: product.price?.toString() || '', stock: product.stock?.toString() || '', inStock: product.inStock ?? true, isBestSeller: product.isBestSeller ?? false, rating: product.rating ?? 0, careInstructions: { light: product.careInstructions?.light || '', temperature: product.careInstructions?.temperature || '', warnings: product.careInstructions?.warnings || '', water: product.careInstructions?.water || '', }, specifications: { Difficulty: product.specifications?.Difficulty || '', 'Growth Rate': product.specifications?.['Growth Rate'] || '', 'Light Requirements': product.specifications?.['Light Requirements'] || '', 'Mature Height': product.specifications?.['Mature Height'] || '', 'Pet Friendly': product.specifications?.['Pet Friendly'] || '', 'Pot Size': product.specifications?.['Pot Size'] || '', }, relatedProducts: product.relatedProducts ? product.relatedProducts.map((ref) => typeof ref === 'string' ? ref : ref.id?.value || ref.path?.value || String(ref.id || ref.path || '')) : ['', '', ''], reviews: product.reviews || '', }); setSelectedProduct(null); setShowEditProductModal(true); }}><EditIcon className="h-4 w-4 mr-2" />Edit Product</button>
-              <button className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" onClick={async () => { const newStockStr = window.prompt('Enter new stock quantity:', product.stock?.toString() || '0'); if (newStockStr === null) return; const newStock = parseInt(newStockStr); if (isNaN(newStock) || newStock < 0) { alert('Invalid stock value.'); return; } try { const { doc, collection } = await import('firebase/firestore'); const productRef = doc(collection(db, 'products'), product.id); await updateDoc(productRef, { stock: newStock }); setProducts((prev) => prev.map(p => p.id === product.id ? { ...p, stock: newStock } : p)); alert('Stock updated successfully.'); } catch (err) { alert('Failed to update stock.'); console.error('Update stock error:', err); } }}><RefreshCwIcon className="h-4 w-4 mr-2" />Update Stock</button>
+              <button className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" onClick={() => { setEditProductId(product.id); setEditProductForm({
+                ...product,
+                image: product.image || '',
+                price: typeof product.price === 'number' ? product.price : 0,
+                stock: typeof product.stock === 'number' ? product.stock : 0,
+                inStock: product.inStock ?? true,
+                isBestSeller: product.isBestSeller ?? false,
+                rating: product.rating ?? 0,
+                careInstructions: {
+                  light: product.careInstructions?.light || '',
+                  temperature: product.careInstructions?.temperature || '',
+                  warnings: product.careInstructions?.warnings || '',
+                  water: product.careInstructions?.water || '',
+                },
+                specifications: {
+                  Difficulty: product.specifications?.Difficulty || '',
+                  'Growth Rate': product.specifications?.['Growth Rate'] || '',
+                  'Light Requirements': product.specifications?.['Light Requirements'] || '',
+                  'Mature Height': product.specifications?.['Mature Height'] || '',
+                  'Pet Friendly': product.specifications?.['Pet Friendly'] || '',
+                  'Pot Size': product.specifications?.['Pot Size'] || '',
+                },
+                relatedProducts: Array.isArray(product.relatedProducts)
+                  ? product.relatedProducts.map((ref) => typeof ref === 'string' ? ref : String((ref as { id?: string; path?: string })?.id || (ref as { id?: string; path?: string })?.path || ''))
+                  : ['', '', ''],
+                reviews: typeof product.reviews === 'string' ? product.reviews : '',
+              }); setSelectedProduct(null); setShowEditProductModal(true); }}><EditIcon className="h-4 w-4 mr-2" />Edit Product</button>
+              <button className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" onClick={async () => { const newStockStr = window.prompt('Enter new stock quantity:', product.stock?.toString() || '0'); if (newStockStr === null) return; const newStock = parseInt(newStockStr); if (isNaN(newStock) || newStock < 0) { alert('Invalid stock value.'); return; } try { const { doc, collection } = await import('firebase/firestore'); const productRef = doc(collection(db, 'products'), product.id); await updateDoc(productRef, { stock: newStock }); setProducts((prev: Product[]) => prev.map((p: Product) => p.id === product.id ? { ...p, stock: newStock } : p)); alert('Stock updated successfully.'); } catch (err) { alert('Failed to update stock.'); console.error('Update stock error:', err); } }}><RefreshCwIcon className="h-4 w-4 mr-2" />Update Stock</button>
             </div>
           </div>
         </div>
