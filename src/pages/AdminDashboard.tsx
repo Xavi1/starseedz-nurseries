@@ -3,8 +3,8 @@ import SectionTitleBar from './AdminDashboard/layout/SectionTitleBar';
 import React, { useState, useEffect } from 'react';
 import ReactModal from 'react-modal';
 import { formatDate } from '../utils/formatDate';
-import OrderSummaryCard from '../components/OrderSummaryCard';
-import OrderTrackingWidget from '../components/OrderTrackingWidget';
+// ...existing code...
+// ...existing code...
 import jsPDF from 'jspdf';
 import CustomerDetail from './AdminDashboard/Customers/CustomerDetail';
 import autoTable from 'jspdf-autotable';
@@ -12,10 +12,10 @@ import { addProduct, getAllProducts } from '../firebaseHelpers';
 import { collection, query, where, onSnapshot, orderBy, getDoc, getDocs, updateDoc, doc, deleteDoc, addDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { Link } from 'react-router-dom';
-import { LayoutDashboardIcon, ShoppingBagIcon, PackageIcon, UsersIcon, BarChartIcon, SettingsIcon, MenuIcon, XIcon, SearchIcon, BellIcon, ChevronDownIcon, TrendingUpIcon, ClockIcon, UserCheckIcon, DollarSignIcon, ChevronRightIcon, FilterIcon, AlertCircleIcon, PlusIcon, TagIcon, BoxIcon, CreditCardIcon, TrashIcon, EditIcon, DownloadIcon, PrinterIcon, CheckCircleIcon, UserPlusIcon, StarIcon, MessageCircleIcon, RefreshCwIcon, EyeIcon, KeyIcon, RepeatIcon, TruckIcon } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
-import OrderItems from '../components/OrderItems';
+// ...existing code...
+import { LayoutDashboardIcon, ShoppingBagIcon, PackageIcon, UsersIcon, BarChartIcon, SettingsIcon, XIcon, SearchIcon, BellIcon, TrendingUpIcon, ClockIcon, UserCheckIcon, DollarSignIcon, ChevronRightIcon, FilterIcon, AlertCircleIcon, PlusIcon, TagIcon, TrashIcon, EditIcon, DownloadIcon, PrinterIcon, UserPlusIcon, StarIcon, MessageCircleIcon, RefreshCwIcon, EyeIcon, RepeatIcon } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
+// ...existing code...
 import { fetchOrderByNumber} from '../components/orderHelpers';
 import ReportRenderer from '../components/Reports';
 import SettingsPanel from './SettingsPanel';
@@ -73,24 +73,11 @@ interface FullOrder extends Partial<Order> {
   [key: string]: any;
 }
 
-interface OrderItemsProps {
-  orderId: string;
-}
+// ...existing code...
+// ...existing code...
 
-interface Customer {
-  uid: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  location: string;
-  lastLogin: string;
-  createdAt: string;
-  receiveEmails: boolean;
-  ordersCount?: number;
-  segment?: 'new' | 'repeat' | 'high';
-  totalSpent?: number;
-}
+// ...existing code...
+// ...existing code...
 
 // Product type for all usages
 type Product = {
@@ -151,7 +138,7 @@ const AdminDashboard = () => {
     }, []);
     const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false);
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
-    const [notifications, setNotifications] = useState([
+    const [notifications] = useState([
       "Order #1234 has been shipped.",
       "New user registered: John Doe.",
       "Low stock alert: Aloe Vera."
@@ -183,8 +170,8 @@ const AdminDashboard = () => {
   const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
   const [editingCustomer, setEditingCustomer] = useState<any | null>(null);
-  const [reportType, setReportType] = useState('sales');
-  const [reportTimeframe, setReportTimeframe] = useState('month');
+  const [reportType] = useState('sales');
+  // ...existing code...
   const [activeSettingsTab, setActiveSettingsTab] = useState('store');
   // Modal state for add product
   const [showAddProductModal, setShowAddProductModal] = useState(false);
@@ -214,9 +201,9 @@ const AdminDashboard = () => {
   const [customerOrders, setCustomerOrders] = useState<any[]>([]);
   // Inventory Alerts
   const [inventoryAlerts, setInventoryAlerts] = useState<InventoryAlert[]>([]);
-  const [loading, setLoading] = useState(true);
+  // ...existing code...
   const [restocking, setRestocking] = useState<string | null>(null);
-  const [showOrderSummary, setShowOrderSummary] = useState(false);
+  // ...existing code...
   const [fullOrderData, setFullOrderData] = useState<FullOrder | null>(null);
 
 /* //Order Items
@@ -412,7 +399,7 @@ const createCompatibleOrder = (data: any): FullOrder => {
 
 
 // Pagination state for Customer Ordrer Detail Render
-const [ordersPerPage, setOrdersPerPage] = useState(5);
+const [ordersPerPage] = useState(5);
 
 useEffect(() => {
   // Reset to first page when customer orders change
@@ -1009,7 +996,7 @@ const handleDownloadPDF = (order: any) => {
 
   // Products from Firebase
   const [products, setProducts] = useState<any[]>([]);
-  const [loadingProducts, setLoadingProducts] = useState(true);
+  // ...existing code...
   useEffect(() => {
     const fetchProducts = async () => {
       setLoadingProducts(true);
@@ -2295,7 +2282,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
     return (
       <OrderDetail
         order={order}
-        fullOrderData={fullOrderData}
+        fullOrderData={fullOrderData as any}
         selectedOrder={selectedOrder}
         handlePrintInvoice={handlePrintInvoice}
         handleDownloadPDF={handleDownloadPDF}
@@ -2311,7 +2298,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
     return (
       <ProductDetail
         product={product}
-        setSelectedProduct={setSelectedProduct}
+        setSelectedProduct={(p: any) => setSelectedProduct(p?.id ?? null)}
         setEditProductId={setEditProductId}
         setEditProductForm={setEditProductForm}
         setShowEditProductModal={setShowEditProductModal}
@@ -2331,7 +2318,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
   if (!customer) return null;
 
     // Get customer orders and metrics
-const orders = customerOrders;
+// ...existing code...
     return <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="px-4 py-5 border-b border-gray-200 flex justify-between items-center">
           <h3 className="text-lg leading-6 font-medium text-gray-900">
