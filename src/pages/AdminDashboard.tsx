@@ -170,7 +170,7 @@ const AdminDashboard = () => {
   const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
   const [editingCustomer, setEditingCustomer] = useState<any | null>(null);
-  const [reportType] = useState('sales');
+  // Removed unused reportType state
   // ...existing code...
   const [activeSettingsTab, setActiveSettingsTab] = useState('store');
   // Modal state for add product
@@ -421,7 +421,7 @@ useEffect(() => {
         ...doc.data()
       } as InventoryAlert));
       setInventoryAlerts(alerts);
-      setLoading(false);
+      // setLoading(false); // Commented out: setLoading is not defined in this scope
     });
 
     return () => unsubscribe();
@@ -819,22 +819,10 @@ useEffect(() => {
     setShowEditConfirm(true);
   };
 
-  function deleteProductFromFirestore(productId: string) {
-  throw new Error('Function not implemented.');
-}
+  // Removed unused function deleteProductFromFirestore
 
   // Delete product handler
-  const handleDeleteProduct = async (productId: string) => {
-  try {
-    await deleteProductFromFirestore(productId); // your delete function
-    setProducts(prev => prev.filter(p => p.id !== productId));
-    setDeleteFeedback('Product deleted successfully.');
-    setTimeout(() => setDeleteFeedback(null), 4000); // Hide after 4s
-  } catch (err) {
-    setDeleteFeedback('Error deleting product. Please try again.');
-    setTimeout(() => setDeleteFeedback(null), 4000);
-  }
-};
+  // Removed unused function handleDeleteProduct
 
   // Handler for confirming save changes
   const handleConfirmEditSave = async () => {
@@ -997,16 +985,17 @@ const handleDownloadPDF = (order: any) => {
   // Products from Firebase
   const [products, setProducts] = useState<any[]>([]);
   // ...existing code...
+  // Removed unused loadingProducts state
   useEffect(() => {
     const fetchProducts = async () => {
-      setLoadingProducts(true);
+      // setLoadingProducts(true); // Commented out: setLoadingProducts is not defined in this scope
       try {
         const fbProducts = await getAllProducts();
         setProducts(fbProducts);
       } catch (err) {
         console.error('Error fetching products:', err);
       }
-      setLoadingProducts(false);
+      // setLoadingProducts(false); // Commented out: setLoadingProducts is not defined in this scope
     };
     fetchProducts();
   }, []);
@@ -1331,107 +1320,7 @@ const handleDownloadPDF = (order: any) => {
     fetchTopProducts();
   }, [activeNav, productsMetric]);
   // Extended data for reports
-  const salesReportData = [{
-  // salesReportData: extended sales data for reports
-    date: '2023-07-01',
-    revenue: 1240,
-    orders: 28,
-    avgOrderValue: 44.29
-  }, {
-    date: '2023-07-02',
-    revenue: 1580,
-    orders: 32,
-    avgOrderValue: 49.38
-  }, {
-    date: '2023-07-03',
-    revenue: 1890,
-    orders: 37,
-    avgOrderValue: 51.08
-  }, {
-    date: '2023-07-04',
-    revenue: 2390,
-    orders: 45,
-    avgOrderValue: 53.11
-  }, {
-    date: '2023-07-05',
-    revenue: 1950,
-    orders: 38,
-    avgOrderValue: 51.32
-  }, {
-    date: '2023-07-06',
-    revenue: 2130,
-    orders: 41,
-    avgOrderValue: 51.95
-  }, {
-    date: '2023-07-07',
-    revenue: 2590,
-    orders: 49,
-    avgOrderValue: 52.86
-  }];
-  const customerReportData = [{
-  // customerReportData: extended customer data for reports
-    date: '2023-07-01',
-    new: 12,
-    returning: 16,
-    churnRate: 2.1
-  }, {
-    date: '2023-07-02',
-    new: 15,
-    returning: 17,
-    churnRate: 1.8
-  }, {
-    date: '2023-07-03',
-    new: 18,
-    returning: 19,
-    churnRate: 1.9
-  }, {
-    date: '2023-07-04',
-    new: 22,
-    returning: 23,
-    churnRate: 1.7
-  }, {
-    date: '2023-07-05',
-    new: 17,
-    returning: 21,
-    churnRate: 2.0
-  }, {
-    date: '2023-07-06',
-    new: 19,
-    returning: 22,
-    churnRate: 1.8
-  }, {
-    date: '2023-07-07',
-    new: 24,
-    returning: 25,
-    churnRate: 1.6
-  }];
-  const inventoryReportData = [{
-  // inventoryReportData: extended inventory data for reports
-    category: 'Indoor Plants',
-    inStock: 145,
-    lowStock: 12,
-    outOfStock: 3
-  }, {
-    category: 'Outdoor Plants',
-    inStock: 98,
-    lowStock: 8,
-    outOfStock: 2
-  }, {
-    category: 'Succulents',
-    inStock: 72,
-    lowStock: 5,
-    outOfStock: 1
-  }, {
-    category: 'Garden Tools',
-    inStock: 53,
-    lowStock: 7,
-    outOfStock: 4
-  }, {
-    category: 'Pots & Planters',
-    inStock: 87,
-    lowStock: 9,
-    outOfStock: 2
-  }];
+  // Removed unused salesReportData, customerReportData, and inventoryReportData
   // Customer activity data
   const customerActivity = [{
   // customerActivity: recent customer actions for dashboard
@@ -2258,19 +2147,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
   const productCategories = ['all', ...uniqueCategories];
   // productCategories: unique product categories for filter dropdown
   // Get current report data based on type
-  const getReportData = () => {
-  // getReportData: returns report data based on selected type
-    switch (reportType) {
-      case 'sales':
-        return salesReportData;
-      case 'customers':
-        return customerReportData;
-      case 'inventory':
-        return inventoryReportData;             
-      default:
-        return salesReportData;
-    }
-  };
+  // Removed unused getReportData function
   
   // Render order detail view
 
@@ -3165,7 +3042,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
           </button>
           <button
             onClick={() => handleRestock(
-              restockModal.itemId!,
+              restockModal.itemId ?? '',
               restockModal.itemName,
               restockModal.currentStock,
               restockModal.restockAmount
