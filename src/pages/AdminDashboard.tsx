@@ -3,8 +3,6 @@ import SectionTitleBar from './AdminDashboard/layout/SectionTitleBar';
 import React, { useState, useEffect } from 'react';
 import ReactModal from 'react-modal';
 import { formatDate } from '../utils/formatDate';
-// ...existing code...
-// ...existing code...
 import jsPDF from 'jspdf';
 import CustomerDetail from './AdminDashboard/Customers/CustomerDetail';
 import autoTable from 'jspdf-autotable';
@@ -12,10 +10,8 @@ import { addProduct, getAllProducts } from '../firebaseHelpers';
 import { collection, query, where, onSnapshot, orderBy, getDoc, getDocs, updateDoc, doc, deleteDoc, addDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-// ...existing code...
 import { LayoutDashboardIcon, ShoppingBagIcon, PackageIcon, UsersIcon, BarChartIcon, SettingsIcon, XIcon, SearchIcon, BellIcon, TrendingUpIcon, ClockIcon, UserCheckIcon, DollarSignIcon, ChevronRightIcon, FilterIcon, AlertCircleIcon, PlusIcon, TagIcon, TrashIcon, EditIcon, DownloadIcon, PrinterIcon, UserPlusIcon, StarIcon, MessageCircleIcon, RefreshCwIcon, EyeIcon, RepeatIcon } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
-// ...existing code...
 import { fetchOrderByNumber} from '../components/orderHelpers';
 import ReportRenderer from '../components/Reports';
 import SettingsPanel from './SettingsPanel';
