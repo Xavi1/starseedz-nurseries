@@ -1,4 +1,4 @@
-// No need to import React in modern TSX
+
 import { XIcon, CheckCircleIcon, CreditCardIcon, BoxIcon, TruckIcon, PrinterIcon, DownloadIcon } from 'lucide-react';
 import { formatDate } from "../../../utils/formatDate";
 import OrderSummaryCard from "../../../components/OrderSummaryCard";

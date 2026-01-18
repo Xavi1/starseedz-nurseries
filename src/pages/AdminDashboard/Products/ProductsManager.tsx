@@ -1,13 +1,13 @@
     import React, { useState, useEffect } from 'react';
-import { 
-  SearchIcon, 
-  PlusIcon, 
-  XIcon, 
-  EyeIcon, 
-  EditIcon, 
-  TrashIcon, 
-  ChevronRightIcon 
-} from 'lucide-react';
+    import { 
+            SearchIcon, 
+            PlusIcon, 
+            XIcon, 
+            EyeIcon, 
+            EditIcon, 
+            TrashIcon, 
+            ChevronRightIcon 
+          } from 'lucide-react';
 
 interface Product {
   id: string;
