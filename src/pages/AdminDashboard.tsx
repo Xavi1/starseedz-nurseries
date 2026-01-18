@@ -192,9 +192,7 @@ const AdminDashboard = () => {
   const [customerOrders, setCustomerOrders] = useState<any[]>([]);
   // Inventory Alerts
   const [inventoryAlerts, setInventoryAlerts] = useState<InventoryAlert[]>([]);
-  // ...existing code...
   const [restocking, setRestocking] = useState<string | null>(null);
-  // ...existing code...
   const [fullOrderData, setFullOrderData] = useState<FullOrder | null>(null);
 
 /* //Order Items
