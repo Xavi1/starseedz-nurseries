@@ -35,7 +35,6 @@ export default function OrderItems({ orderNumber }: OrderItemsProps) {
         const ordersRef = collection(db, 'orders');
         const q = query(ordersRef, where('orderNumber', '==', orderNumber));
         const querySnapshot = await getDocs(q);
-        
         if (!querySnapshot.empty) {
           // Get the first matching order
           const orderDoc = querySnapshot.docs[0];

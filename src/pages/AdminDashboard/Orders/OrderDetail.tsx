@@ -16,6 +16,7 @@ type OrderItem = {
 };
 type Order = {
   id: string;
+  orderNumber: number;
   customer?: string;
   date?: string | Date;
   status?: "Cancelled" | "Pending" | "Processing" | "Shipped" | "Delivered";
@@ -27,7 +28,7 @@ type Order = {
   trackingNumber?: string;
 };
 type FullOrder = Order & {
-  orderNumber?: string;
+  orderNumber?: number;
   subtotal?: number;
   shipping?: number;
   tax?: number;
@@ -284,7 +285,7 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, fullOrderData, selecte
             Order Items
           </h4>
           <div className="bg-gray-50 rounded-lg overflow-x-auto">
-            <OrderItems orderNumber={selectedOrder} />
+            <OrderItems orderNumber={fullOrderData?.orderNumber || order.orderNumber || ''} />
           </div>
         </div>
         {/* Action Buttons */}
