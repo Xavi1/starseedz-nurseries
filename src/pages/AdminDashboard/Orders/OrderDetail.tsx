@@ -42,7 +42,7 @@ interface OrderDetailProps {
   setSelectedOrder: (id: string | null) => void;
 }
 
-const OrderDetail: React.FC<OrderDetailProps> = ({ order, fullOrderData, selectedOrder, handlePrintInvoice, handleDownloadPDF, setSelectedOrder }) => {
+const OrderDetail: React.FC<OrderDetailProps> = ({ order, fullOrderData, handlePrintInvoice, handleDownloadPDF, setSelectedOrder }) => {
   if (!order) return null;
   // Defensive: ensure order.date is defined and valid
     let orderDate: Date | null = null;
@@ -285,7 +285,7 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, fullOrderData, selecte
             Order Items
           </h4>
           <div className="bg-gray-50 rounded-lg overflow-x-auto">
-            <OrderItems orderNumber={fullOrderData?.orderNumber || order.orderNumber || ''} />
+            <OrderItems orderNumber={String(fullOrderData?.orderNumber || order.orderNumber || '')} />
           </div>
         </div>
         {/* Action Buttons */}
