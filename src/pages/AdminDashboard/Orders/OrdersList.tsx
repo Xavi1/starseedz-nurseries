@@ -8,6 +8,7 @@ type OrdersListProps = {
   selectedOrder: string | null;
   setSelectedOrder: (id: string | null) => void;
   getStatusBadgeClass: (status: string) => string;
+  onEditOrder?: (order: any) => void;
 };
 
 export const OrdersList: React.FC<OrdersListProps> = ({
@@ -17,7 +18,8 @@ export const OrdersList: React.FC<OrdersListProps> = ({
   setOrderStatusFilter,
   selectedOrder,
   setSelectedOrder,
-  getStatusBadgeClass
+  getStatusBadgeClass,
+  onEditOrder
 }) => {
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6">
@@ -97,10 +99,23 @@ export const OrdersList: React.FC<OrdersListProps> = ({
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   ${order.totalAmount?.toLocaleString() || '0'}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4 whitespace-nowrap flex items-center gap-2">
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClass(order.status)}`}>
                     {order.status}
                   </span>
+                  <button
+                    type="button"
+                    className="ml-2 text-blue-500 hover:text-blue-700 focus:outline-none"
+                    title="Edit Order"
+                    onClick={e => {
+                      e.stopPropagation();
+                      onEditOrder && onEditOrder(order);
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13zm-6 6h6" />
+                    </svg>
+                  </button>
                 </td>
               </tr>
             ))}

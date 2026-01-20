@@ -973,7 +973,6 @@ const handleDownloadPDF = (order: any) => {
 
   // Products from Firebase
   const [products, setProducts] = useState<any[]>([]);
-  // ...existing code...
   // Removed unused loadingProducts state
   useEffect(() => {
     const fetchProducts = async () => {
@@ -3089,7 +3088,6 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
         </div>
       </div>
       {/* Recent Orders Table */}
-      {/* Recent Orders Table - Firebase data */}
       <div className="mt-8">
         <div className="bg-white shadow rounded-lg">
           <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
