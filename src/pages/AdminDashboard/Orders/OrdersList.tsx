@@ -1,14 +1,26 @@
 import React from 'react';
 
+
+// Match AdminDashboard order type
+type DashboardOrder = {
+  id: string;
+  customer: string;
+  date: string;
+  status: string;
+  total: number;
+  paymentMethod: string;
+  shippingMethod: string;
+};
+
 type OrdersListProps = {
-  allOrders: any[];
-  filteredOrders: any[];
+  allOrders: DashboardOrder[];
+  filteredOrders: DashboardOrder[];
   orderStatusFilter: string;
   setOrderStatusFilter: (filter: string) => void;
   selectedOrder: string | null;
   setSelectedOrder: (id: string | null) => void;
   getStatusBadgeClass: (status: string) => string;
-  onEditOrder?: (order: any) => void;
+  onEditOrder?: (order: DashboardOrder) => void;
 };
 
 export const OrdersList: React.FC<OrdersListProps> = ({
@@ -38,12 +50,12 @@ export const OrdersList: React.FC<OrdersListProps> = ({
             onChange={(e) => setOrderStatusFilter(e.target.value)}
             className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            <option value="">All Orders</option>
-            <option value="pending">Pending</option>
-            <option value="processing">Processing</option>
-            <option value="shipped">Shipped</option>
-            <option value="delivered">Delivered</option>
-            <option value="cancelled">Cancelled</option>
+            <option value="all">All Orders</option>
+            <option value="Pending">Pending</option>
+            <option value="Processing">Processing</option>
+            <option value="Shipped">Shipped</option>
+            <option value="Delivered">Delivered</option>
+            <option value="Cancelled">Cancelled</option>
           </select>
         </div>
       </div>
@@ -83,21 +95,19 @@ export const OrdersList: React.FC<OrdersListProps> = ({
               <tr
                 key={order.id}
                 onClick={() => setSelectedOrder(order.id)}
-                className={`cursor-pointer hover:bg-gray-50 ${
-                  selectedOrder === order.id ? 'bg-blue-50' : ''
-                }`}
+                className={`cursor-pointer hover:bg-gray-50 ${selectedOrder === order.id ? 'bg-blue-50' : ''}`}
               >
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   #{order.id}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {order.customerName || 'Unknown Customer'}
+                  {order.customer || 'Unknown Customer'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(order.orderDate).toLocaleDateString()}
+                  {order.date ? new Date(order.date).toLocaleDateString() : ''}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  ${order.totalAmount?.toLocaleString() || '0'}
+                  ${order.total?.toLocaleString() || '0'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap flex items-center gap-2">
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClass(order.status)}`}>

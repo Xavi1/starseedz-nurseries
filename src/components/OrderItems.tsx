@@ -2,13 +2,17 @@ import { useState, useEffect } from 'react';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 
+
+// Match AdminDashboard type
 interface OrderItem {
   id?: string;
-  productName?: string;
   name?: string;
   price: number;
   quantity: number;
+  image?: string;
+  category?: string;
 }
+
 
 interface OrderItemsProps {
   orderNumber: string;
@@ -39,7 +43,15 @@ export default function OrderItems({ orderNumber }: OrderItemsProps) {
           // Get the first matching order
           const orderDoc = querySnapshot.docs[0];
           const orderData = orderDoc.data();
-          const items = orderData?.items || [];
+          // Ensure items match the expected type
+          const items = (orderData?.items || []).map((item: any) => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image,
+            category: item.category
+          }));
           setOrderItems(items);
         } else {
           setError('Order not found');
@@ -57,10 +69,13 @@ export default function OrderItems({ orderNumber }: OrderItemsProps) {
   }, [orderNumber]);
 
   // ... rest of your component remains the same
+
+  // Use same currency formatting as AdminDashboard
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'USD',
+      minimumFractionDigits: 2
     }).format(amount);
   };
 
@@ -93,6 +108,7 @@ export default function OrderItems({ orderNumber }: OrderItemsProps) {
       </div>
     );
   }
+
 
   if (orderItems.length === 0) {
     return (
@@ -134,7 +150,7 @@ export default function OrderItems({ orderNumber }: OrderItemsProps) {
             {orderItems.map((item, index) => (
               <tr key={index}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {item.productName || item.name || 'Unnamed Product'}
+                  {item.name || 'Unnamed Product'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                   {item.quantity || 0}

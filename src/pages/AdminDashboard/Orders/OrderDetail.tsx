@@ -6,6 +6,8 @@ import OrderTrackingWidget from "../../../components/OrderTrackingWidget";
 import OrderItems from "../../../components/OrderItems";
 
 // Types for props
+
+// Match AdminDashboard types
 type OrderItem = {
   id: string;
   name: string;
@@ -16,10 +18,10 @@ type OrderItem = {
 };
 type Order = {
   id: string;
-  orderNumber: number;
+  orderNumber?: string;
   customer?: string;
   date?: string | Date;
-  status?: "Cancelled" | "Pending" | "Processing" | "Shipped" | "Delivered";
+  status?: string;
   timeline?: { status: string; date?: string; description?: string }[];
   total?: number;
   paymentMethod?: string;
@@ -28,7 +30,6 @@ type Order = {
   trackingNumber?: string;
 };
 type FullOrder = Order & {
-  orderNumber?: number;
   subtotal?: number;
   shipping?: number;
   tax?: number;
@@ -45,14 +46,14 @@ interface OrderDetailProps {
 const OrderDetail: React.FC<OrderDetailProps> = ({ order, fullOrderData, handlePrintInvoice, handleDownloadPDF, setSelectedOrder }) => {
   if (!order) return null;
   // Defensive: ensure order.date is defined and valid
-    let orderDate: Date | null = null;
-    if (order.date) {
-      if (typeof order.date === 'string' || typeof order.date === 'number') {
-        orderDate = new Date(order.date);
-      } else if (order.date instanceof Date) {
-        orderDate = order.date;
-      }
+  let orderDate: Date | null = null;
+  if (order.date) {
+    if (typeof order.date === 'string' || typeof order.date === 'number') {
+      orderDate = new Date(order.date);
+    } else if (order.date instanceof Date) {
+      orderDate = order.date;
     }
+  }
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
       <div className="px-4 py-5 border-b border-gray-200 flex justify-between items-center">
@@ -285,7 +286,7 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, fullOrderData, handleP
             Order Items
           </h4>
           <div className="bg-gray-50 rounded-lg overflow-x-auto">
-            <OrderItems orderNumber={String(fullOrderData?.orderNumber || order.orderNumber || '')} />
+            <OrderItems orderNumber={String(fullOrderData?.orderNumber || order.orderNumber || order.id || '')} />
           </div>
         </div>
         {/* Action Buttons */}
