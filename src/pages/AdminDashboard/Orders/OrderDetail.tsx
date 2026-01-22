@@ -1,13 +1,11 @@
-
-import { XIcon, CheckCircleIcon, CreditCardIcon, BoxIcon, TruckIcon, PrinterIcon, DownloadIcon } from 'lucide-react';
+// OrderDetail.tsx - Updated
+import { XIcon, CheckCircleIcon, CreditCardIcon, BoxIcon, TruckIcon, PrinterIcon, DownloadIcon, EyeIcon, EditIcon } from 'lucide-react';
 import { formatDate } from "../../../utils/formatDate";
 import OrderSummaryCard from "../../../components/OrderSummaryCard";
 import OrderTrackingWidget from "../../../components/OrderTrackingWidget";
 import OrderItems from "../../../components/OrderItems";
 
 // Types for props
-
-// Match AdminDashboard types
 type OrderItem = {
   id: string;
   name: string;
@@ -16,6 +14,7 @@ type OrderItem = {
   image?: string;
   category?: string;
 };
+
 type Order = {
   id: string;
   orderNumber?: string;
@@ -23,28 +22,36 @@ type Order = {
   date?: string | Date;
   status?: string;
   timeline?: { status: string; date?: string; description?: string }[];
-  total?: number;
+  total?: number | string;
   paymentMethod?: string;
   shippingMethod?: string;
   items?: OrderItem[];
   trackingNumber?: string;
 };
+
 type FullOrder = Order & {
   subtotal?: number;
   shipping?: number;
   tax?: number;
 };
+
 interface OrderDetailProps {
   order: Order;
   fullOrderData?: FullOrder | null;
-  selectedOrder: string;
   handlePrintInvoice: (order: Order) => void;
   handleDownloadPDF: (order: Order) => void;
   setSelectedOrder: (id: string | null) => void;
 }
 
-const OrderDetail: React.FC<OrderDetailProps> = ({ order, fullOrderData, handlePrintInvoice, handleDownloadPDF, setSelectedOrder }) => {
+const OrderDetail: React.FC<OrderDetailProps> = ({ 
+  order, 
+  fullOrderData, 
+  handlePrintInvoice, 
+  handleDownloadPDF, 
+  setSelectedOrder 
+}) => {
   if (!order) return null;
+  
   // Defensive: ensure order.date is defined and valid
   let orderDate: Date | null = null;
   if (order.date) {
@@ -54,6 +61,22 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, fullOrderData, handleP
       orderDate = order.date;
     }
   }
+
+  // Helper to parse total value
+  const parseTotal = (): number => {
+    if (typeof order.total === 'number') return order.total;
+    if (typeof order.total === 'string') {
+      const num = parseFloat(order.total.replace(/[^0-9.-]+/g, ''));
+      return isNaN(num) ? 0 : num;
+    }
+    return 0;
+  };
+
+  const totalNum = parseTotal();
+  const shipping = 5.00;
+  const tax = totalNum * 0.08;
+  const finalTotal = totalNum + shipping + tax;
+
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
       <div className="px-4 py-5 border-b border-gray-200 flex justify-between items-center">
@@ -152,7 +175,7 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, fullOrderData, handleP
                       Order Cancelled
                     </p>
                     <p className="text-xs text-gray-500">
-                      {formatDate(order.date)}
+                      {orderDate ? formatDate(orderDate) : 'N/A'}
                     </p>
                   </div>
                 </div>}
@@ -168,13 +191,13 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, fullOrderData, handleP
             <div className="flex flex-col space-y-4">
               {fullOrderData && (
                 <OrderSummaryCard
-                    orderNumber={String(fullOrderData?.orderNumber ?? 'N/A')}
-                    status={String(fullOrderData?.status ?? 'Unknown')}
+                  orderNumber={String(fullOrderData?.orderNumber ?? 'N/A')}
+                  status={String(fullOrderData?.status ?? 'Unknown')}
                   items={fullOrderData.items ?? []}
-                  subtotal={fullOrderData.subtotal ?? 0}
-                  shipping={fullOrderData.shipping ?? 0}
-                  tax={fullOrderData.tax ?? 0}
-                  total={fullOrderData.total ?? 0}
+                  subtotal={fullOrderData.subtotal ?? totalNum}
+                  shipping={fullOrderData.shipping ?? shipping}
+                  tax={fullOrderData.tax ?? tax}
+                  total={fullOrderData.total ?? finalTotal}
                 />
               )}
               <OrderTrackingWidget
@@ -185,7 +208,7 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, fullOrderData, handleP
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           {/* Customer Information */}
           <div>
             <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
@@ -193,7 +216,7 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, fullOrderData, handleP
             </h4>
             <div className="bg-gray-50 rounded-lg p-4">
               <p className="text-sm font-medium text-gray-900">
-                {order.customer}
+                {order.customer || 'Unknown Customer'}
               </p>
               <p className="text-sm text-gray-600 mt-1">
                 customer@example.com
@@ -217,63 +240,42 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, fullOrderData, handleP
               <div className="flex justify-between">
                 <p className="text-sm text-gray-600">Payment Method</p>
                 <p className="text-sm font-medium text-gray-900">
-                  {order.paymentMethod}
+                  {order.paymentMethod || 'N/A'}
                 </p>
               </div>
               <div className="flex justify-between mt-2">
                 <p className="text-sm text-gray-600">Shipping Method</p>
                 <p className="text-sm font-medium text-gray-900">
-                  {order.shippingMethod}
+                  {order.shippingMethod || 'N/A'}
                 </p>
               </div>
               <div className="flex justify-between mt-2">
                 <p className="text-sm text-gray-600">Tracking Number</p>
                 <p className="text-sm font-medium text-gray-900">
-                  TRK-{order.id.split('-')[1]}
+                  {order.trackingNumber || `TRK-${order.id.split('-')[1]}`}
                 </p>
               </div>
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <div className="flex justify-between">
                   <p className="text-sm text-gray-600">Subtotal</p>
                   <p className="text-sm font-medium text-gray-900">
-                    {
-                      (() => {
-                        const totalNum = typeof order.total === 'number'
-                          ? order.total
-                          : parseFloat(String(order.total).replace('$', ''));
-                        return `$${totalNum.toFixed(2)}`;
-                      })()
-                    }
+                    ${totalNum.toFixed(2)}
                   </p>
                 </div>
                 <div className="flex justify-between mt-2">
                   <p className="text-sm text-gray-600">Shipping</p>
-                  <p className="text-sm font-medium text-gray-900">$5.00</p>
+                  <p className="text-sm font-medium text-gray-900">${shipping.toFixed(2)}</p>
                 </div>
                 <div className="flex justify-between mt-2">
                   <p className="text-sm text-gray-600">Tax</p>
                   <p className="text-sm font-medium text-gray-900">
-                    {
-                      (() => {
-                        const totalNum = typeof order.total === 'number'
-                          ? order.total
-                          : parseFloat(String(order.total).replace('$', ''));
-                        return `$${(totalNum * 0.08).toFixed(2)}`;
-                      })()
-                    }
+                    ${tax.toFixed(2)}
                   </p>
                 </div>
                 <div className="flex justify-between mt-2 pt-2 border-t border-gray-200">
                   <p className="text-sm font-medium text-gray-900">Total</p>
                   <p className="text-sm font-medium text-gray-900">
-                    {
-                      (() => {
-                        const totalNum = typeof order.total === 'number'
-                          ? order.total
-                          : parseFloat(String(order.total).replace('$', ''));
-                        return `$${(totalNum + 5 + totalNum * 0.08).toFixed(2)}`;
-                      })()
-                    }
+                    ${finalTotal.toFixed(2)}
                   </p>
                 </div>
               </div>
