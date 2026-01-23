@@ -13,7 +13,7 @@
     BoxIcon, 
     TruckIcon 
   } from 'lucide-react';
-  import OrderDetail from './OrderDetail';
+  // import OrderDetail from './OrderDetail';
   import StatusBadge from '../../components/StatusBadge';
   import Pagination from '../../components/Pagination';
   import { Order } from '../../types';
@@ -246,7 +246,7 @@
                 <div className="flex flex-col space-y-4">
                   <OrderSummaryCard
                     orderNumber={order.orderNumber || 'N/A'}
-                    status={order.status || 'Unknown'}
+                    status={(order.status as 'Cancelled' | 'Pending' | 'Processing' | 'Shipped' | 'Delivered') || 'Pending'}
                     items={order.items ?? []}
                     subtotal={order.subtotal ?? 0}
                     shipping={order.shipping ?? 0}
@@ -254,8 +254,16 @@
                     total={order.total ?? 0}
                   />
                   <OrderTrackingWidget
-                    status={order.status || 'Unknown'}
-                    estimatedDelivery={order.timeline && order.timeline.length > 0 ? order.timeline[order.timeline.length - 1].date : ''}
+                    status={
+                      order.status === 'Pending' ||
+                      order.status === 'Processing' ||
+                      order.status === 'Shipped' ||
+                      order.status === 'Delivered' ||
+                      order.status === 'Cancelled'
+                        ? order.status
+                        : 'Pending'
+                    }
+                    estimatedDelivery={order.timeline && order.timeline.length > 0 ? order.timeline[order.timeline.length - 1].date || '' : ''}
                     trackingUrl={order.trackingNumber ? `https://track.aftership.com/${order.trackingNumber}` : undefined}
                   />
                 </div>
@@ -492,7 +500,7 @@
                     {typeof order.total === 'number' ? `$${order.total.toFixed(2)}` : order.total}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <StatusBadge status={order.status} />
+                    <StatusBadge status={order.status || 'Pending'} />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">

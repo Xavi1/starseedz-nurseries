@@ -1,5 +1,5 @@
 // OrderDetail.tsx - Updated
-import { XIcon, CheckCircleIcon, CreditCardIcon, BoxIcon, TruckIcon, PrinterIcon, DownloadIcon, EyeIcon, EditIcon } from 'lucide-react';
+import { XIcon, CheckCircleIcon, CreditCardIcon, BoxIcon, TruckIcon, PrinterIcon, DownloadIcon } from 'lucide-react';
 import { formatDate } from "../../../utils/formatDate";
 import OrderSummaryCard from "../../../components/OrderSummaryCard";
 import OrderTrackingWidget from "../../../components/OrderTrackingWidget";
@@ -197,11 +197,19 @@ const OrderDetail: React.FC<OrderDetailProps> = ({
                   subtotal={fullOrderData.subtotal ?? totalNum}
                   shipping={fullOrderData.shipping ?? shipping}
                   tax={fullOrderData.tax ?? tax}
-                  total={fullOrderData.total ?? finalTotal}
+                  total={typeof fullOrderData.total === 'number' ? fullOrderData.total : (typeof fullOrderData.total === 'string' ? parseFloat(fullOrderData.total.replace(/[^0-9.-]+/g, '')) || finalTotal : finalTotal)}
                 />
               )}
               <OrderTrackingWidget
-                status={order.status || 'Pending'}
+                status={
+                  order.status === 'Pending' ||
+                  order.status === 'Processing' ||
+                  order.status === 'Shipped' ||
+                  order.status === 'Delivered' ||
+                  order.status === 'Cancelled'
+                    ? order.status
+                    : 'Pending'
+                }
                 estimatedDelivery={order.timeline && order.timeline.length > 0 ? order.timeline[order.timeline.length - 1].date || '' : ''}
                 trackingUrl={order.trackingNumber ? `https://track.aftership.com/${order.trackingNumber}` : undefined}
               />
