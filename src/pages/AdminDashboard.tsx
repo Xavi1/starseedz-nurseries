@@ -36,6 +36,8 @@ import OrdersList from './AdminDashboard/Orders/OrdersList';
 // - Inline documentation for maintainability and onboarding
 // =============================
 
+
+
 interface InventoryAlert {
   id: string;
   name: string;
@@ -1116,6 +1118,7 @@ const handleDownloadPDF = (order: any) => {
     });
     window.location.reload();
   };
+  
 
   // Dashboard Firebase Data
   const [dashboardStats, setDashboardStats] = useState<{
@@ -2178,6 +2181,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
   const handleEditOrder = (orderId: string) => {
   // Navigate to order detail view in edit mode
   setSelectedOrder(orderId);
+  };
 
   // Render customer detail view
   // =============================
@@ -2188,7 +2192,6 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
   if (!customer) return null;
 
     // Get customer orders and metrics
-// ...existing code...
     return <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="px-4 py-5 border-b border-gray-200 flex justify-between items-center">
           <h3 className="text-lg leading-6 font-medium text-gray-900">
@@ -3399,6 +3402,11 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
     return renderProductDetail();
   }
 
+  // Debug log for products state
+  console.log('Products:', products);
+  console.log('Filtered:', filteredProducts);
+  console.log('Paginated:', paginatedProducts);
+
   return (
     <div className="bg-white shadow rounded-lg">
       <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
@@ -3471,48 +3479,56 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {paginatedProducts.map(product => (
-              <tr key={product.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4">
-                  <input
-                    type="checkbox"
-                    checked={selectedProductIds.includes(product.id)}
-                    onChange={handleSelectProduct(product.id)}
-                    className="h-4 w-4 text-green-600 border-gray-300 rounded"
-                  />
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center">
-                    <img src={product.image || product.imageUrl} alt={product.name} className="h-10 w-10 rounded object-cover" />
-                    <span className="ml-3 text-sm font-medium text-gray-900">{product.name}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-700">{product.sku}</td>
-                <td className="px-6 py-4 text-sm text-gray-700">
-                  {Array.isArray(product.category) ? product.category.join(', ') : product.category}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-700">${product.price.toFixed(2)}</td>
-                <td className="px-6 py-4 text-sm text-gray-700">{product.stock}</td>
-                <td className="px-6 py-4 text-right">
-                  <button
-                    onClick={() => setSelectedProduct(product.id)}
-                    className="text-green-700 hover:text-green-900 mr-3"
-                  >
-                    <EyeIcon className="h-5 w-5" />
-                  </button>
-                  <button
-                    onClick={() => {
-                      setEditProductId(product.id);
-                      setEditProductForm(product);
-                      setShowEditProductModal(true);
-                    }}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    <EditIcon className="h-5 w-5" />
-                  </button>
+            {paginatedProducts.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="text-center py-8 text-gray-500">
+                  No products found.
                 </td>
               </tr>
-            ))}
+            ) : (
+              paginatedProducts.map(product => (
+                <tr key={product.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedProductIds.includes(product.id)}
+                      onChange={handleSelectProduct(product.id)}
+                      className="h-4 w-4 text-green-600 border-gray-300 rounded"
+                    />
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center">
+                      <img src={product.image || product.imageUrl} alt={product.name} className="h-10 w-10 rounded object-cover" />
+                      <span className="ml-3 text-sm font-medium text-gray-900">{product.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-700">{product.sku}</td>
+                  <td className="px-6 py-4 text-sm text-gray-700">
+                    {Array.isArray(product.category) ? product.category.join(', ') : product.category}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-700">${product.price.toFixed(2)}</td>
+                  <td className="px-6 py-4 text-sm text-gray-700">{product.stock}</td>
+                  <td className="px-6 py-4 text-right">
+                    <button
+                      onClick={() => setSelectedProduct(product.id)}
+                      className="text-green-700 hover:text-green-900 mr-3"
+                    >
+                      <EyeIcon className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditProductId(product.id);
+                        setEditProductForm(product);
+                        setShowEditProductModal(true);
+                      }}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <EditIcon className="h-5 w-5" />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
@@ -4016,7 +4032,6 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
       </div>
     </DashboardMainLayout>
   );
-};
 };
 
 export { AdminDashboard };
