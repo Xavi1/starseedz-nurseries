@@ -15,16 +15,17 @@ import { Order } from '../../../AdminDashboard/types';
 
 interface OrderDetailProps {
   order: Order;
-  onClose: () => void;
-  onPrintInvoice: (order: Order) => void;
-  onDownloadPDF: (order: Order) => void;
+  fullOrderData: (order: Order) => void;
+  setSelectedOrder: (id: string | null) => void;
+  handlePrintInvoice: (order: Order) => void;
+  handleDownloadPDF: (order: Order) => void;
 }
 
 const OrderDetail: React.FC<OrderDetailProps> = ({ 
   order, 
-  onClose, 
-  onPrintInvoice, 
-  onDownloadPDF 
+  setSelectedOrder, 
+  handlePrintInvoice, 
+  handleDownloadPDF 
 }) => {
   // Helper function to format dates
   const formatDate = (date: Date | string) => {
@@ -45,7 +46,7 @@ const OrderDetail: React.FC<OrderDetailProps> = ({
           Order: {order.id}
         </h3>
         <button 
-          onClick={onClose} 
+          onClick={() => setSelectedOrder(null)} 
           className="text-gray-400 hover:text-gray-500"
         >
           <XIcon className="h-5 w-5" />
@@ -311,14 +312,14 @@ const OrderDetail: React.FC<OrderDetailProps> = ({
         {/* Action Buttons */}
         <div className="mt-6 flex justify-end space-x-3">
           <button 
-            onClick={() => onPrintInvoice(order)}
+            onClick={() => handlePrintInvoice(order)}
             className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
           >
             <PrinterIcon className="h-4 w-4 mr-2" />
             Print Invoice
           </button>
           <button 
-            onClick={() => onDownloadPDF(order)}
+            onClick={() => handleDownloadPDF(order)}
             className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
           >
             <DownloadIcon className="h-4 w-4 mr-2" />
