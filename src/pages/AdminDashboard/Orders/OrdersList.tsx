@@ -42,11 +42,11 @@ type OrdersListProps = {
 };
 
 export const OrdersList: React.FC<OrdersListProps> = ({
-  allOrders,
+  // allOrders,
   filteredOrders,
   orderStatusFilter,
   setOrderStatusFilter,
-  selectedOrder,
+  // selectedOrder,
   setSelectedOrder,
   getStatusBadgeClass,
   onEditOrder,
@@ -290,7 +290,7 @@ export const OrdersList: React.FC<OrdersListProps> = ({
               <button
                 type="button"
                 className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${ordersCurrentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
-                onClick={() => setOrdersCurrentPage(p => Math.max(1, p - 1))}
+                onClick={() => setOrdersCurrentPage(Math.max(1, ordersCurrentPage - 1))}
                 disabled={ordersCurrentPage === 1}
                 aria-label="Previous"
               >
@@ -315,7 +315,7 @@ export const OrdersList: React.FC<OrdersListProps> = ({
               <button
                 type="button"
                 className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${ordersCurrentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
-                onClick={() => setOrdersCurrentPage(p => Math.min(totalPages, p + 1))}
+                onClick={() => setOrdersCurrentPage(Math.min(totalPages, ordersCurrentPage + 1))}
                 disabled={ordersCurrentPage === totalPages}
                 aria-label="Next"
               >
