@@ -68,8 +68,6 @@ export default function OrderItems({ orderNumber }: OrderItemsProps) {
     fetchOrderItems();
   }, [orderNumber]);
 
-  // ... rest of your component remains the same
-
   // Use same currency formatting as AdminDashboard
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('en-US', {
