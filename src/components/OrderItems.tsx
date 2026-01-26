@@ -37,25 +37,49 @@ export default function OrderItems({ orderNumber }: OrderItemsProps) {
 
         // Query orders collection where orderNumber field matches
         const ordersRef = collection(db, 'orders');
-        const q = query(ordersRef, where('orderNumber', '==', orderNumber));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-          // Get the first matching order
-          const orderDoc = querySnapshot.docs[0];
-          const orderData = orderDoc.data();
-          // Ensure items match the expected type
-          const items = (orderData?.items || []).map((item: any) => ({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            image: item.image,
-            category: item.category
-          }));
-          setOrderItems(items);
-        } else {
-          setError('Order not found');
+
+        const possibleOrderNumbers = [
+          orderNumber,
+          `Order #${orderNumber}`,
+          `ORD-${orderNumber}`,
+        ];
+        
+        // If orderNumber already has a prefix, also try without it
+        if (orderNumber.startsWith('Order #')) {
+          possibleOrderNumbers.push(orderNumber.replace('Order #', ''));
+          possibleOrderNumbers.push(orderNumber.replace('Order #', 'ORD-'));
+        } else if (orderNumber.startsWith('ORD-')) {
+          possibleOrderNumbers.push(orderNumber.replace('ORD-', ''));
+          possibleOrderNumbers.push(orderNumber.replace('ORD-', 'Order #'));
         }
+
+        let orderDoc = null;
+
+        for (const num of possibleOrderNumbers) {
+          const q = query(ordersRef, where('orderNumber', '==', num));
+          const snap = await getDocs(q);
+          if (!snap.empty) {
+            orderDoc = snap.docs[0];
+            break;
+          }
+        }
+
+        if (!orderDoc) {
+          setError('Order not found');
+          return;
+        }
+
+        const orderData = orderDoc.data();
+        const items = (orderData.items || []).map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image,
+          category: item.category
+        }));
+
+        setOrderItems(items);
         
       } catch (err) {
         console.error('Error fetching order items:', err);
