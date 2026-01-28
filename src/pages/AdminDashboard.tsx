@@ -3293,9 +3293,9 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                         >
                           <EyeIcon className="h-5 w-5" />
                         </button>
-                        <button className="text-gray-500 hover:text-gray-700">
+                        {/* <button className="text-gray-500 hover:text-gray-700">
                           <EditIcon className="h-5 w-5" />
-                        </button>
+                        </button> */}
                       </div>
                     </td>
                   </tr>)}
