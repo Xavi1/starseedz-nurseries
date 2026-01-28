@@ -237,7 +237,7 @@ export const OrdersList: React.FC<OrdersListProps> = ({
                       >
                         <EyeIcon className="h-5 w-5" />
                       </button>
-                      <button 
+                      {/* <button 
                         onClick={(e) => {
                           e.stopPropagation();
                           onEditOrder && onEditOrder(order);
@@ -245,7 +245,7 @@ export const OrdersList: React.FC<OrdersListProps> = ({
                         className="text-gray-500 hover:text-gray-700"
                       >
                         <EditIcon className="h-5 w-5" />
-                      </button>
+                      </button> */}
                     </div>
                   </td>
                 </tr>
