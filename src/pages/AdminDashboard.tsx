@@ -2152,7 +2152,6 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
     return (
       <OrderDetail
         order={order}
-        fullOrderData={fullOrderData as any}
         handlePrintInvoice={handlePrintInvoice}
         handleDownloadPDF={handleDownloadPDF}
         setSelectedOrder={setSelectedOrder}

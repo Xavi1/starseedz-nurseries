@@ -15,7 +15,6 @@ import { Order } from '../../../AdminDashboard/types';
 
 interface OrderDetailProps {
   order: Order;
-  fullOrderData: (order: Order) => void;
   setSelectedOrder: (id: string | null) => void;
   handlePrintInvoice: (order: Order) => void;
   handleDownloadPDF: (order: Order) => void;
