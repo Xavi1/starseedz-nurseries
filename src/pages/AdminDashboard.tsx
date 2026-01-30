@@ -1937,6 +1937,8 @@ const handlePrintInvoice = async (order: { id: string }) => {
       notes: 'Collector of rare plants. Interested in plant swaps and events.'
     }
   ]; */
+
+  // Get Order status based on type
   type OrderStatus = 'Order Placed' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled' | string;
 
   // getStatusBadgeClass: returns CSS class for order status badge
