@@ -1844,7 +1844,7 @@ const handlePrintInvoice = async (order: { id: string }) => {
   }, [activeNav]);
   // Status badge color mapper
   // Customers data for Customers tab
-  const customers = [
+ /*  const customers = [
     {
       id: 1,
       name: 'Emma Johnson',
@@ -1936,7 +1936,7 @@ const handlePrintInvoice = async (order: { id: string }) => {
       createdAt: '2022-01-15',
       notes: 'Collector of rare plants. Interested in plant swaps and events.'
     }
-  ];
+  ]; */
   type OrderStatus = 'Order Placed' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled' | string;
 
   // getStatusBadgeClass: returns CSS class for order status badge
