@@ -3811,7 +3811,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
       {(() => {
         // --- Pagination logic for Customers ---
         const pageSize = 10;
-        const totalCustomers = customers.length;
+        const totalCustomers = allCustomers.length;
         const totalPages = Math.ceil(totalCustomers / pageSize) || 1;
         const startIdx = (customersCurrentPage - 1) * pageSize;
         const endIdx = Math.min(startIdx + pageSize, totalCustomers);
