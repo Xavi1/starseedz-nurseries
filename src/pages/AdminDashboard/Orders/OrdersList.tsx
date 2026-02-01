@@ -1,6 +1,6 @@
 // OrdersList.tsx - Enhanced with all UI features
 import React from 'react';
-import { DownloadIcon, PrinterIcon, EyeIcon, EditIcon, ChevronRightIcon } from 'lucide-react';
+import { DownloadIcon, PrinterIcon, EyeIcon, ChevronRightIcon } from 'lucide-react';
 
 // Match AdminDashboard order type
 type DashboardOrder = {
