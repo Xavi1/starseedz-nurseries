@@ -49,7 +49,6 @@ export const OrdersList: React.FC<OrdersListProps> = ({
   // selectedOrder,
   setSelectedOrder,
   getStatusBadgeClass,
-  onEditOrder,
   onViewOrder,
   onExportCSV,
   onPrintOrders,
