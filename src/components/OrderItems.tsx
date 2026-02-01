@@ -70,7 +70,7 @@ export default function OrderItems({ orderNumber }: OrderItemsProps) {
         }
 
         const orderData = orderDoc.data();
-        const items = (orderData.items || []).map((item: any) => ({
+        const items = (orderData.items || []).map((item: OrderItem) => ({
           id: item.id,
           name: item.name,
           price: item.price,
