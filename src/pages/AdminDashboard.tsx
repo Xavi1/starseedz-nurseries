@@ -20,7 +20,6 @@ import DashboardHeader from './AdminDashboard/layout/DashboardHeader';
 import DashboardMainLayout from './AdminDashboard/layout/DashboardMainLayout';
 import  OrderDetail  from "./AdminDashboard/Orders/OrderDetail";
 import ProductDetail from "./AdminDashboard/Products/ProductDetail";
-import OrdersList from './AdminDashboard/Orders/OrdersList';
 
 // =============================
 // AdminDashboard.tsx
