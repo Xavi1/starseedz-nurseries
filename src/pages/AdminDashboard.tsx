@@ -165,7 +165,6 @@ const AdminDashboard = () => {
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
   const [editingCustomer, setEditingCustomer] = useState<any | null>(null);
   // Removed unused reportType state
-  // ...existing code...
   const [activeSettingsTab, setActiveSettingsTab] = useState('store');
   // Modal state for add product
   const [showAddProductModal, setShowAddProductModal] = useState(false);
