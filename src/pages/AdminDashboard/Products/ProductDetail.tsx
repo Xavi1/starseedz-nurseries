@@ -1,10 +1,8 @@
-
 import { Product } from "../../../AdminDashboard/types";
 import { XIcon, EditIcon, RefreshCwIcon } from "lucide-react";
 import { ResponsiveContainer, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Line } from "recharts";
-
-
-import { Firestore, DocumentData, UpdateData, DocumentReference } from "firebase/firestore";
+import { Firestore, DocumentData, UpdateData, DocumentReference, collection, query, where, getDocs, Timestamp } from "firebase/firestore";
+import { useEffect, useState } from "react";
 
 interface ProductDetailProps {
   product: Product;
@@ -17,8 +15,90 @@ interface ProductDetailProps {
   updateDoc: (ref: DocumentReference<DocumentData>, data: UpdateData<DocumentData>) => Promise<void>;
 }
 
-const ProductDetail: React.FC<ProductDetailProps> = ({ product, setSelectedProduct, setEditProductId, setEditProductForm, setShowEditProductModal, setProducts, db, updateDoc }) => {
+interface SalesData {
+  date: string;
+  sales: number;
+}
+
+const ProductDetail: React.FC<ProductDetailProps> = ({ 
+  product, 
+  setSelectedProduct, 
+  setEditProductId, 
+  setEditProductForm, 
+  setShowEditProductModal, 
+  setProducts, 
+  db, 
+  updateDoc 
+}) => {
+  const [salesData, setSalesData] = useState<SalesData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSalesData = async () => {
+      if (!product?.id) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        // Query orders collection for orders containing this product
+        const ordersRef = collection(db, 'orders');
+        const q = query(
+          ordersRef,
+          where('items', 'array-contains', product.id)
+        );
+
+        const querySnapshot = await getDocs(q);
+        
+        // Process orders to get sales by date
+        const salesByDate: Record<string, number> = {};
+        
+        querySnapshot.forEach((doc) => {
+          const orderData = doc.data();
+          const orderDate = orderData.createdAt 
+            ? (orderData.createdAt instanceof Timestamp 
+                ? orderData.createdAt.toDate().toISOString().split('T')[0]
+                : new Date(orderData.createdAt).toISOString().split('T')[0])
+            : new Date().toISOString().split('T')[0];
+          
+          // Count quantity of this product in the order
+          let productQuantity = 0;
+          if (orderData.items && Array.isArray(orderData.items)) {
+            // If items is an array of product IDs, we need to check quantities
+            if (orderData.quantities && orderData.quantities[product.id]) {
+              productQuantity = orderData.quantities[product.id];
+            } else {
+              // Simple count if quantities not available
+              productQuantity = orderData.items.filter((itemId: string) => itemId === product.id).length;
+            }
+          }
+          
+          if (salesByDate[orderDate]) {
+            salesByDate[orderDate] += productQuantity;
+          } else {
+            salesByDate[orderDate] = productQuantity;
+          }
+        });
+
+        // Convert to array and sort by date
+        const processedData = Object.entries(salesByDate)
+          .map(([date, sales]) => ({ date, sales }))
+          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+        setSalesData(processedData);
+      } catch (error) {
+        console.error('Error fetching sales data:', error);
+        setSalesData([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSalesData();
+  }, [product?.id, db]);
+
   if (!product) return null;
+
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
       <div className="px-4 py-5 border-b border-gray-200 flex justify-between items-center">
@@ -72,9 +152,41 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, setSelectedProdu
             <div className="mt-6">
               <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider">Sales History</h4>
               <div className="mt-2 h-32">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={[{date: '2023-05-15',sales: 5},{date: '2023-05-22',sales: 8},{date: '2023-05-29',sales: 12},{date: '2023-06-05',sales: 10},{date: '2023-06-12',sales: 15},{date: '2023-06-19',sales: 18},{date: '2023-06-26',sales: 14},{date: '2023-07-03',sales: 20},{date: '2023-07-10',sales: 16}]}> <CartesianGrid strokeDasharray="3 3" vertical={false} /> <XAxis dataKey="date" tick={false} /> <YAxis /> <Tooltip /> <Line type="monotone" dataKey="sales" stroke="#16a34a" strokeWidth={2} dot={false} /> </LineChart>
-                </ResponsiveContainer>
+                {isLoading ? (
+                  <div className="h-full flex items-center justify-center">
+                    <p className="text-gray-500">Loading sales data...</p>
+                  </div>
+                ) : salesData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={salesData}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis 
+                        dataKey="date" 
+                        tickFormatter={(date) => {
+                          const d = new Date(date);
+                          return `${d.getMonth() + 1}/${d.getDate()}`;
+                        }}
+                      />
+                      <YAxis />
+                      <Tooltip 
+                        labelFormatter={(date) => `Date: ${date}`}
+                        formatter={(value) => [`${value} units`, 'Sales']}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="sales" 
+                        stroke="#16a34a" 
+                        strokeWidth={2} 
+                        dot={{ r: 3 }}
+                        activeDot={{ r: 5 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center">
+                    <p className="text-gray-500">No sales data available for this product</p>
+                  </div>
+                )}
               </div>
             </div>
             <div className="mt-6 flex justify-end space-x-3">
