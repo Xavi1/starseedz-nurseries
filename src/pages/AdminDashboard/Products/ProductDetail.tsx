@@ -1,7 +1,7 @@
 import { Product } from "../../../AdminDashboard/types";
 import { XIcon, EditIcon, RefreshCwIcon } from "lucide-react";
 import { ResponsiveContainer, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Line } from "recharts";
-import { Firestore, DocumentData, UpdateData, DocumentReference, collection, query, where, getDocs, Timestamp } from "firebase/firestore";
+import { Firestore, DocumentData, UpdateData, DocumentReference, collection, query, getDocs, Timestamp } from "firebase/firestore";
 import { useEffect, useState } from "react";
 
 interface ProductDetailProps {
@@ -41,42 +41,48 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
       }
 
       try {
-        // Query orders collection for orders containing this product
+        // Query all orders since items is an array of objects, not IDs
         const ordersRef = collection(db, 'orders');
-        const q = query(
-          ordersRef,
-          where('items', 'array-contains', product.id)
-        );
-
-        const querySnapshot = await getDocs(q);
+        const querySnapshot = await getDocs(ordersRef);
         
         // Process orders to get sales by date
         const salesByDate: Record<string, number> = {};
         
         querySnapshot.forEach((doc) => {
           const orderData = doc.data();
-          const orderDate = orderData.createdAt 
-            ? (orderData.createdAt instanceof Timestamp 
-                ? orderData.createdAt.toDate().toISOString().split('T')[0]
-                : new Date(orderData.createdAt).toISOString().split('T')[0])
-            : new Date().toISOString().split('T')[0];
           
-          // Count quantity of this product in the order
-          let productQuantity = 0;
+          // Check if this order contains the current product
           if (orderData.items && Array.isArray(orderData.items)) {
-            // If items is an array of product IDs, we need to check quantities
-            if (orderData.quantities && orderData.quantities[product.id]) {
-              productQuantity = orderData.quantities[product.id];
-            } else {
-              // Simple count if quantities not available
-              productQuantity = orderData.items.filter((itemId: string) => itemId === product.id).length;
+            // Find items matching the product ID
+            const matchingItems = orderData.items.filter((item: any) => {
+              // Handle both number and string IDs
+              const itemId = typeof item.id === 'number' ? item.id : parseInt(item.id);
+              const productId = typeof product.id === 'number' ? product.id : parseInt(product.id);
+              return itemId === productId;
+            });
+
+            if (matchingItems.length > 0) {
+              // Get order date
+              const orderDate = orderData.date 
+                ? (typeof orderData.date === 'string'
+                    ? new Date(orderData.date).toISOString().split('T')[0]
+                    : orderData.date instanceof Timestamp 
+                      ? orderData.date.toDate().toISOString().split('T')[0]
+                      : new Date(orderData.date).toISOString().split('T')[0])
+                : new Date().toISOString().split('T')[0];
+              
+              // Sum up quantities for this product in this order
+              const totalQuantity = matchingItems.reduce((sum: number, item: any) => {
+                return sum + (item.quantity || 1);
+              }, 0);
+              
+              // Add to sales data
+              if (salesByDate[orderDate]) {
+                salesByDate[orderDate] += totalQuantity;
+              } else {
+                salesByDate[orderDate] = totalQuantity;
+              }
             }
-          }
-          
-          if (salesByDate[orderDate]) {
-            salesByDate[orderDate] += productQuantity;
-          } else {
-            salesByDate[orderDate] = productQuantity;
           }
         });
 
