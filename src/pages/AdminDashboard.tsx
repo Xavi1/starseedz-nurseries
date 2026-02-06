@@ -195,7 +195,7 @@ const AdminDashboard = () => {
   // Inventory Alerts
   const [inventoryAlerts, setInventoryAlerts] = useState<InventoryAlert[]>([]);
   const [restocking, setRestocking] = useState<string | null>(null);
-  const [fullOrderData, setFullOrderData] = useState<FullOrder | null>(null);
+  const [ setFullOrderData] = useState<FullOrder | null>(null);
 
 /* //Order Items
 const OrderItems: React.FC<OrderItemsProps> = ({ orderId }) => {
