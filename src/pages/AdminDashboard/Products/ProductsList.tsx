@@ -118,7 +118,7 @@ const ProductsList: React.FC<ProductsListProps> = ({
                   <EyeIcon className="h-4 w-4" />
                 </button>
                 <button className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded">
-                  <EditIcon className="h-4 w-4" />
+                  <EditIcon className="h-4 w-4"/>
                 </button>
                 <button className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded">
                   <Trash2Icon className="h-4 w-4" />

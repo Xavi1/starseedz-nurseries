@@ -3395,6 +3395,8 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
           </div>
         </div>}
     </>;
+
+
   // Render products content
   const renderProductsContent = () => {
   if (selectedProduct !== null) {
