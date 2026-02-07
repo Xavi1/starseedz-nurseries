@@ -195,7 +195,7 @@ const AdminDashboard = () => {
   // Inventory Alerts
   const [inventoryAlerts, setInventoryAlerts] = useState<InventoryAlert[]>([]);
   const [restocking, setRestocking] = useState<string | null>(null);
-  const [ setFullOrderData] = useState<FullOrder | null>(null);
+  const [ FullOrder,setFullOrderData] = useState<FullOrder | null>(null);
 
 /* //Order Items
 const OrderItems: React.FC<OrderItemsProps> = ({ orderId }) => {
@@ -1640,7 +1640,10 @@ const handlePrintInvoice = async (order: { id: string }) => {
           </tbody>
         </table>
       </div>
-    `;
+        {showEditProductModal && editProductForm && renderEditProductModal()}
+        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
+
+        `;
 
     container.innerHTML = content;
 
