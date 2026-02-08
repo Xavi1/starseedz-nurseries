@@ -20,6 +20,7 @@ import DashboardHeader from './AdminDashboard/layout/DashboardHeader';
 import DashboardMainLayout from './AdminDashboard/layout/DashboardMainLayout';
 import  OrderDetail  from "./AdminDashboard/Orders/OrderDetail";
 import ProductDetail from "./AdminDashboard/Products/ProductDetail";
+import ProductEditModal from './AdminDashboard/Products/ProductEditModal';
 
 // =============================
 // AdminDashboard.tsx
@@ -3521,12 +3522,25 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                     </button>
                     <button
                       onClick={() => {
-                        console.log('Edit clicked for product:', product.id);
+                        console.log('Edit button clicked', product); // Debug log
                         setEditProductId(product.id);
-                        setEditProductForm(product);
+                        setEditProductForm({
+                          ...product,
+                          // Ensure all required fields are present with defaults
+                          sku: product.sku || product.id,
+                          price: product.price || 0,
+                          stock: product.stock || 0,
+                          inStock: product.inStock ?? true,
+                          isBestSeller: product.isBestSeller ?? false,
+                          rating: product.rating || 0,
+                          relatedProducts: product.relatedProducts || [],
+                          specifications: product.specifications || {},
+                          careInstructions: product.careInstructions || {},
+                        });
                         setShowEditProductModal(true);
                       }}
                       className="text-gray-500 hover:text-gray-700"
+                      title="Edit product"
                     >
                       <EditIcon className="h-5 w-5" />
                     </button>
