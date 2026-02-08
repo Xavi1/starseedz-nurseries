@@ -817,36 +817,40 @@ useEffect(() => {
   // Removed unused function handleDeleteProduct
 
   // Handler for confirming save changes
-  const handleConfirmEditSave = async () => {
-    if (!editProductForm || !editProductId) return;
-    const updatedProduct = {
-      ...editProductForm,
-      id: editProductId,
-      sku: editProductForm.sku || editProductId,
-      price: parseFloat(editProductForm.price),
-      stock: editProductForm.stock === '' ? 0 : parseInt(editProductForm.stock),
-      inStock: Boolean(editProductForm.inStock),
-      isBestSeller: Boolean(editProductForm.isBestSeller),
-      rating: Number(editProductForm.rating),
-      relatedProducts: editProductForm.relatedProducts
-        .filter(Boolean)
-        .map((refId: string) => doc(collection(db, 'products'), refId)),
-    };
-    try {
-      // Update Firestore document
-      const { doc, collection } = await import('firebase/firestore');
-      const productRef = doc(collection(db, 'products'), editProductId);
-      await updateDoc(productRef, updatedProduct);
-      setProducts((prev: any[]) => prev.map(p => (p.id === editProductId ? updatedProduct : p)));
-    } catch (err) {
-      alert('Failed to update product.');
-      console.error('Firestore update error:', err);
-    }
-    setShowEditProductModal(false);
-    setEditProductForm(null);
-    setEditProductId(null);
-    setShowEditConfirm(false);
+const handleConfirmEditSave = async (updatedFormData?: Partial<Product>) => {
+  // Use the passed data if available, otherwise use editProductForm
+  const formToSave = updatedFormData || editProductForm;
+  
+  if (!formToSave || !editProductId) return;
+  
+  const updatedProduct = {
+    ...formToSave,
+    id: editProductId,
+    sku: formToSave.sku || editProductId,
+    price: parseFloat(formToSave.price as any),
+    stock: formToSave.stock === '' ? 0 : parseInt(formToSave.stock as any),
+    inStock: Boolean(formToSave.inStock),
+    isBestSeller: Boolean(formToSave.isBestSeller),
+    rating: Number(formToSave.rating),
+    relatedProducts: (formToSave.relatedProducts || [])
+      .filter(Boolean)
+      .map((refId: string) => doc(collection(db, 'products'), refId)),
   };
+  
+  try {
+    const productRef = doc(collection(db, 'products'), editProductId);
+    await updateDoc(productRef, updatedProduct);
+    setProducts((prev: any[]) => prev.map(p => (p.id === editProductId ? updatedProduct : p)));
+  } catch (err) {
+    alert('Failed to update product.');
+    console.error('Firestore update error:', err);
+  }
+  
+  setShowEditProductModal(false);
+  setEditProductForm(null);
+  setEditProductId(null);
+  setShowEditConfirm(false);
+};
 
   // Handler for cancelling confirmation
   const handleCancelEditSave = () => {
