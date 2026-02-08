@@ -3521,6 +3521,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                     </button>
                     <button
                       onClick={() => {
+                        console.log('Edit clicked for product:', product.id);
                         setEditProductId(product.id);
                         setEditProductForm(product);
                         setShowEditProductModal(true);
