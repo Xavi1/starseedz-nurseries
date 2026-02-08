@@ -257,7 +257,23 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               <div className="mt-6 flex justify-end space-x-3">
                 <button 
                   className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" 
-                  onClick={handleEditClick}
+                   onClick={() => {
+                        setEditProductId(product.id);
+                        setEditProductForm({
+                          ...product,
+                          // Ensure all required fields are present with defaults
+                          sku: product.sku || product.id,
+                          price: product.price || 0,
+                          stock: product.stock || 0,
+                          inStock: product.inStock ?? true,
+                          isBestSeller: product.isBestSeller ?? false,
+                          rating: product.rating || 0,
+                          relatedProducts: product.relatedProducts || [],
+                          specifications: product.specifications || {},
+                          careInstructions: product.careInstructions || {},
+                        });
+                        setShowEditProductModal(true);
+                      }}
                 >
                   <EditIcon className="h-4 w-4 mr-2" />Edit Product
                 </button>
