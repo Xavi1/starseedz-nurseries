@@ -4048,6 +4048,19 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
         {activeNav === 'customers' && renderCustomersContent()}
         {activeNav === 'reports' && renderReportsContent()}
         {activeNav === 'settings' && renderSettingsContent()}
+        <ProductEditModal
+          show={showEditProductModal}
+          form={editProductForm}
+          showEditConfirm={showEditConfirm}
+          onCancelEditSave={handleCancelEditSave}
+          onConfirmEditSave={handleConfirmEditSave}
+          onClose={() => {
+            setShowEditProductModal(false);
+            setEditProductForm(null);
+            setEditProductId(null);
+          }}
+          onSave={handleConfirmEditSave}
+        />
       </div>
     </DashboardMainLayout>
   );
