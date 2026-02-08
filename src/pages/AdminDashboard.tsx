@@ -818,11 +818,16 @@ useEffect(() => {
 
   // Handler for confirming save changes
 const handleConfirmEditSave = async (updatedFormData?: Partial<Product>) => {
-  // Use the passed data if available, otherwise use editProductForm
-  const formToSave = updatedFormData || editProductForm;
-  
+  // If called without updatedFormData, just show confirmation dialog
+  if (!updatedFormData) {
+    setShowEditConfirm(true);
+    return;
+  }
+
+  // Save logic after confirmation
+  const formToSave = updatedFormData;
   if (!formToSave || !editProductId) return;
-  
+
   const updatedProduct = {
     ...formToSave,
     id: editProductId,
@@ -840,7 +845,7 @@ const handleConfirmEditSave = async (updatedFormData?: Partial<Product>) => {
           : refId
       ),
   };
-  
+
   try {
     const productRef = doc(collection(db, 'products'), editProductId);
     await updateDoc(productRef, updatedProduct);
@@ -849,7 +854,7 @@ const handleConfirmEditSave = async (updatedFormData?: Partial<Product>) => {
     alert('Failed to update product.');
     console.error('Firestore update error:', err);
   }
-  
+
   setShowEditProductModal(false);
   setEditProductForm(null);
   setEditProductId(null);
