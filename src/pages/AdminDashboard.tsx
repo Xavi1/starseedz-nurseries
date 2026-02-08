@@ -834,7 +834,11 @@ const handleConfirmEditSave = async (updatedFormData?: Partial<Product>) => {
     rating: Number(formToSave.rating),
     relatedProducts: (formToSave.relatedProducts || [])
       .filter(Boolean)
-      .map((refId: string) => doc(collection(db, 'products'), refId)),
+      .map((refId: any) =>
+        typeof refId === 'string'
+          ? doc(collection(db, 'products'), refId)
+          : refId
+      ),
   };
   
   try {
