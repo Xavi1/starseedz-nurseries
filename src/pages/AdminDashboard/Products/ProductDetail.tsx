@@ -156,6 +156,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
 
   return (
     <>
+
       <ProductEditModal
         show={showEditConfirm}
         form={editFormData}
@@ -163,6 +164,12 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
         onCancelEditSave={handleCancelEditSave}
         onConfirmEditSave={handleConfirmEditSave}
         onClose={() => setShowEditConfirm(false)}
+        onSave={async (updatedFormData) => {
+          // Implement product update logic here
+          // For now, just close the modal
+          setShowEditConfirm(false);
+          // Optionally, update product state or call a parent handler
+        }}
       />
 
       <div className="bg-white shadow rounded-lg overflow-hidden">
