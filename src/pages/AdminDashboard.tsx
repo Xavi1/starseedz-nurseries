@@ -81,7 +81,7 @@ type Product = {
   description: string;
   longDescription: string;
   price: number;
-  category: string[];
+  category: string[] | string;
   image: string;
   imageUrl?: string;
   inStock: boolean;
