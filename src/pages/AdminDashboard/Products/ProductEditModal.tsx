@@ -189,7 +189,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
           <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full border border-gray-200">
             <h3 className="text-lg font-semibold mb-4 text-gray-800 text-center w-full">Confirm Save Changes</h3>
             <p className="mb-6 text-gray-700 text-center">Are you sure you want to save changes to this product?</p>
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-center gap-3">
               <button 
                 onClick={onCancelEditSave} 
                 className="px-4 py-2 rounded bg-gray-200 text-gray-800 hover:bg-gray-300"
