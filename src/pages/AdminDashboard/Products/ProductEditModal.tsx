@@ -500,7 +500,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
                     name="inStock"
                     checked={localForm.inStock || false}
                     onChange={handleInputChange}
-                    className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-green-600 focus:ring-green-500 border-green-300 rounded accent-green-600"
                   />
                   <span className="ml-2 text-sm text-gray-700">In Stock</span>
                 </label>
@@ -510,7 +510,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
                     name="isBestSeller"
                     checked={localForm.isBestSeller || false}
                     onChange={handleInputChange}
-                    className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-green-600 focus:ring-green-500 border-green-300 rounded accent-green-600"
                   />
                   <span className="ml-2 text-sm text-gray-700">Best Seller</span>
                 </label>
@@ -520,7 +520,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
                     name="featured"
                     checked={localForm.featured || false}
                     onChange={handleInputChange}
-                    className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-green-600 focus:ring-green-500 border-green-300 rounded accent-green-600"
                   />
                   <span className="ml-2 text-sm text-gray-700">Featured</span>
                 </label>
