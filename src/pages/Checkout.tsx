@@ -668,7 +668,7 @@ const handlePlaceOrder = async () => {
                     </h3>
                     <div className="mt-4">
                       <div className="flex items-center">
-                        <input id="same-as-shipping" name="sameAsShipping" type="checkbox" checked={useShippingForBilling} onChange={() => setUseShippingForBilling(!useShippingForBilling)} className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500" />
+                        <input id="same-as-shipping" name="sameAsShipping" type="checkbox" checked={useShippingForBilling} onChange={() => setUseShippingForBilling(!useShippingForBilling)} className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500 accent-green-600" />
                         <label htmlFor="same-as-shipping" className="ml-2 text-sm text-gray-700">
                           Same as shipping address
                         </label>
