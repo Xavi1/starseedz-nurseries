@@ -1,12 +1,58 @@
-// This component is not active
-import React from 'react';
 import { SearchIcon, PlusIcon, EyeIcon, EditIcon } from 'lucide-react';
 
+interface Product {
+  id: string | number;
+  name: string;
+  sku: string;
+  category: string | string[];
+  price: number;
+  stock: number;
+  image?: string;
+  imageUrl?: string;
+  inStock?: boolean;
+  isBestSeller?: boolean;
+  rating?: number;
+  relatedProducts?: string[];
+  specifications?: Record<string, any>;
+  careInstructions?: Record<string, any>;
+}
 
+interface ProductsListProps {
+  // Product data
+  products?: Product[];
+  filteredProducts?: Product[];
+  paginatedProducts?: Product[];
+  productCategories?: string[];
+  
+  // Search and filter state
+  productSearchQuery?: string;
+  setProductSearchQuery: (value: string) => void;
+  productCategoryFilter?: string;
+  setProductCategoryFilter: (value: string) => void;
+  
+  // Selection state
+  selectedProductIds?: (string | number)[];
+  handleSelectAllProducts: () => void;
+  handleSelectProduct: (id: string | number) => (e: React.ChangeEvent<HTMLInputElement>) => void;
+  
+  // Bulk actions
+  productBulkAction?: string;
+  setProductBulkAction: (value: string) => void;
+  handleProductBulkAction: () => void;
+  
+  // Product actions
+  setSelectedProduct: (id: string | number | null) => void;
+  setEditProductId: (id: string | number) => void;
+  setEditProductForm: (product: Product) => void;
+  setShowEditProductModal: (show: boolean) => void;
+  setShowAddProductModal: (show: boolean) => void;
+  
+  // Feedback
+  deleteFeedback?: string | null;
+}
 
 const ProductsList = ({
   // Product data
-  products = [],
   filteredProducts = [],
   paginatedProducts = [],
   productCategories = ['all'],
@@ -36,7 +82,7 @@ const ProductsList = ({
   
   // Feedback
   deleteFeedback = null,
-}) => {
+}: ProductsListProps) => {
   return (
     <div className="bg-white shadow rounded-lg">
       <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
