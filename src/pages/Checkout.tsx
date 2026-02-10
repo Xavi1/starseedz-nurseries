@@ -642,7 +642,7 @@ const handlePlaceOrder = async () => {
                     </h3>
                     <div className="mt-4 space-y-4">
                       <div className="flex items-start">
-                        <input id="standard-shipping" name="shippingMethod" type="radio" checked={shippingMethod === 'standard'} onChange={() => setShippingMethod('standard')} className="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300" />
+                        <input id="standard-shipping" name="shippingMethod" type="radio" checked={shippingMethod === 'standard'} onChange={() => setShippingMethod('standard')} className="focus:ring-green-500 h-4 w-4 text-green-600 border-green-300 accent-green-600" />
                         <label htmlFor="standard-shipping" className="ml-3 block text-sm font-medium text-gray-700">
                           Standard Shipping (3-5 business days)*
                         </label>
@@ -651,7 +651,7 @@ const handlePlaceOrder = async () => {
                         </span>
                       </div>
                       <div className="flex items-start">
-                        <input id="express-shipping" name="shippingMethod" type="radio" checked={shippingMethod === 'express'} onChange={() => setShippingMethod('express')} className="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300" />
+                        <input id="express-shipping" name="shippingMethod" type="radio" checked={shippingMethod === 'express'} onChange={() => setShippingMethod('express')} className="focus:ring-green-500 h-4 w-4 text-green-600 border-green-300 accent-green-600" />
                         <label htmlFor="express-shipping" className="ml-3 block text-sm font-medium text-gray-700">
                           Express Shipping (1-2 business days)*
                         </label>
