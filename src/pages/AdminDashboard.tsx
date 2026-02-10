@@ -3420,11 +3420,6 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
     return renderProductDetail();
   }
 
-  // Debug log for products state
-  console.log('Products:', products);
-  console.log('Filtered:', filteredProducts);
-  console.log('Paginated:', paginatedProducts);
-
   return (
     <div className="bg-white shadow rounded-lg">
       <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
