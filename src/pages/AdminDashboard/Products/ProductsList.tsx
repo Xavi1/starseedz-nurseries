@@ -1,148 +1,209 @@
-// This Component is not active
+// This component is not active
 import React from 'react';
-import { PackageIcon, EyeIcon, EditIcon, Trash2Icon } from 'lucide-react';
+import { SearchIcon, PlusIcon, EyeIcon, EditIcon } from 'lucide-react';
 
-type ProductsListProps = {
-  products: any[];
-  filteredProducts: any[];
-  productCategoryFilter: string;
-  setProductCategoryFilter: (filter: string) => void;
-  selectedProduct: number | null;
-  setSelectedProduct: (id: number | null) => void;
-};
 
-const ProductsList: React.FC<ProductsListProps> = ({
-  products,
-  filteredProducts,
-  productCategoryFilter,
+
+const ProductsList = ({
+  // Product data
+  products = [],
+  filteredProducts = [],
+  paginatedProducts = [],
+  productCategories = ['all'],
+  
+  // Search and filter state
+  productSearchQuery = '',
+  setProductSearchQuery,
+  productCategoryFilter = 'all',
   setProductCategoryFilter,
-  selectedProduct,
-  setSelectedProduct
+  
+  // Selection state
+  selectedProductIds = [],
+  handleSelectAllProducts,
+  handleSelectProduct,
+  
+  // Bulk actions
+  productBulkAction = '',
+  setProductBulkAction,
+  handleProductBulkAction,
+  
+  // Product actions
+  setSelectedProduct,
+  setEditProductId,
+  setEditProductForm,
+  setShowEditProductModal,
+  setShowAddProductModal,
+  
+  // Feedback
+  deleteFeedback = null,
 }) => {
-  // Extract unique categories from products
-  const categories = [...new Set(products.map(product => product.category))].filter(Boolean);
-
-  const getStockStatusClass = (stock: number) => {
-    if (stock === 0) return 'bg-red-100 text-red-800';
-    if (stock < 10) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-green-100 text-green-800';
-  };
-
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-6">
-      {/* Header with filter */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <div className="flex items-center gap-2">
-          <PackageIcon className="h-6 w-6 text-blue-600" />
-          <h2 className="text-xl font-semibold text-gray-900">Products Inventory</h2>
-        </div>
-        
-        {/* Category Filter */}
-        <div className="flex items-center gap-3">
-          <label htmlFor="categoryFilter" className="text-sm font-medium text-gray-700">
-            Filter by Category:
-          </label>
-          <select
-            id="categoryFilter"
-            value={productCategoryFilter}
-            onChange={(e) => setProductCategoryFilter(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="">All Categories</option>
-            {categories.map(category => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* Products Count */}
-      <div className="mb-4">
-        <p className="text-sm text-gray-600">
-          Showing {filteredProducts.length} of {products.length} products
-          {productCategoryFilter && ` (filtered by ${productCategoryFilter})`}
-        </p>
-      </div>
-
-      {/* Products Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProducts.map((product) => (
-          <div
-            key={product.id}
-            onClick={() => setSelectedProduct(product.id)}
-            className={`border rounded-lg p-4 cursor-pointer transition-all hover:shadow-md ${
-              selectedProduct === product.id
-                ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-100'
-                : 'border-gray-200 bg-white'
-            }`}
-          >
-            {/* Product Image */}
-            <div className="bg-gray-100 rounded-lg h-40 mb-4 flex items-center justify-center">
-              {product.image ? (
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="h-full w-full object-cover rounded-lg"
-                />
-              ) : (
-                <PackageIcon className="h-12 w-12 text-gray-400" />
-              )}
+    <div className="bg-white shadow rounded-lg">
+      <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+          <h3 className="text-lg leading-6 font-medium text-gray-900">
+            Products
+          </h3>
+          <div className="mt-3 md:mt-0 flex flex-wrap items-center gap-3">
+            <div className="relative rounded-md shadow-sm max-w-xs">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <SearchIcon className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                className="focus:ring-green-500 focus:border-green-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
+                placeholder="Search products..."
+                value={productSearchQuery}
+                onChange={e => setProductSearchQuery(e.target.value)}
+              />
             </div>
-
-            {/* Product Info */}
-            <div className="space-y-2">
-              <h3 className="font-semibold text-gray-900 text-lg">{product.name}</h3>
-              
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">{product.category}</span>
-                <span className="text-sm font-semibold text-blue-600">
-                  ${product.price?.toLocaleString()}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStockStatusClass(product.stock)}`}>
-                  {product.stock === 0 ? 'Out of Stock' : `${product.stock} in stock`}
-                </span>
-                {product.onSale && (
-                  <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-medium">
-                    On Sale
-                  </span>
-                )}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
-                <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded">
-                  <EyeIcon className="h-4 w-4" />
-                </button>
-                <button className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded">
-                  <EditIcon className="h-4 w-4"/>
-                </button>
-                <button className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded">
-                  <Trash2Icon className="h-4 w-4" />
-                </button>
-              </div>
+            <div className="flex items-center">
+              <span className="text-sm text-gray-500 mr-2">Category:</span>
+              <select
+                className="text-sm border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
+                value={productCategoryFilter}
+                onChange={e => setProductCategoryFilter(e.target.value)}
+              >
+                {productCategories.map(cat => (
+                  <option key={cat} value={cat}>
+                    {cat === 'all' ? 'All Categories' : cat}
+                  </option>
+                ))}
+              </select>
             </div>
+            <button
+              onClick={() => setShowAddProductModal(true)}
+              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-700 hover:bg-green-800"
+            >
+              <PlusIcon className="h-4 w-4 mr-2" />
+              Add Product
+            </button>
           </div>
-        ))}
+        </div>
       </div>
 
-      {/* Empty State */}
-      {filteredProducts.length === 0 && (
-        <div className="text-center py-12">
-          <div className="text-gray-400 text-6xl mb-4">📦</div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
-          <p className="text-gray-500">
-            {productCategoryFilter 
-              ? `No products match the "${productCategoryFilter}" category.`
-              : 'No products available in inventory.'
-            }
-          </p>
+      {deleteFeedback && (
+        <div className="mx-4 mt-4 px-4 py-2 rounded bg-green-100 text-green-800 border border-green-300">
+          {deleteFeedback}
         </div>
       )}
+
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 text-green-600 border-gray-300 rounded"
+                  checked={selectedProductIds.length === filteredProducts.length && filteredProducts.length > 0}
+                  onChange={handleSelectAllProducts}
+                />
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">SKU</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {paginatedProducts.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="text-center py-8 text-gray-500">
+                  No products found.
+                </td>
+              </tr>
+            ) : (
+              paginatedProducts.map(product => (
+                <tr key={product.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedProductIds.includes(product.id)}
+                      onChange={handleSelectProduct(product.id)}
+                      className="h-4 w-4 text-green-600 border-gray-300 rounded"
+                    />
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center">
+                      <img src={product.image || product.imageUrl} alt={product.name} className="h-10 w-10 rounded object-cover" />
+                      <span className="ml-3 text-sm font-medium text-gray-900">{product.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-700">{product.sku}</td>
+                  <td className="px-6 py-4 text-sm text-gray-700">
+                    {Array.isArray(product.category) ? product.category.join(', ') : product.category}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-700">${product.price.toFixed(2)}</td>
+                  <td className="px-6 py-4 text-sm text-gray-700">{product.stock}</td>
+                  <td className="px-6 py-4 text-right">
+                    <button
+                      onClick={() => setSelectedProduct(product.id)}
+                      className="text-green-700 hover:text-green-900 mr-3"
+                    >
+                      <EyeIcon className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        console.log('Edit button clicked', product); // Debug log
+                        setEditProductId(product.id);
+                        setEditProductForm({
+                          ...product,
+                          // Ensure all required fields are present with defaults
+                          sku: product.sku || product.id,
+                          price: product.price || 0,
+                          stock: product.stock || 0,
+                          inStock: product.inStock ?? true,
+                          isBestSeller: product.isBestSeller ?? false,
+                          rating: product.rating || 0,
+                          relatedProducts: product.relatedProducts || [],
+                          specifications: product.specifications || {},
+                          careInstructions: product.careInstructions || {},
+                        });
+                        setShowEditProductModal(true);
+                      }}
+                      className="text-gray-500 hover:text-gray-700"
+                      title="Edit product"
+                    >
+                      <EditIcon className="h-5 w-5" />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center">
+            <select
+              value={productBulkAction}
+              onChange={e => setProductBulkAction(e.target.value)}
+              className="text-sm border-gray-300 rounded-md mr-2"
+              disabled={selectedProductIds.length === 0}
+            >
+              <option value="">Bulk Actions</option>
+              <option value="Delete Selected">Delete Selected</option>
+              <option value="Mark as Featured">Mark as Featured</option>
+              <option value="Update Stock">Update Stock</option>
+            </select>
+            <button
+              onClick={handleProductBulkAction}
+              disabled={!productBulkAction || selectedProductIds.length === 0}
+              className="px-3 py-1.5 border border-gray-300 rounded-md text-sm"
+            >
+              Apply
+            </button>
+          </div>
+          <span className="text-sm text-gray-700">
+            Showing {paginatedProducts.length} of {filteredProducts.length} products
+          </span>
+        </div>
+      </div>
     </div>
   );
 };
