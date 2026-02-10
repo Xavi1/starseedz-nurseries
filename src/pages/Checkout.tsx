@@ -823,7 +823,7 @@ const handlePlaceOrder = async () => {
               type="radio"
               checked={paymentMethod === 'credit-card'}
               disabled
-              className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
+              className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-green-300 accent-green-600"
             />
             <label htmlFor="credit-card" className="ml-3 flex items-center text-sm font-medium text-gray-400">
               <CreditCardIcon className="mr-2 h-5 w-5 text-gray-400" />
@@ -838,7 +838,7 @@ const handlePlaceOrder = async () => {
               type="radio"
               checked={paymentMethod === 'cash-on-delivery'}
               onChange={() => setPaymentMethod('cash-on-delivery')}
-              className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
+              className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-green-300 accent-green-600"
             />
             <label htmlFor="cash-on-delivery" className="ml-3 flex items-center text-sm font-medium text-gray-700">
               <BanknoteIcon className="mr-2 h-5 w-5 text-green-600" />
