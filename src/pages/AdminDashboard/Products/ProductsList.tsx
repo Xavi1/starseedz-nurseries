@@ -41,7 +41,7 @@ interface ProductsListProps {
   handleProductBulkAction: () => void;
   
   // Product actions
-  setSelectedProduct: (id: string | number | null) => void;
+  setSelectedProduct: (id: string | number) => void;
   setEditProductId: (id: string | number) => void;
   setEditProductForm: (product: Product) => void;
   setShowEditProductModal: (show: boolean) => void;
@@ -198,7 +198,7 @@ const ProductsList = ({
                         setEditProductForm({
                           ...product,
                           // Ensure all required fields are present with defaults
-                          sku: product.sku || product.id,
+                          sku: product.sku || String(product.id),
                           price: product.price || 0,
                           stock: product.stock || 0,
                           inStock: product.inStock ?? true,
