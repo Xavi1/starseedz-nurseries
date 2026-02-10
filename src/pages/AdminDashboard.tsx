@@ -833,7 +833,7 @@ const handleConfirmEditSave = async (updatedFormData?: Partial<Product>) => {
     id: editProductId,
     sku: formToSave.sku || editProductId,
     price: parseFloat(formToSave.price as any),
-    stock: formToSave.stock === '' ? 0 : parseInt(formToSave.stock as any),
+    stock: Number(formToSave.stock) || 0,
     inStock: Boolean(formToSave.inStock),
     isBestSeller: Boolean(formToSave.isBestSeller),
     rating: Number(formToSave.rating),
