@@ -1,4 +1,3 @@
-import React from 'react';
 import { SearchIcon, PlusIcon, EyeIcon, EditIcon } from 'lucide-react'; // Adjust import path as needed
 
 const ProductsTable = ({
