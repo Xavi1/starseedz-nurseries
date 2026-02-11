@@ -18,38 +18,32 @@ export interface Product {
   careInstructions?: Record<string, unknown>
 }
 
+// Removed unused ProductsTableProps interface
+
+
 interface ProductsTableProps {
-  selectedProduct: string | null
-  renderProductDetail: () => React.ReactNode
-
-  productSearchQuery: string
-  setProductSearchQuery: React.Dispatch<React.SetStateAction<string>>
-
-  productCategoryFilter: string
-  setProductCategoryFilter: React.Dispatch<React.SetStateAction<string>>
-
-  productCategories: string[]
-  setShowAddProductModal: React.Dispatch<React.SetStateAction<boolean>>
-
-  deleteFeedback: string | null
-
-  selectedProductIds: string[]
-  filteredProducts: Product[]
-  paginatedProducts: Product[]
-
-  handleSelectAllProducts: () => void
-  handleSelectProduct: (id: string) => () => void
-
-  setSelectedProduct: React.Dispatch<React.SetStateAction<string | null>>
-  setEditProductId: React.Dispatch<React.SetStateAction<string | null>>
-  setEditProductForm: React.Dispatch<React.SetStateAction<Product>>
-  setShowEditProductModal: React.Dispatch<React.SetStateAction<boolean>>
-
-  productBulkAction: string
-  setProductBulkAction: React.Dispatch<React.SetStateAction<string>>
-  handleProductBulkAction: () => void
+  selectedProduct: string | null;
+  renderProductDetail: () => React.ReactNode;
+  productSearchQuery: string;
+  setProductSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+  productCategoryFilter: string;
+  setProductCategoryFilter: React.Dispatch<React.SetStateAction<string>>;
+  productCategories: string[];
+  setShowAddProductModal: React.Dispatch<React.SetStateAction<boolean>>;
+  deleteFeedback: string | null;
+  selectedProductIds: string[];
+  filteredProducts: Product[];
+  paginatedProducts: Product[];
+  handleSelectAllProducts: () => void;
+  handleSelectProduct: (id: string) => () => void;
+  setSelectedProduct: React.Dispatch<React.SetStateAction<string | null>>;
+  setEditProductId: React.Dispatch<React.SetStateAction<string | null>>;
+  setEditProductForm: React.Dispatch<React.SetStateAction<Product>>;
+  setShowEditProductModal: React.Dispatch<React.SetStateAction<boolean>>;
+  productBulkAction: string;
+  setProductBulkAction: React.Dispatch<React.SetStateAction<string>>;
+  handleProductBulkAction: () => void;
 }
-
 
 const ProductsTable = ({
   selectedProduct,
@@ -73,7 +67,7 @@ const ProductsTable = ({
   productBulkAction,
   setProductBulkAction,
   handleProductBulkAction,
-}) => {
+}: ProductsTableProps) => {
   if (selectedProduct !== null) {
     return renderProductDetail();
   }
@@ -105,7 +99,7 @@ const ProductsTable = ({
                 value={productCategoryFilter}
                 onChange={e => setProductCategoryFilter(e.target.value)}
               >
-                {productCategories.map(cat => (
+                {productCategories.map((cat: string) => (
                   <option key={cat} value={cat}>
                     {cat === 'all' ? 'All Categories' : cat}
                   </option>
@@ -157,7 +151,7 @@ const ProductsTable = ({
                 </td>
               </tr>
             ) : (
-              paginatedProducts.map(product => (
+              paginatedProducts.map((product: Product) => (
                 <tr key={product.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <input
