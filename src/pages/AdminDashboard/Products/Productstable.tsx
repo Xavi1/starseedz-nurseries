@@ -17,6 +17,40 @@ export interface Product {
   specifications?: Record<string, unknown>
   careInstructions?: Record<string, unknown>
 }
+
+interface ProductsTableProps {
+  selectedProduct: string | null
+  renderProductDetail: () => React.ReactNode
+
+  productSearchQuery: string
+  setProductSearchQuery: React.Dispatch<React.SetStateAction<string>>
+
+  productCategoryFilter: string
+  setProductCategoryFilter: React.Dispatch<React.SetStateAction<string>>
+
+  productCategories: string[]
+  setShowAddProductModal: React.Dispatch<React.SetStateAction<boolean>>
+
+  deleteFeedback: string | null
+
+  selectedProductIds: string[]
+  filteredProducts: Product[]
+  paginatedProducts: Product[]
+
+  handleSelectAllProducts: () => void
+  handleSelectProduct: (id: string) => () => void
+
+  setSelectedProduct: React.Dispatch<React.SetStateAction<string | null>>
+  setEditProductId: React.Dispatch<React.SetStateAction<string | null>>
+  setEditProductForm: React.Dispatch<React.SetStateAction<Product>>
+  setShowEditProductModal: React.Dispatch<React.SetStateAction<boolean>>
+
+  productBulkAction: string
+  setProductBulkAction: React.Dispatch<React.SetStateAction<string>>
+  handleProductBulkAction: () => void
+}
+
+
 const ProductsTable = ({
   selectedProduct,
   renderProductDetail,
