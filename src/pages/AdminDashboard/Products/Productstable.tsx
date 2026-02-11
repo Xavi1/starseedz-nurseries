@@ -1,5 +1,22 @@
 import { SearchIcon, PlusIcon, EyeIcon, EditIcon } from 'lucide-react'; // Adjust import path as needed
 
+export interface Product {
+  id: string
+  name: string
+  sku?: string
+  category: string | string[]
+  price: number
+  stock: number
+  image?: string
+  imageUrl?: string
+
+  inStock?: boolean
+  isBestSeller?: boolean
+  rating?: number
+  relatedProducts?: string[]
+  specifications?: Record<string, unknown>
+  careInstructions?: Record<string, unknown>
+}
 const ProductsTable = ({
   selectedProduct,
   renderProductDetail,
