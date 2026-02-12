@@ -31,7 +31,7 @@ interface ProductsTableProps {
   selectedProductIds: string[];
   filteredProducts: Product[];
   paginatedProducts: Product[];
-  handleSelectAllProducts: () => void;
+   handleSelectAllProducts: (e?: React.ChangeEvent<HTMLInputElement>) => void; 
   handleSelectProduct: (id: string) => () => void;
   setSelectedProduct: React.Dispatch<React.SetStateAction<string | null>>;
   setEditProductId: React.Dispatch<React.SetStateAction<string | null>>;

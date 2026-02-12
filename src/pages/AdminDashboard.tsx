@@ -3423,7 +3423,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
   }
     return (
       <ProductsTable
-        selectedProduct={selectedProduct}
+        selectedProduct={selectedProduct === null ? null : String(selectedProduct)}
         renderProductDetail={renderProductDetail}
         productSearchQuery={productSearchQuery}
         setProductSearchQuery={setProductSearchQuery}
@@ -3434,12 +3434,12 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
         deleteFeedback={deleteFeedback}
         selectedProductIds={selectedProductIds}
         filteredProducts={filteredProducts}
-        handleSelectAllProducts={handleSelectAllProducts}
+        handleSelectAllProducts={handleSelectAllProducts as (e?: React.ChangeEvent<HTMLInputElement>) => void}
         paginatedProducts={paginatedProducts}
-        handleSelectProduct={handleSelectProduct}
-        setSelectedProduct={setSelectedProduct}
+        handleSelectProduct={handleSelectProduct as (id: string) => () => void}
+        setSelectedProduct={setSelectedProduct as React.Dispatch<React.SetStateAction<string | null>>}
         setEditProductId={setEditProductId}
-        setEditProductForm={setEditProductForm}
+        setEditProductForm={setEditProductForm as React.Dispatch<React.SetStateAction<any>>}
         setShowEditProductModal={setShowEditProductModal}
         productBulkAction={productBulkAction}
         setProductBulkAction={setProductBulkAction}
