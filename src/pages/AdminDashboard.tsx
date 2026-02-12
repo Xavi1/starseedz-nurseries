@@ -22,6 +22,7 @@ import  OrderDetail  from "./AdminDashboard/Orders/OrderDetail";
 import ProductDetail from "./AdminDashboard/Products/ProductDetail";
 import ProductEditModal from './AdminDashboard/Products/ProductEditModal';
 import ProductsList from './AdminDashboard/Products/ProductsList';
+import ProductsTable from './AdminDashboard/Products/Productstable';
 
 // =============================
 // AdminDashboard.tsx
@@ -3420,9 +3421,33 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
   if (selectedProduct !== null) {
     return renderProductDetail();
   }
+    return (
+      <ProductsTable
+        selectedProduct={selectedProduct}
+        renderProductDetail={renderProductDetail}
+        productSearchQuery={productSearchQuery}
+        setProductSearchQuery={setProductSearchQuery}
+        productCategoryFilter={productCategoryFilter}
+        setProductCategoryFilter={setProductCategoryFilter}
+        productCategories={productCategories}
+        setShowAddProductModal={setShowAddProductModal}
+        deleteFeedback={deleteFeedback}
+        selectedProductIds={selectedProductIds}
+        filteredProducts={filteredProducts}
+        handleSelectAllProducts={handleSelectAllProducts}
+        paginatedProducts={paginatedProducts}
+        handleSelectProduct={handleSelectProduct}
+        setSelectedProduct={setSelectedProduct}
+        setEditProductId={setEditProductId}
+        setEditProductForm={setEditProductForm}
+        setShowEditProductModal={setShowEditProductModal}
+        productBulkAction={productBulkAction}
+        setProductBulkAction={setProductBulkAction}
+        handleProductBulkAction={handleProductBulkAction}
+      />
+    );
 
-
-  return (
+/*   return (
     <div className="bg-white shadow rounded-lg">
       <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
@@ -3590,7 +3615,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
         </div>
       </div>
     </div>
-  );
+  ); */
 };               
   // Render customers content
   const renderCustomersContent = () => <>
