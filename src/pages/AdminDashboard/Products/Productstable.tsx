@@ -1,4 +1,4 @@
-import { SearchIcon, PlusIcon, EyeIcon, EditIcon } from 'lucide-react'; // Adjust import path as needed
+import { SearchIcon, PlusIcon, EyeIcon, EditIcon } from 'lucide-react';
 
 export interface Product {
   id: string
@@ -17,9 +17,6 @@ export interface Product {
   specifications?: Record<string, unknown>
   careInstructions?: Record<string, unknown>
 }
-
-// Removed unused ProductsTableProps interface
-
 
 interface ProductsTableProps {
   selectedProduct: string | null;
@@ -132,7 +129,7 @@ const ProductsTable = ({
                   type="checkbox"
                   className="h-4 w-4 text-green-600 border-gray-300 rounded"
                   checked={selectedProductIds.length === filteredProducts.length && filteredProducts.length > 0}
-                  onChange={handleSelectAllProducts}
+                  onChange={() => handleSelectAllProducts()}
                 />
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
