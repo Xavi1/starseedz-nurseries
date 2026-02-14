@@ -4137,11 +4137,11 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
                       <input type="number" name="rating" value={addProductForm.rating} onChange={handleAddProductChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" min="0" max="5" step="0.1" />
                     </div>
                     <div className="flex-1 flex items-center mt-6">
-                      <label className="flex items-center text-sm font-medium text-gray-700 mr-4">
+                      <label className="flex items-center text-sm font-medium text-gray-700 mr-4 accent-green-600">
                         <input type="checkbox" name="inStock" checked={addProductForm.inStock} onChange={handleAddProductChange} className="mr-2" />
                         In Stock
                       </label>
-                      <label className="flex items-center text-sm font-medium text-gray-700">
+                      <label className="flex items-center text-sm font-medium text-gray-700 accent-green-600">
                         <input type="checkbox" name="isBestSeller" checked={addProductForm.isBestSeller} onChange={handleAddProductChange} className="mr-2" />
                         Best Seller
                       </label>
