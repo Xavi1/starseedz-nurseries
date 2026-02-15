@@ -173,10 +173,43 @@ useEffect(() => {
 
   const handleAddProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Add your Firebase add product logic here
-    console.log('Add product:', addProductForm);
+    try {
+      // Prepare product data
+      const productData = {
+        name: addProductForm.name,
+        description: addProductForm.description,
+        longDescription: addProductForm.longDescription,
+        image: addProductForm.image,
+        price: parseFloat(addProductForm.price),
+        stock: parseInt(addProductForm.stock),
+        category: typeof addProductForm.category === 'string'
+          ? addProductForm.category.split(',').map((c: string) => c.trim()).filter(Boolean)
+          : Array.isArray(addProductForm.category) ? addProductForm.category : [],
+        rating: Number(addProductForm.rating) || 0,
+        inStock: Boolean(addProductForm.inStock),
+        isBestSeller: Boolean(addProductForm.isBestSeller),
+        careInstructions: addProductForm.careInstructions,
+        specifications: addProductForm.specifications,
+        relatedProducts: Array.isArray(addProductForm.relatedProducts)
+          ? addProductForm.relatedProducts.filter(Boolean)
+          : [],
+        reviews: addProductForm.reviews,
+        imageUrl: addProductForm.image,
+      };
+      // Import addProduct dynamically to avoid SSR issues
+      const { addProduct } = await import('../../../firebaseHelpers');
+      // Generate a new id for the product (let Firestore auto-generate if you want)
+      const id = await addProduct(productData);
+      // Optionally, update local state
+      setProducts(prev => [
+        { ...productData, id, sku: id, lowStockThreshold: 5 },
+        ...prev
+      ]);
+    } catch (err) {
+      alert('Failed to add product.');
+      console.error('Add product error:', err);
+    }
     setShowAddProductModal(false);
-    // Reset form
     setAddProductForm({
       name: '',
       description: '',
