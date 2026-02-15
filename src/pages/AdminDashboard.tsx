@@ -23,7 +23,7 @@ import ProductDetail from "./AdminDashboard/Products/ProductDetail";
 import ProductEditModal from './AdminDashboard/Products/ProductEditModal';
 import ProductsList from './AdminDashboard/Products/ProductsList';
 import ProductsTable from './AdminDashboard/Products/Productstable';
-import AddProductModal from '../components/AdminDashboard/Products/AddProductModal';
+import AddProductModal from './AdminDashboard/Products/AddProductModal';
 
 // =============================
 // AdminDashboard.tsx
