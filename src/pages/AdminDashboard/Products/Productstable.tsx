@@ -1,4 +1,5 @@
 import { SearchIcon, PlusIcon, EyeIcon, EditIcon } from 'lucide-react';
+import Pagination from '../../../AdminDashboard/components/Pagination'
 
 export interface Product {
   id: string
@@ -31,7 +32,7 @@ interface ProductsTableProps {
   selectedProductIds: string[];
   filteredProducts: Product[];
   paginatedProducts: Product[];
-   handleSelectAllProducts: (e?: React.ChangeEvent<HTMLInputElement>) => void; 
+  handleSelectAllProducts: (e?: React.ChangeEvent<HTMLInputElement>) => void; 
   handleSelectProduct: (id: string) => () => void;
   setSelectedProduct: React.Dispatch<React.SetStateAction<string | null>>;
   setEditProductId: React.Dispatch<React.SetStateAction<string | null>>;
@@ -40,6 +41,11 @@ interface ProductsTableProps {
   productBulkAction: string;
   setProductBulkAction: React.Dispatch<React.SetStateAction<string>>;
   handleProductBulkAction: () => void;
+  
+  // Add pagination props
+  currentPage?: number;
+  setCurrentPage?: (page: number) => void;
+  pageSize?: number;
 }
 
 const ProductsTable = ({
@@ -64,10 +70,53 @@ const ProductsTable = ({
   productBulkAction,
   setProductBulkAction,
   handleProductBulkAction,
+  
+  // Pagination props with defaults
+  currentPage = 1,
+  setCurrentPage,
+  pageSize = 10,
 }: ProductsTableProps) => {
+  
   if (selectedProduct !== null) {
     return renderProductDetail();
   }
+
+  // Handle page change with scroll to top
+  const handlePageChange = (page: number) => {
+    if (setCurrentPage) {
+      setCurrentPage(page);
+    }
+    // Scroll to top of table
+    const tableTop = document.getElementById('products-table-top');
+    if (tableTop) {
+      tableTop.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // Handle search with page reset
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setProductSearchQuery(e.target.value);
+    if (setCurrentPage) {
+      setCurrentPage(1); // Reset to first page when searching
+    }
+  };
+
+  // Handle filter with page reset
+  const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setProductCategoryFilter(e.target.value);
+    if (setCurrentPage) {
+      setCurrentPage(1); // Reset to first page when filtering
+    }
+  };
+
+  // Check if all products on current page are selected
+  const allCurrentPageSelected = paginatedProducts.length > 0 && 
+    paginatedProducts.every(product => selectedProductIds.includes(product.id));
+
+  // Check if some (but not all) products on current page are selected
+  const someCurrentPageSelected = paginatedProducts.some(product => 
+    selectedProductIds.includes(product.id)
+  ) && !allCurrentPageSelected;
 
   return (
     <div className="bg-white shadow rounded-lg">
@@ -86,7 +135,7 @@ const ProductsTable = ({
                 className="focus:ring-green-500 focus:border-green-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
                 placeholder="Search products..."
                 value={productSearchQuery}
-                onChange={e => setProductSearchQuery(e.target.value)}
+                onChange={handleSearchChange}
               />
             </div>
             <div className="flex items-center">
@@ -94,7 +143,7 @@ const ProductsTable = ({
               <select
                 className="text-sm border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
                 value={productCategoryFilter}
-                onChange={e => setProductCategoryFilter(e.target.value)}
+                onChange={handleFilterChange}
               >
                 {productCategories.map((cat: string) => (
                   <option key={cat} value={cat}>
@@ -120,7 +169,7 @@ const ProductsTable = ({
         </div>
       )}
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" id="products-table-top">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -128,7 +177,12 @@ const ProductsTable = ({
                 <input
                   type="checkbox"
                   className="h-4 w-4 text-green-600 border-gray-300 rounded"
-                  checked={selectedProductIds.length === filteredProducts.length && filteredProducts.length > 0}
+                  checked={allCurrentPageSelected}
+                  ref={(input) => {
+                    if (input) {
+                      input.indeterminate = someCurrentPageSelected;
+                    }
+                  }}
                   onChange={() => handleSelectAllProducts()}
                 />
               </th>
@@ -160,7 +214,14 @@ const ProductsTable = ({
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center">
-                      <img src={product.image || product.imageUrl} alt={product.name} className="h-10 w-10 rounded object-cover" />
+                      <img 
+                        src={product.image || product.imageUrl} 
+                        alt={product.name} 
+                        className="h-10 w-10 rounded object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/placeholder-image.jpg';
+                        }}
+                      />
                       <span className="ml-3 text-sm font-medium text-gray-900">{product.name}</span>
                     </div>
                   </td>
@@ -208,6 +269,18 @@ const ProductsTable = ({
         </table>
       </div>
 
+      {/* Pagination Component */}
+      {filteredProducts.length > 0 && (
+        <div className="px-4 py-3 bg-white border-t border-gray-200">
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filteredProducts.length}
+            pageSize={pageSize}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      )}
+
       <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
@@ -232,6 +305,7 @@ const ProductsTable = ({
           </div>
           <span className="text-sm text-gray-700">
             Showing {paginatedProducts.length} of {filteredProducts.length} products
+            {selectedProductIds.length > 0 && ` (${selectedProductIds.length} selected)`}
           </span>
         </div>
       </div>
