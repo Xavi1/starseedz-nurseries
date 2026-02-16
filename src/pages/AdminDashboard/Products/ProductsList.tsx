@@ -1,4 +1,5 @@
 import { SearchIcon, PlusIcon, EyeIcon, EditIcon } from 'lucide-react';
+import Pagination from '../../../AdminDashboard/components/Pagination'; // Adjust the import path as needed
 
 interface Product {
   id: string | number;
@@ -29,6 +30,11 @@ interface ProductsListProps {
   setProductSearchQuery: (value: string) => void;
   productCategoryFilter?: string;
   setProductCategoryFilter: (value: string) => void;
+  
+  // Pagination props
+  currentPage?: number;
+  setCurrentPage?: (page: number) => void;
+  pageSize?: number;
   
   // Selection state
   selectedProductIds?: (string | number)[];
@@ -63,6 +69,11 @@ const ProductsList = ({
   productCategoryFilter = 'all',
   setProductCategoryFilter,
   
+  // Pagination props with defaults
+  currentPage = 1,
+  setCurrentPage = () => {1},
+  pageSize = 10,
+  
   // Selection state
   selectedProductIds = [],
   handleSelectAllProducts,
@@ -83,6 +94,17 @@ const ProductsList = ({
   // Feedback
   deleteFeedback = null,
 }: ProductsListProps) => {
+  
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    // Scroll to top of table when page changes
+    const tableTop = document.getElementById('products-table-top');
+    if (tableTop) {
+      tableTop.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <div className="bg-white shadow rounded-lg">
       <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
@@ -100,7 +122,11 @@ const ProductsList = ({
                 className="focus:ring-green-500 focus:border-green-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
                 placeholder="Search products..."
                 value={productSearchQuery}
-                onChange={e => setProductSearchQuery(e.target.value)}
+                onChange={e => {
+                  setProductSearchQuery(e.target.value);
+                  // Reset to first page when searching
+                  setCurrentPage(1);
+                }}
               />
             </div>
             <div className="flex items-center">
@@ -108,7 +134,11 @@ const ProductsList = ({
               <select
                 className="text-sm border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
                 value={productCategoryFilter}
-                onChange={e => setProductCategoryFilter(e.target.value)}
+                onChange={e => {
+                  setProductCategoryFilter(e.target.value);
+                  // Reset to first page when filtering
+                  setCurrentPage(1);
+                }}
               >
                 {productCategories.map(cat => (
                   <option key={cat} value={cat}>
@@ -134,7 +164,7 @@ const ProductsList = ({
         </div>
       )}
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" id="products-table-top">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -174,7 +204,14 @@ const ProductsList = ({
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center">
-                      <img src={product.image || product.imageUrl} alt={product.name} className="h-10 w-10 rounded object-cover" />
+                      <img 
+                        src={product.image || product.imageUrl} 
+                        alt={product.name} 
+                        className="h-10 w-10 rounded object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/placeholder-image.jpg';
+                        }}
+                      />
                       <span className="ml-3 text-sm font-medium text-gray-900">{product.name}</span>
                     </div>
                   </td>
@@ -182,12 +219,13 @@ const ProductsList = ({
                   <td className="px-6 py-4 text-sm text-gray-700">
                     {Array.isArray(product.category) ? product.category.join(', ') : product.category}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-700">${product.price.toFixed(2)}</td>
-                  <td className="px-6 py-4 text-sm text-gray-700">{product.stock}</td>
+                  <td className="px-6 py-4 text-sm text-gray-700">${product.price?.toFixed(2) || '0.00'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-700">{product.stock || 0}</td>
                   <td className="px-6 py-4 text-right">
                     <button
                       onClick={() => setSelectedProduct(product.id)}
                       className="text-green-700 hover:text-green-900 mr-3"
+                      title="View product details"
                     >
                       <EyeIcon className="h-5 w-5" />
                     </button>
@@ -223,6 +261,18 @@ const ProductsList = ({
         </table>
       </div>
 
+      {/* Pagination Component */}
+      {filteredProducts.length > 0 && (
+        <div className="px-4 py-3 bg-white border-t border-gray-200">
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filteredProducts.length}
+            pageSize={pageSize}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      )}
+
       <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
@@ -240,13 +290,14 @@ const ProductsList = ({
             <button
               onClick={handleProductBulkAction}
               disabled={!productBulkAction || selectedProductIds.length === 0}
-              className="px-3 py-1.5 border border-gray-300 rounded-md text-sm"
+              className="px-3 py-1.5 border border-gray-300 rounded-md text-sm bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Apply
             </button>
           </div>
           <span className="text-sm text-gray-700">
             Showing {paginatedProducts.length} of {filteredProducts.length} products
+            {selectedProductIds.length > 0 && ` (${selectedProductIds.length} selected)`}
           </span>
         </div>
       </div>
