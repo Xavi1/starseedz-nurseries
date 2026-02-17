@@ -1,5 +1,5 @@
 import { SearchIcon, PlusIcon, EyeIcon, EditIcon } from 'lucide-react';
-import Pagination from '../../../AdminDashboard/components/Pagination'
+import { Pagination } from '../../../components/Pagination'
 
 export interface Product {
   id: string

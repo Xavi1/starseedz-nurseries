@@ -1,6 +1,6 @@
 // src/AdminDashboard/views/Products/ProductsView.tsx
-import React, { useState, useEffect } from 'react';
-import { getAllProducts } from '../../../firebaseHelpers';
+import React, { useState } from 'react';
+import { useProducts } from '../../../context/ProductsContext';
 import { Product } from '../../types';
 import { SearchIcon, PlusIcon, EyeIcon, EditIcon, TrashIcon, XIcon } from 'lucide-react';
 import Pagination from '../../components/Pagination';
@@ -15,7 +15,7 @@ interface ProductsViewProps {
 const ProductsView: React.FC<ProductsViewProps> = ({
   selectedProduct, setSelectedProduct, categoryFilter, setCategoryFilter
 }) => {
-  const [products, setProducts] = useState<Product[]>([]);
+  const { products, loading, error, refreshProducts } = useProducts();
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -65,20 +65,7 @@ const ProductsView: React.FC<ProductsViewProps> = ({
     reviews: ''
   });
 
-useEffect(() => {
-    // Fetch products and map them to the UI's Product type
-    getAllProducts().then((fetchedData: any[]) => {
-      const mappedProducts = fetchedData.map((item) => ({
-        ...item,
-        // Provide defaults for missing properties required by the UI
-        sku: item.sku || 'N/A',
-        image: item.image || '', // Prevents undefined image errors
-        inStock: item.inStock ?? (item.stock > 0),
-        lowStockThreshold: item.lowStockThreshold || 5,
-      }));
-      setProducts(mappedProducts);
-    });
-  }, []);
+
 
   // Filter Logic
   const filteredProducts = products.filter(product => {
@@ -105,6 +92,12 @@ useEffect(() => {
       Array.isArray(p.category) ? p.category : [p.category]
     ).filter(Boolean)
   ))];
+  if (loading) {
+    return <div>Loading products...</div>;
+  }
+  if (error) {
+    return <div className="text-red-500">{error}</div>;
+  }
 
   // Handlers from the code snippet
   const handleSelectAllProducts = () => {

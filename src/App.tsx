@@ -11,6 +11,7 @@ import { About } from './pages/About';
 import { ProductDetail } from './pages/ProductDetail';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
+import { ProductsProvider } from './context/ProductsContext';
 import { Cart } from './pages/Cart';
 import ContactPage from './pages/Contact';
 import WishlistPage from './pages/Wishlist';
@@ -31,9 +32,11 @@ function App() {
     <div className="overflow-x-hidden">
       <WishlistProvider>
         <CartProvider>
-          <Router>
-            <AppContent />
-          </Router>
+          <ProductsProvider>
+            <Router>
+              <AppContent />
+            </Router>
+          </ProductsProvider>
         </CartProvider>
       </WishlistProvider>
     </div>
