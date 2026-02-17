@@ -22,7 +22,7 @@ import  OrderDetail  from "./AdminDashboard/Orders/OrderDetail";
 import ProductDetail from "./AdminDashboard/Products/ProductDetail";
 import ProductEditModal from './AdminDashboard/Products/ProductEditModal';
 import ProductsList from './AdminDashboard/Products/ProductsList';
-import ProductsTable from './AdminDashboard/Products/Productstable';
+import ProductsView from '../AdminDashboard/views/Products/ProductsView';
 import AddProductModal from './AdminDashboard/Products/AddProductModal';
 
 // =============================
@@ -3419,32 +3419,12 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
 
   // Render products content
   const renderProductsContent = () => {
-  if (selectedProduct !== null) {
-    return renderProductDetail();
-  }
     return (
-      <ProductsTable
-        selectedProduct={selectedProduct === null ? null : String(selectedProduct)}
-        renderProductDetail={renderProductDetail}
-        productSearchQuery={productSearchQuery}
-        setProductSearchQuery={setProductSearchQuery}
-        productCategoryFilter={productCategoryFilter}
-        setProductCategoryFilter={setProductCategoryFilter}
-        productCategories={productCategories}
-        setShowAddProductModal={setShowAddProductModal}
-        deleteFeedback={deleteFeedback}
-        selectedProductIds={selectedProductIds}
-        filteredProducts={filteredProducts}
-        handleSelectAllProducts={handleSelectAllProducts as (e?: React.ChangeEvent<HTMLInputElement>) => void}
-        paginatedProducts={paginatedProducts}
-        handleSelectProduct={handleSelectProduct as (id: string) => () => void}
-        setSelectedProduct={setSelectedProduct as React.Dispatch<React.SetStateAction<string | null>>}
-        setEditProductId={setEditProductId}
-        setEditProductForm={setEditProductForm as React.Dispatch<React.SetStateAction<any>>}
-        setShowEditProductModal={setShowEditProductModal}
-        productBulkAction={productBulkAction}
-        setProductBulkAction={setProductBulkAction}
-        handleProductBulkAction={handleProductBulkAction}
+      <ProductsView
+        selectedProduct={selectedProduct}
+        setSelectedProduct={setSelectedProduct}
+        categoryFilter={productCategoryFilter}
+        setCategoryFilter={setProductCategoryFilter}
       />
     );
 
