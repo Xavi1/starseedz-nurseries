@@ -1,0 +1,133 @@
+404.html
+firebase.json
+index.html
+LICENSE
+package.json
+postcss.config.js
+README.md
+render reports old.txt
+render settings old.txt
+rollup.config.js
+storage.rules
+tailwind.config.js
+tsconfig.json
+tsconfig.node.json
+vercel.json
+vite.config.ts
+favicon_io/
+	about.txt
+	site.webmanifest
+public/
+	index.html
+	img/
+scripts/
+	populateProducts.js
+src/
+	App.tsx
+	firebase.js
+	firebase.ts
+	firebaseConfig.js
+	firebaseHelpers.d.ts
+	firebaseHelpers.js
+	index.css
+	index.tsx
+	vite-env.d.ts
+	AdminDashboard/
+		types.ts
+		components/
+			Pagination.tsx
+			StatusBadge.tsx
+		views/
+			Customers/
+				CustomerDetail.tsx
+				...
+			Dashboard/
+			Orders/
+			Products/
+	components/
+		AboutSection.tsx
+		Card.tsx
+		CheckoutSteps.tsx
+		FeaturedCategories.tsx
+		Footer.tsx
+		FormattedDate.tsx
+		Header.tsx
+		Hero.tsx
+		Modal.tsx
+		Newsletter.tsx
+		orderHelpers.tsx
+		OrderItems.tsx
+		OrderSummaryCard.tsx
+		OrderTrackingWidget.tsx
+		Pagination.tsx
+		ProductCard.tsx
+		ProductGrid.tsx
+		Reports.tsx
+		reportService.d.ts
+		reportService.js
+		ShopSidebar.tsx
+		SortDropdown.tsx
+		Table.tsx
+		AdminDashboard/
+			Products/
+		services/
+		Settings/
+			StoreSettings.tsx
+		ui/
+	context/
+		CartContext.tsx
+		ProductsContext.tsx
+		WishlistContext.tsx
+	data/
+		products_new.ts
+		products.js
+		products.ts
+	hooks/
+	lib/
+		jsPDF.d.ts
+		jsPDF.js
+		jsPDF.min.js
+		supabase.js
+	pages/
+		About.tsx
+		Account_Old.tsx
+		Account.tsx
+		AdminDashboard.tsx
+		AdminOrderDetails.tsx
+		Cart_old.tsx
+		Cart.tsx
+		Checkout_old.tsx
+		Checkout.tsx
+		Contact.tsx
+		FAQ.tsx
+		Login.tsx
+		OrderDetails.tsx
+		PrivacyPolicy.tsx
+		ProductDetail_old.tsx
+		ProductDetail.tsx
+		ReturnsRefunds.tsx
+		SettingsPanel.tsx
+		ShippingPolicy.tsx
+		Shop.tsx
+		Signup.tsx
+		TermsOfService.tsx
+		Wishlist.tsx
+		AdminDashboard/
+			AdminDashboard_wip.tsx
+			DashboardOverview.tsx
+			components/
+			Customers/
+			layout/
+			Orders/
+			Products/
+			Reports/
+			Settings/
+		Customers/
+		Orders/
+		Products/
+		Reports/
+		Settings/
+types/
+	window.d.ts
+utils/
+	formatDate.ts
