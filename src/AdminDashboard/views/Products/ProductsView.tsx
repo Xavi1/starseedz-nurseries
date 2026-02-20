@@ -1,7 +1,7 @@
 // src/AdminDashboard/views/Products/ProductsView.tsx
 import React, { useState } from 'react';
 import { useProducts } from '../../../context/ProductsContext';
-import { Product } from '../../types';
+// import { Product } from '../../types';
 import { SearchIcon, PlusIcon, EyeIcon, EditIcon, TrashIcon, XIcon } from 'lucide-react';
 import Pagination from '../../components/Pagination';
 
@@ -13,13 +13,13 @@ interface ProductsViewProps {
 }
 
 const ProductsView: React.FC<ProductsViewProps> = ({
-  selectedProduct, setSelectedProduct, categoryFilter, setCategoryFilter
+  selectedProduct, setSelectedProduct
 }) => {
   const { products, loading, error, refreshProducts } = useProducts();
-  const [searchQuery, setSearchQuery] = useState('');
+  // const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
+  // const [showAddModal, setShowAddModal] = useState(false);
+  // const [showEditModal, setShowEditModal] = useState(false);
   const [editProductId, setEditProductId] = useState<string | null>(null);
   
   // Additional states from the code snippet
@@ -32,7 +32,37 @@ const ProductsView: React.FC<ProductsViewProps> = ({
   const [showDeleteProductModal, setShowDeleteProductModal] = useState(false);
   const [deleteFeedback, setDeleteFeedback] = useState<string | null>(null);
   const [productBulkAction, setProductBulkAction] = useState('');
-  const [editProductForm, setEditProductForm] = useState<any>(null);
+  type EditProductForm = {
+    name: string;
+    sku: string;
+    description: string;
+    longDescription: string;
+    image: string;
+    price: string | number;
+    stock: string | number;
+    category: string | string[];
+    rating: number;
+    inStock: boolean;
+    isBestSeller: boolean;
+    careInstructions: {
+      light: string;
+      temperature: string;
+      warnings: string;
+      water: string;
+    };
+    specifications: {
+      Difficulty: string;
+      'Growth Rate': string;
+      'Light Requirements': string;
+      'Mature Height': string;
+      'Pet Friendly': string;
+      'Pot Size': string;
+    };
+    relatedProducts: string[];
+    reviews: string;
+    [key: string]: unknown;
+  };
+  const [editProductForm, setEditProductForm] = useState<EditProductForm | null>(null);
   const [showEditConfirm, setShowEditConfirm] = useState(false);
   
   // Add product form state
@@ -81,7 +111,7 @@ const ProductsView: React.FC<ProductsViewProps> = ({
   // Pagination Logic
   const pageSize = 10;
   const totalProducts = filteredProducts.length;
-  const totalPages = Math.ceil(totalProducts / pageSize) || 1;
+  // const totalPages = Math.ceil(totalProducts / pageSize) || 1;
   const startIdx = (currentPage - 1) * pageSize;
   const endIdx = Math.min(startIdx + pageSize, totalProducts);
   const paginatedProducts = filteredProducts.slice(startIdx, endIdx);
@@ -192,12 +222,13 @@ const ProductsView: React.FC<ProductsViewProps> = ({
       // Import addProduct dynamically to avoid SSR issues
       const { addProduct } = await import('../../../firebaseHelpers');
       // Generate a new id for the product (let Firestore auto-generate if you want)
-      const id = await addProduct(productData);
+      await addProduct(productData);
       // Optionally, update local state
-      setProducts(prev => [
-        { ...productData, id, sku: id, lowStockThreshold: 5 },
-        ...prev
-      ]);
+      // setProducts(prev => [
+      //   { ...productData, id, sku: id, lowStockThreshold: 5 },
+      //   ...prev
+      // ]);
+      await refreshProducts();
     } catch (err) {
       alert('Failed to add product.');
       console.error('Add product error:', err);
@@ -240,31 +271,41 @@ const ProductsView: React.FC<ProductsViewProps> = ({
     
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
-      setEditProductForm((prev: any) => ({
-        ...prev,
-        [name]: checked
-      }));
+      setEditProductForm((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          [name]: checked
+        };
+      });
     } else if (name.startsWith('careInstructions.')) {
       const field = name.split('.')[1];
-      setEditProductForm((prev: any) => ({
-        ...prev,
-        careInstructions: {
-          ...prev.careInstructions,
-          [field]: value
-        }
-      }));
+      setEditProductForm((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          careInstructions: {
+            ...prev.careInstructions,
+            [field]: value
+          }
+        };
+      });
     } else if (name.startsWith('specifications.')) {
       const field = name.split('.')[1];
-      setEditProductForm((prev: any) => ({
-        ...prev,
-        specifications: {
-          ...prev.specifications,
-          [field]: value
-        }
-      }));
+      setEditProductForm((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          specifications: {
+            ...prev.specifications,
+            [field]: value
+          }
+        };
+      });
     } else if (name.startsWith('relatedProducts.')) {
       const index = parseInt(name.split('.')[1]);
-      setEditProductForm((prev: any) => {
+      setEditProductForm((prev) => {
+        if (!prev) return null;
         const newRelated = [...prev.relatedProducts];
         newRelated[index] = value;
         return {
@@ -273,10 +314,13 @@ const ProductsView: React.FC<ProductsViewProps> = ({
         };
       });
     } else {
-      setEditProductForm((prev: any) => ({
-        ...prev,
-        [name]: value
-      }));
+      setEditProductForm((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          [name]: value
+        };
+      });
     }
   };
 
@@ -601,7 +645,7 @@ const ProductsView: React.FC<ProductsViewProps> = ({
                                 'Pot Size': typeof product.specifications?.['Pot Size'] === 'string' ? product.specifications['Pot Size'] : '',
                               },
                               relatedProducts: Array.isArray(product.relatedProducts)
-                                ? product.relatedProducts.map((ref: any) =>
+                                ? product.relatedProducts.map((ref: string | { id?: string; path?: string }) =>
                                     typeof ref === "string"
                                       ? ref
                                       : String(ref.id || ref.path || "")
@@ -701,7 +745,8 @@ const ProductsView: React.FC<ProductsViewProps> = ({
                     const { doc, deleteDoc } = await import('firebase/firestore');
                     const { db } = await import('../../../firebase');
                     await deleteDoc(doc(db, 'products', deleteProductId));
-                    setProducts(prev => prev.filter(p => p.id !== deleteProductId));
+                    // setProducts(prev => prev.filter(p => p.id !== deleteProductId));
+                    await refreshProducts();
                     setShowDeleteProductModal(false);
                     setDeleteProductId(null);
                     setDeleteFeedback('Product deleted successfully.');
