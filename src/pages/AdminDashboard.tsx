@@ -3421,8 +3421,8 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
   const renderProductsContent = () => {
     return (
       <ProductsView
-        selectedProduct={selectedProduct}
-        setSelectedProduct={setSelectedProduct}
+        selectedProduct={selectedProduct !== null ? String(selectedProduct) : null}
+        setSelectedProduct={id => setSelectedProduct(id !== null ? Number(id) : null)}
         categoryFilter={productCategoryFilter}
         setCategoryFilter={setProductCategoryFilter}
       />
