@@ -847,11 +847,11 @@ const ProductsView: React.FC<ProductsViewProps> = ({
                     <input type="number" name="rating" value={editProductForm.rating} onChange={handleEditProductChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" min="0" max="5" />
                   </div>
                   <div className="flex-1 flex items-center gap-2 mt-6">
-                    <input type="checkbox" name="inStock" checked={editProductForm.inStock} onChange={handleEditProductChange} className="h-4 w-4 text-green-600 border-gray-300 rounded" />
+                    <input type="checkbox" name="inStock" checked={editProductForm.inStock} onChange={handleEditProductChange} className="h-4 w-4 text-green-600 border-gray-300 rounded accent-green-600" />
                     <label className="text-sm text-gray-700">In Stock</label>
                   </div>
                   <div className="flex-1 flex items-center gap-2 mt-6">
-                    <input type="checkbox" name="isBestSeller" checked={editProductForm.isBestSeller} onChange={handleEditProductChange} className="h-4 w-4 text-green-600 border-gray-300 rounded" />
+                    <input type="checkbox" name="isBestSeller" checked={editProductForm.isBestSeller} onChange={handleEditProductChange} className="h-4 w-4 text-green-600 border-gray-300 rounded accent-green-600" />
                     <label className="text-sm text-gray-700">Best Seller</label>
                   </div>
                 </div>
