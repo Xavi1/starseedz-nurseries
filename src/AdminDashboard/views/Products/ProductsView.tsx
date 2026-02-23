@@ -1,5 +1,7 @@
 // src/AdminDashboard/views/Products/ProductsView.tsx
 import React, { useState } from 'react';
+import ProductDetail from '../../../pages/AdminDashboard/Products/ProductDetail';
+import { getFirestore, updateDoc } from 'firebase/firestore';
 import { useProducts } from '../../../context/ProductsContext';
 // import { Product } from '../../types';
 import { SearchIcon, PlusIcon, EyeIcon, EditIcon, TrashIcon, XIcon } from 'lucide-react';
@@ -21,6 +23,7 @@ const ProductsView: React.FC<ProductsViewProps> = ({
   // const [showAddModal, setShowAddModal] = useState(false);
   // const [showEditModal, setShowEditModal] = useState(false);
   const [editProductId, setEditProductId] = useState<string | null>(null);
+  const db = getFirestore();
   
   // Additional states from the code snippet
   const [productSearchQuery, setProductSearchQuery] = useState('');
@@ -346,9 +349,27 @@ const ProductsView: React.FC<ProductsViewProps> = ({
     setCurrentPage(page);
   };
 
+  const setProducts = (updater: (prev: any[]) => any[]) => {
+    // This is a stub. You may want to update your products state here if you keep a local copy.
+    // If you use context, update context accordingly.
+    refreshProducts();
+  };
+
   const renderProductDetail = () => {
-    // You'll need to implement this based on your ProductDetail component
-    return <div>Product Detail View</div>;
+    const product = products.find((p: any) => p.id === selectedProduct);
+    if (!product) return <div>Product not found</div>;
+    return (
+      <ProductDetail
+        product={product}
+        setSelectedProduct={() => setSelectedProduct(null)}
+        setEditProductId={setEditProductId}
+        setEditProductForm={setEditProductForm}
+        setShowEditProductModal={setShowEditProductModal}
+        setProducts={setProducts}
+        db={db}
+        updateDoc={updateDoc}
+      />
+    );
   };
 
   const renderProductsContent = () => (
