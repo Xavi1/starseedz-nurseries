@@ -359,16 +359,16 @@ const ProductsView: React.FC<ProductsViewProps> = ({
     const product = products.find((p: any) => p.id === selectedProduct);
     if (!product) return <div>Product not found</div>;
     return (
-      <ProductDetail
-        product={product}
-        setSelectedProduct={() => setSelectedProduct(null)}
-        setEditProductId={setEditProductId}
-        setEditProductForm={setEditProductForm}
-        setShowEditProductModal={setShowEditProductModal}
-        setProducts={setProducts}
-        db={db}
-        updateDoc={updateDoc}
-      />
+       <ProductDetail
+      product={product}
+      setSelectedProduct={() => setSelectedProduct(null)}
+      setEditProductId={setEditProductId}
+       setEditProductForm={setEditProductForm as unknown as (form: Partial<any>) => void}
+      setShowEditProductModal={setShowEditProductModal}
+      setProducts={setProducts}
+      db={db}
+      updateDoc={updateDoc}
+    />
     );
   };
 
