@@ -18,7 +18,7 @@ import SettingsPanel from './SettingsPanel';
 import DashboardSidebar from './AdminDashboard/layout/DashboardSidebar';
 import DashboardHeader from './AdminDashboard/layout/DashboardHeader';
 import DashboardMainLayout from './AdminDashboard/layout/DashboardMainLayout';
-import  OrderDetail  from "./AdminDashboard/Orders/OrderDetail";
+import OrderDetail  from "./AdminDashboard/Orders/OrderDetail";
 import ProductDetail from "./AdminDashboard/Products/ProductDetail";
 import ProductEditModal from './AdminDashboard/Products/ProductEditModal';
 import ProductsView from '../AdminDashboard/views/Products/ProductsView';
