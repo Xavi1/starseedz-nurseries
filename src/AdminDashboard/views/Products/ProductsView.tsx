@@ -351,7 +351,7 @@ const ProductsView: React.FC<ProductsViewProps> = ({
 
   const setProducts = (updater: (prev: any[]) => any[]) => {
     // This is a stub. You may want to update your products state here if you keep a local copy.
-    // If you use context, update context accordingly.
+
     refreshProducts();
   };
 
