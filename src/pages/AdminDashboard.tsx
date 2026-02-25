@@ -124,7 +124,6 @@ type Order = {
 
 // Main AdminDashboard component declaration
 const AdminDashboard = () => {
-      // --- Add dummy usage for unused variables/functions to avoid TS errors ---
     // --- Dropdown state and notifications example ---
     const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
     useEffect(() => {
