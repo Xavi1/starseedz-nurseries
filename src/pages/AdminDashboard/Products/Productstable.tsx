@@ -274,8 +274,7 @@ const ProductsTable = ({
         <div className="px-4 py-3 bg-white border-t border-gray-200">
           <Pagination
             currentPage={currentPage}
-            totalItems={filteredProducts.length}
-            pageSize={pageSize}
+            totalPages={Math.ceil(filteredProducts.length / pageSize)}
             onPageChange={handlePageChange}
           />
         </div>
