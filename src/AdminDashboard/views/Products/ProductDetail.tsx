@@ -1,18 +1,89 @@
 import React from 'react';
 import { XIcon, EditIcon, RefreshCwIcon } from 'lucide-react';
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { FirebaseApp } from 'firebase/app';
+import { Firestore } from 'firebase/firestore';
 
-// Note: You'll need to pass these as props or import them from context
+// Define proper types
+interface CareInstructions {
+  light: string;
+  temperature: string;
+  warnings: string;
+  water: string;
+}
+
+interface Specifications {
+  Difficulty: string;
+  'Growth Rate': string;
+  'Light Requirements': string;
+  'Mature Height': string;
+  'Pet Friendly': string;
+  'Pot Size': string;
+}
+
+interface Product {
+  id: string;
+  name: string;
+  sku: string;
+  category: string | string[];
+  price: number;
+  stock: number;
+  lowStockThreshold: number;
+  featured: boolean;
+  image: string;
+  imageUrl?: string;
+  inStock?: boolean;
+  isBestSeller?: boolean;
+  rating?: number;
+  careInstructions?: CareInstructions;
+  specifications?: Specifications;
+  relatedProducts?: Array<string | { id?: any; path?: any }>;
+  reviews?: string;
+}
+
+interface EditProductFormData {
+  image: string;
+  price: string;
+  stock: string;
+  inStock: boolean;
+  isBestSeller: boolean;
+  rating: number;
+  careInstructions: CareInstructions;
+  specifications: Specifications;
+  relatedProducts: string[];
+  reviews: string;
+  // Add other fields from Product as needed, making them optional or string versions
+  [key: string]: any; // For other dynamic fields, but try to be more specific if possible
+}
+
 interface ProductDetailProps {
   selectedProduct: string | null;
-  products: any[];
+  products: Product[];
   setSelectedProduct: (id: string | null) => void;
   setEditProductId: (id: string) => void;
-  setEditProductForm: (form: any) => void;
+  setEditProductForm: (form: EditProductFormData) => void;
   setShowEditProductModal: (show: boolean) => void;
-  db: any; // Firebase database instance
-  setProducts: React.Dispatch<React.SetStateAction<any[]>>; // Fixed type
+  db: Firestore; // Firebase Firestore instance
+  setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
 }
+
+// Sales data type
+interface SalesDataPoint {
+  date: string;
+  sales: number;
+}
+
+const salesData: SalesDataPoint[] = [
+  { date: '2023-05-15', sales: 5 },
+  { date: '2023-05-22', sales: 8 },
+  { date: '2023-05-29', sales: 12 },
+  { date: '2023-06-05', sales: 10 },
+  { date: '2023-06-12', sales: 15 },
+  { date: '2023-06-19', sales: 18 },
+  { date: '2023-06-26', sales: 14 },
+  { date: '2023-07-03', sales: 20 },
+  { date: '2023-07-10', sales: 16 },
+];
 
 const ProductDetail: React.FC<ProductDetailProps> = ({
   selectedProduct,
@@ -120,34 +191,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               </h4>
               <div className="mt-2 h-32">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={[{
-                  date: '2023-05-15',
-                  sales: 5
-                }, {
-                  date: '2023-05-22',
-                  sales: 8
-                }, {
-                  date: '2023-05-29',
-                  sales: 12
-                }, {
-                  date: '2023-06-05',
-                  sales: 10
-                }, {
-                  date: '2023-06-12',
-                  sales: 15
-                }, {
-                  date: '2023-06-19',
-                  sales: 18
-                }, {
-                  date: '2023-06-26',
-                  sales: 14
-                }, {
-                  date: '2023-07-03',
-                  sales: 20
-                }, {
-                  date: '2023-07-10',
-                  sales: 16
-                }]}>
+                  <LineChart data={salesData}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis dataKey="date" tick={false} />
                     <YAxis />
@@ -185,7 +229,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                       'Pot Size': product.specifications?.['Pot Size'] || '',
                     },
                     relatedProducts: product.relatedProducts 
-                      ? product.relatedProducts.map((ref: any) =>
+                      ? product.relatedProducts.map((ref) =>
                           typeof ref === 'string'
                             ? ref
                             : ref.id?.value || ref.path?.value || String(ref.id || ref.path || '')
@@ -214,7 +258,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                     const { doc, collection, updateDoc } = await import('firebase/firestore');
                     const productRef = doc(collection(db, 'products'), product.id);
                     await updateDoc(productRef, { stock: newStock });
-                    setProducts((prev: any[]) => prev.map(p => p.id === product.id ? { ...p, stock: newStock } : p));
+                    setProducts((prev: Product[]) => prev.map(p => p.id === product.id ? { ...p, stock: newStock } : p));
                     alert('Stock updated successfully.');
                   } catch (err) {
                     alert('Failed to update stock.');
