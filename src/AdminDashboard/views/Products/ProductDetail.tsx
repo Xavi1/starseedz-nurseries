@@ -1,7 +1,6 @@
 import React from 'react';
 import { XIcon, EditIcon, RefreshCwIcon } from 'lucide-react';
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
 
 // Define proper types
