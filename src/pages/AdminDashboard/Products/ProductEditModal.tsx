@@ -155,11 +155,11 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
   };
 
   const handleSaveClick = () => {
-    // Prepare the updated form data
+   /*  // Prepare the updated form data
     const updatedForm = {
       ...localForm,
       specifications,
-    };
+    }; */
     
     // Show confirmation dialog
     onConfirmEditSave();
