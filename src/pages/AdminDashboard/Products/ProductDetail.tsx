@@ -1,7 +1,7 @@
 import { Product } from "../../../AdminDashboard/types";
 import { XIcon, EditIcon, RefreshCwIcon } from "lucide-react";
 import { ResponsiveContainer, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Line } from "recharts";
-import { Firestore, DocumentData, UpdateData, DocumentReference, collection, query, getDocs, Timestamp } from "firebase/firestore";
+import { Firestore, DocumentData, UpdateData, DocumentReference, collection, getDocs, Timestamp } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import ProductEditModal from "./ProductEditModal";
 
