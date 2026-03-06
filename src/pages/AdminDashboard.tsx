@@ -170,9 +170,6 @@ const AdminDashboard = () => {
   const [activeSettingsTab, setActiveSettingsTab] = useState('store');
   // Modal state for add product
   const [showAddProductModal, setShowAddProductModal] = useState(false);
-   // State for delete confirmation modal
-  const [showDeleteProductModal, setShowDeleteProductModal] = useState(false);
-  const [deleteProductId, setDeleteProductId] = useState<string | null>(null);
     // State for delete feedback
   const [deleteFeedback, setDeleteFeedback] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = React.useState(1);
