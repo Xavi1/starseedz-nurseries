@@ -177,7 +177,7 @@ const AdminDashboard = () => {
   const [deleteFeedback, setDeleteFeedback] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = React.useState(1);
     // State for product search
-  const [productSearchQuery, setProductSearchQuery] = useState("");
+  const [productSearchQuery] = useState("");
     // State for filter modal
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   // Pagination state for orders and customers
