@@ -803,11 +803,11 @@ useEffect(() => {
   };
  */
   // Edit product submit handler
-  const handleEditProductSubmit = async (e: React.FormEvent) => {
+/*   const handleEditProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Show confirmation popup before saving
     setShowEditConfirm(true);
-  };
+  }; */
 
   // Removed unused function deleteProductFromFirestore
 
