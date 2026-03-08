@@ -766,7 +766,7 @@ useEffect(() => {
   const [showEditConfirm, setShowEditConfirm] = useState(false);
 
   // Edit product form change handler
-  const handleEditProductChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+/*   const handleEditProductChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     if (!editProductForm) return;
     const { name, value, type } = e.target;
     if (name.startsWith('careInstructions.')) {
@@ -801,7 +801,7 @@ useEffect(() => {
       setEditProductForm((prev: any) => ({ ...prev, [name]: value }));
     }
   };
-
+ */
   // Edit product submit handler
   const handleEditProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
