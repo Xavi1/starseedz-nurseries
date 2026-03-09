@@ -6,6 +6,7 @@ import { useProducts } from '../../../context/ProductsContext';
 // import { Product } from '../../types';
 import { SearchIcon, PlusIcon, EyeIcon, EditIcon, TrashIcon, XIcon } from 'lucide-react';
 import Pagination from '../../components/Pagination';
+import ProductEditModal from '../../../pages/AdminDashboard/Products/ProductEditModal';
 
 interface ProductsViewProps {
   selectedProduct: string | null;
@@ -333,9 +334,21 @@ const ProductsView: React.FC<ProductsViewProps> = ({
   };
 
   const handleConfirmEditSave = async () => {
-    // Add your Firebase update logic here
-    console.log('Update product:', editProductId, editProductForm);
     setShowEditConfirm(false);
+  };
+
+  const handleSaveProduct = async (updatedProduct: Partial<any>) => {
+    if (!editProductId) return;
+    try {
+      const { doc } = await import('firebase/firestore');
+      const { db: firestoreDb } = await import('../../../firebase');
+      const productRef = doc(firestoreDb, 'products', editProductId);
+      await updateDoc(productRef, updatedProduct);
+      await refreshProducts();
+    } catch (err) {
+      alert('Failed to save product.');
+      console.error('Save product error:', err);
+    }
     setShowEditProductModal(false);
     setEditProductForm(null);
     setEditProductId(null);
@@ -793,131 +806,19 @@ const ProductsView: React.FC<ProductsViewProps> = ({
       )}
       
       {/* Edit Product Modal */}
-      {showEditProductModal && editProductForm && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-          {/* Confirmation Popup */}
-          {showEditConfirm && (
-            <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-40">
-              <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full border border-gray-200">
-                <h3 className="text-lg font-semibold mb-4 text-gray-800">Confirm Save Changes</h3>
-                <p className="mb-6 text-gray-700">Are you sure you want to save changes to this product?</p>
-                <div className="flex justify-end gap-3">
-                  <button onClick={handleCancelEditSave} className="px-4 py-2 rounded bg-gray-200 text-gray-800 hover:bg-gray-300">Cancel</button>
-                  <button onClick={handleConfirmEditSave} className="px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800">Confirm</button>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-8 relative border border-gray-200">
-            <button
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
-              onClick={() => { 
-                setShowEditProductModal(false); 
-                setEditProductForm(null); 
-                setEditProductId(null); 
-              }}
-              aria-label="Close"
-            >
-              <XIcon className="h-6 w-6" />
-            </button>
-            <h2 className="text-xl font-semibold mb-6 text-green-800 flex items-center gap-2">
-              <EditIcon className="h-5 w-5" /> Edit Product
-            </h2>
-            <form onSubmit={handleEditProductSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
-                  <input type="text" name="name" value={editProductForm.name} onChange={handleEditProductChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" required />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">SKU</label>
-                  <input type="text" name="sku" value={editProductForm.sku ?? ''} onChange={handleEditProductChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" required />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Short Description</label>
-                  <textarea name="description" value={editProductForm.description} onChange={handleEditProductChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" rows={2} required />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Long Description</label>
-                  <textarea name="longDescription" value={editProductForm.longDescription} onChange={handleEditProductChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" rows={3} />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-                  <input type="text" name="image" value={editProductForm.image} onChange={handleEditProductChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" />
-                </div>
-                <div className="flex gap-4">
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
-                    <input type="number" name="price" value={editProductForm.price} onChange={handleEditProductChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" min="0" step="0.01" required />
-                  </div>
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
-                    <input type="number" name="stock" value={editProductForm.stock} onChange={handleEditProductChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" min="0" />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category (comma separated)</label>
-                  <input type="text" name="category" value={editProductForm.category} onChange={handleEditProductChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" required />
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div className="flex gap-4">
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
-                    <input type="number" name="rating" value={editProductForm.rating} onChange={handleEditProductChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" min="0" max="5" />
-                  </div>
-                  <div className="flex-1 flex items-center gap-2 mt-6">
-                    <input type="checkbox" name="inStock" checked={editProductForm.inStock} onChange={handleEditProductChange} className="h-4 w-4 text-green-600 border-gray-300 rounded accent-green-600" />
-                    <label className="text-sm text-gray-700">In Stock</label>
-                  </div>
-                  <div className="flex-1 flex items-center gap-2 mt-6">
-                    <input type="checkbox" name="isBestSeller" checked={editProductForm.isBestSeller} onChange={handleEditProductChange} className="h-4 w-4 text-green-600 border-gray-300 rounded accent-green-600" />
-                    <label className="text-sm text-gray-700">Best Seller</label>
-                  </div>
-                </div>
-                <div className="border-t pt-4">
-                  <label className="block text-sm font-semibold text-gray-800 mb-2">Care Instructions</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <input type="text" name="careInstructions.light" value={editProductForm.careInstructions.light} onChange={handleEditProductChange} placeholder="Light" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
-                    <input type="text" name="careInstructions.temperature" value={editProductForm.careInstructions.temperature} onChange={handleEditProductChange} placeholder="Temperature" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
-                    <input type="text" name="careInstructions.warnings" value={editProductForm.careInstructions.warnings} onChange={handleEditProductChange} placeholder="Warnings" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
-                    <input type="text" name="careInstructions.water" value={editProductForm.careInstructions.water} onChange={handleEditProductChange} placeholder="Water" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
-                  </div>
-                </div>
-                <div className="border-t pt-4">
-                  <label className="block text-sm font-semibold text-gray-800 mb-2">Specifications</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <input type="text" name="specifications.Difficulty" value={editProductForm.specifications?.Difficulty ?? ''} onChange={handleEditProductChange} placeholder="Difficulty" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
-                    <input type="text" name="specifications.Growth Rate" value={editProductForm.specifications?.['Growth Rate'] ?? ''} onChange={handleEditProductChange} placeholder="Growth Rate" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
-                    <input type="text" name="specifications.Light Requirements" value={editProductForm.specifications?.['Light Requirements'] ?? ''} onChange={handleEditProductChange} placeholder="Light Requirements" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
-                    <input type="text" name="specifications.Mature Height" value={editProductForm.specifications?.['Mature Height'] ?? ''} onChange={handleEditProductChange} placeholder="Mature Height" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
-                    <input type="text" name="specifications.Pet Friendly" value={editProductForm.specifications?.['Pet Friendly'] ?? ''} onChange={handleEditProductChange} placeholder="Pet Friendly" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
-                    <input type="text" name="specifications.Pot Size" value={editProductForm.specifications?.['Pot Size'] ?? ''} onChange={handleEditProductChange} placeholder="Pot Size" className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500" />
-                  </div>
-                </div>
-                <div className="border-t pt-4">
-                  <label className="block text-sm font-semibold text-gray-800 mb-2">Related Products (IDs or paths)</label>
-                  <div className="grid grid-cols-1 gap-2">
-                    {[0, 1, 2].map(i => (
-                      <input key={i} type="text" name={`relatedProducts.${i}`} value={editProductForm.relatedProducts[i]} onChange={handleEditProductChange} placeholder={`Related Product ${i + 1}`} className="border border-gray-300 rounded-md px-2 py-1 focus:ring-green-500 flex-1" />
-                    ))}
-                  </div>
-                </div>
-                <div className="border-t pt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Reviews (path or ID)</label>
-                  <input type="text" name="reviews" value={editProductForm.reviews} onChange={handleEditProductChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" />
-                </div>
-              </div>
-              <div className="md:col-span-2 flex justify-end mt-6">
-                <button type="submit" className="inline-flex items-center px-6 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                  Save Changes
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <ProductEditModal
+        show={showEditProductModal}
+        form={editProductForm}
+        showEditConfirm={showEditConfirm}
+        onCancelEditSave={handleCancelEditSave}
+        onConfirmEditSave={() => setShowEditConfirm(true)}
+        onClose={() => {
+          setShowEditProductModal(false);
+          setEditProductForm(null);
+          setEditProductId(null);
+        }}
+        onSave={handleSaveProduct}
+      />
     </>
   );
 };
