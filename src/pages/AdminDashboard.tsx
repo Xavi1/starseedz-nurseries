@@ -4067,6 +4067,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
           onClose={() => setShowAddProductModal(false)}
           onSubmit={handleAddProductSubmit}
         />
+        {/* Edit Product Modal */}
         <ProductEditModal
           show={showEditProductModal}
           form={editProductForm}
