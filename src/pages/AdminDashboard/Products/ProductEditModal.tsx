@@ -58,8 +58,8 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
     Difficulty: '',
     'Growth Rate': '',
     'Light Requirements': '',
-    'Mature Height: ': '',
-    'Pet Friendly: ': '',
+    'Mature Height': '',
+    'Pet Friendly': '',
     'Pot Size': '',
   });
 
@@ -155,23 +155,20 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
   };
 
   const handleSaveClick = () => {
- // Prepare the updated form data
-    const updatedForm = {
-      ...localForm,
-      specifications,
-    };
-    
+    // Merge latest specifications into localForm before confirming
+    setLocalForm(prev => ({ ...prev, specifications }));
+
     // Show confirmation dialog
     onConfirmEditSave();
   };
 
   const handleConfirmSave = () => {
-    // Prepare the updated form data
+    // Prepare the updated form data with latest specifications
     const updatedForm = {
       ...localForm,
       specifications,
     };
-    
+
     // Call the parent's save function
     onSave(updatedForm);
   };
@@ -445,8 +442,8 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
                   <label className="block text-sm font-medium text-gray-700 mb-1">Mature Height</label>
                   <input
                     type="text"
-                    value={specifications['Mature Height: '] || ''}
-                    onChange={(e) => handleSpecificationChange('Mature Height: ', e.target.value)}
+                    value={specifications['Mature Height'] || ''}
+                    onChange={(e) => handleSpecificationChange('Mature Height', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
@@ -454,8 +451,8 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
                   <label className="block text-sm font-medium text-gray-700 mb-1">Pet Friendly</label>
                   <input
                     type="text"
-                    value={specifications['Pet Friendly: '] || ''}
-                    onChange={(e) => handleSpecificationChange('Pet Friendly: ', e.target.value)}
+                    value={specifications['Pet Friendly'] || ''}
+                    onChange={(e) => handleSpecificationChange('Pet Friendly', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
