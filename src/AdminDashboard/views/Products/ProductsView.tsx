@@ -808,7 +808,7 @@ const ProductsView: React.FC<ProductsViewProps> = ({
       {/* Edit Product Modal */}
       <ProductEditModal
         show={showEditProductModal}
-        form={editProductForm}
+        form={editProductForm as Partial<any> | null}
         showEditConfirm={showEditConfirm}
         onCancelEditSave={handleCancelEditSave}
         onConfirmEditSave={() => setShowEditConfirm(true)}
