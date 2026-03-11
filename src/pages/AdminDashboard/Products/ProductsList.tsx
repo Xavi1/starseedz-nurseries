@@ -1,6 +1,14 @@
 import { SearchIcon, PlusIcon, EyeIcon, EditIcon } from 'lucide-react';
 import Pagination from '../../../AdminDashboard/components/Pagination';
 
+interface ProductSpecifications {
+  [key: string]: string | number | boolean | null | undefined;
+}
+
+interface CareInstructions {
+  [key: string]: string | string[];
+}
+
 interface Product {
   id: string | number;
   name: string;
@@ -14,8 +22,8 @@ interface Product {
   isBestSeller?: boolean;
   rating?: number;
   relatedProducts?: string[];
-  specifications?: Record<string, any>;
-  careInstructions?: Record<string, any>;
+  specifications?: ProductSpecifications;
+  careInstructions?: CareInstructions;
 }
 
 interface ProductsListProps {
