@@ -84,7 +84,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             </svg>
           ))}
         </div>
-        <p className="mt-2 text-lg font-medium text-gray-900">${product.price.toFixed(2)}</p>
+        <p className="mt-2 text-lg font-medium text-gray-900">${Number(product.price).toFixed(2)}</p>
       </div>
     </div>
   );
