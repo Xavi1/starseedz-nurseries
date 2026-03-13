@@ -328,10 +328,10 @@ const ProductsView: React.FC<ProductsViewProps> = ({
     }
   }; */
 
-  const handleEditProductSubmit = async (e: React.FormEvent) => {
+/*   const handleEditProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setShowEditConfirm(true);
-  };
+  }; */
 
   const handleConfirmEditSave = async () => {
     setShowEditConfirm(false);
