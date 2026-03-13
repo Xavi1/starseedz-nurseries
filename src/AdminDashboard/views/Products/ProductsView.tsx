@@ -333,9 +333,9 @@ const ProductsView: React.FC<ProductsViewProps> = ({
     setShowEditConfirm(true);
   }; */
 
-  const handleConfirmEditSave = async () => {
+/*   const handleConfirmEditSave = async () => {
     setShowEditConfirm(false);
-  };
+  }; */
 
   const handleSaveProduct = async (updatedProduct: Partial<any>) => {
     if (!editProductId) return;
