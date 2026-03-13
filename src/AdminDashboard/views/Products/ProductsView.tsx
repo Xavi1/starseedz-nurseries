@@ -268,7 +268,7 @@ const ProductsView: React.FC<ProductsViewProps> = ({
     });
   };
 
-  const handleEditProductChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  /* const handleEditProductChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     
     if (!editProductForm) return;
@@ -326,7 +326,7 @@ const ProductsView: React.FC<ProductsViewProps> = ({
         };
       });
     }
-  };
+  }; */
 
   const handleEditProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
