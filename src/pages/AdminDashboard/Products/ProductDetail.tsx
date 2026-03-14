@@ -106,7 +106,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
     fetchSalesData();
   }, [product?.id, db]);
 
-  const handleEditClick = () => {
+ /*  const handleEditClick = () => {
     const formData = {
       ...product,
       image: product.image || '',
@@ -139,7 +139,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
     setEditProductId(product.id);
     setEditProductForm(formData);
     setShowEditConfirm(true);
-  };
+  }; */
 
   const handleCancelEditSave = () => {
     setShowEditConfirm(false);
