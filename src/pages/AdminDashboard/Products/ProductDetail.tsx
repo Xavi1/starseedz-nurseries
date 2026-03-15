@@ -141,11 +141,14 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
     setShowEditConfirm(true);
   }; */
 
+  // Save Handlers
+  // Cancel Edit Handler
   const handleCancelEditSave = () => {
     setShowEditConfirm(false);
     setEditFormData(null);
   };
 
+  // Confirm Edit Handler
   const handleConfirmEditSave = () => {
     setShowEditConfirm(false);
     setSelectedProduct(null);
