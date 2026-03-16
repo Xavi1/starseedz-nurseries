@@ -2192,6 +2192,7 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
     );
   };
 
+  // Edit Order handler
   const handleEditOrder = (orderId: string) => {
   // Navigate to order detail view in edit mode
   setSelectedOrder(orderId);
