@@ -368,6 +368,7 @@ const ProductsView: React.FC<ProductsViewProps> = ({
     refreshProducts();
   };
 
+  // Product Render Handler
   const renderProductDetail = () => {
     const product = products.find((p: any) => p.id === selectedProduct);
     if (!product) return <div>Product not found</div>;
