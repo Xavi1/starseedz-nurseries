@@ -159,7 +159,6 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
 
   return (
     <>
-
       <ProductEditModal
         show={showEditConfirm}
         form={editFormData}

@@ -2152,6 +2152,8 @@ const getActivityIcon = (type: ActivityType): JSX.Element => {
     }
   });
   const uniqueCategories = Object.values(categoryMap);
+
+  // Unused product Categories
   const productCategories = ['all', ...uniqueCategories];
   // productCategories: unique product categories for filter dropdown
   // Get current report data based on type
