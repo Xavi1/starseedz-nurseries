@@ -166,6 +166,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
         onCancelEditSave={handleCancelEditSave}
         onConfirmEditSave={handleConfirmEditSave}
         onClose={() => setShowEditConfirm(false)}
+        // On save
         onSave={async (updatedFormData) => {
           // Implement product update logic here
           // For now, just close the modal
