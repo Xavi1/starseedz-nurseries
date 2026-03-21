@@ -205,7 +205,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 </div>
                 <div>
                   <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider">Price</h4>
-                  <p className="mt-1 text-sm text-gray-900">${product.price.toFixed(2)}</p>
+                  <p className="mt-1 text-sm text-gray-900">${(Number(product.price) || 0).toFixed(2)}</p>
                 </div>
                 <div>
                   <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</h4>
