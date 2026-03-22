@@ -1,7 +1,7 @@
 import React from 'react';
 import StoreSettings from '../components/Settings/StoreSettings';
 
-// User Management UI matching screenshot
+// User Management
 import { Pencil, Trash2, Plus, CreditCard } from 'lucide-react';
 const initialUsers = [
   {
