@@ -1,66 +1,236 @@
 import React from 'react';
 import StoreSettings from '../components/Settings/StoreSettings';
+import { Pencil, Trash2, Plus, CreditCard, Loader2, AlertCircle } from 'lucide-react';
+import {
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  serverTimestamp,
+  Timestamp,
+} from 'firebase/firestore';
+import { db } from '../firebase'; // adjust path to your Firebase config
 
-// User Management
-import { Pencil, Trash2, Plus, CreditCard } from 'lucide-react';
-const initialUsers = [
-  {
-    name: 'Admin User',
-    email: 'admin@greenthumb.com',
-    role: 'Administrator',
-    status: 'Active',
-  },
-  {
-    name: 'John Smith',
-    email: 'john@greenthumb.com',
-    role: 'Manager',
-    status: 'Active',
-  },
-  {
-    name: 'Sarah Johnson',
-    email: 'sarah@greenthumb.com',
-    role: 'Staff',
-    status: 'Active',
-  },
-];
-const roleColors = {
-  Administrator: 'bg-purple-100 text-purple-700',
-  Manager: 'bg-blue-100 text-blue-700',
-  Staff: 'bg-green-100 text-green-700',
+// ── Types ──────────────────────────────────────────────────────────────────────
+
+interface FirestoreUser {
+  id: string; // Firestore document ID
+  uid: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  location: string;
+  segment: string;
+  receiveEmails: boolean;
+  createdAt: string;
+  updatedAt: string;
+  lastLogin: string;
+}
+
+type UserFormData = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  location: string;
+  segment: string;
+  receiveEmails: boolean;
 };
-const statusColors = {
-  Active: 'bg-green-100 text-green-700',
-  Inactive: 'bg-gray-100 text-gray-500',
+
+const EMPTY_FORM: UserFormData = {
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  location: '',
+  segment: 'new',
+  receiveEmails: false,
 };
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+
+const segmentColors: Record<string, string> = {
+  new: 'bg-blue-100 text-blue-700',
+  returning: 'bg-purple-100 text-purple-700',
+  vip: 'bg-yellow-100 text-yellow-700',
+};
+
+function formatDate(iso: string): string {
+  if (!iso) return '—';
+  try {
+    return new Date(iso).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  } catch {
+    return iso;
+  }
+}
+
+function tsToIso(val: unknown): string {
+  if (!val) return '';
+  if (val instanceof Timestamp) return val.toDate().toISOString();
+  if (typeof val === 'string') return val;
+  return '';
+}
+
+// ── User Roles (static – not stored in Firestore) ──────────────────────────────
+
 const initialRoles = [
-  {
-    name: 'Administrator',
-    description: 'Full access to all settings and data',
-  },
-  {
-    name: 'Manager',
-    description: 'Can manage products, orders, and customers',
-  },
-  {
-    name: 'Staff',
-    description: 'Can view orders and manage inventory',
-  },
+  { name: 'Administrator', description: 'Full access to all settings and data' },
+  { name: 'Manager', description: 'Can manage products, orders, and customers' },
+  { name: 'Staff', description: 'Can view orders and manage inventory' },
 ];
+
+// ── Component ──────────────────────────────────────────────────────────────────
 
 const UserManagement: React.FC = () => {
-  const [users, setUsers] = React.useState(initialUsers);
+  // Firebase state
+  const [users, setUsers] = React.useState<FirestoreUser[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+  const [saving, setSaving] = React.useState(false);
+
+  // Roles (local)
   const [roles, setRoles] = React.useState(initialRoles);
-  const [showUserModal, setShowUserModal] = React.useState(false);
   const [showRoleModal, setShowRoleModal] = React.useState(false);
-  const [form, setForm] = React.useState({ name: '', email: '', role: 'Staff', status: 'Active' });
   const [roleForm, setRoleForm] = React.useState({ name: '', description: '' });
-  const [showEditModal, setShowEditModal] = React.useState(false);
-  const [editIndex, setEditIndex] = React.useState<number | null>(null);
-  const [editForm, setEditForm] = React.useState({ name: '', email: '', role: 'Staff', status: 'Active' });
   const [showEditRoleModal, setShowEditRoleModal] = React.useState(false);
   const [editRoleIndex, setEditRoleIndex] = React.useState<number | null>(null);
   const [editRoleForm, setEditRoleForm] = React.useState({ name: '', description: '' });
-  // Edit role
+
+  // Add user modal
+  const [showUserModal, setShowUserModal] = React.useState(false);
+  const [form, setForm] = React.useState<UserFormData>(EMPTY_FORM);
+
+  // Edit user modal
+  const [showEditModal, setShowEditModal] = React.useState(false);
+  const [editingUser, setEditingUser] = React.useState<FirestoreUser | null>(null);
+  const [editForm, setEditForm] = React.useState<UserFormData>(EMPTY_FORM);
+
+  // ── Fetch users from Firestore ─────────────────────────────────────────────
+
+  const fetchUsers = React.useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const snapshot = await getDocs(collection(db, 'users'));
+      const fetched: FirestoreUser[] = snapshot.docs.map(d => {
+        const data = d.data();
+        return {
+          id: d.id,
+          uid: data.uid ?? d.id,
+          firstName: data.firstName ?? '',
+          lastName: data.lastName ?? '',
+          email: data.email ?? '',
+          phone: data.phone ?? '',
+          location: data.location ?? '',
+          segment: data.segment ?? 'new',
+          receiveEmails: data.receiveEmails ?? false,
+          createdAt: tsToIso(data.createdAt),
+          updatedAt: tsToIso(data.updatedAt),
+          lastLogin: tsToIso(data.lastLogin),
+        };
+      });
+      setUsers(fetched);
+    } catch (err) {
+      setError('Failed to load users. Check your Firestore permissions.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => { fetchUsers(); }, [fetchUsers]);
+
+  // ── Add user ───────────────────────────────────────────────────────────────
+
+  const handleAddUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const now = serverTimestamp();
+      const docRef = await addDoc(collection(db, 'users'), {
+        ...form,
+        uid: '',          // uid is set by Firebase Auth on registration; leave blank here
+        createdAt: now,
+        updatedAt: now,
+        lastLogin: now,
+      });
+      // Optimistically add to local state
+      const isoNow = new Date().toISOString();
+      setUsers(prev => [
+        ...prev,
+        { id: docRef.id, uid: docRef.id, ...form, createdAt: isoNow, updatedAt: isoNow, lastLogin: isoNow },
+      ]);
+      setShowUserModal(false);
+      setForm(EMPTY_FORM);
+    } catch (err) {
+      setError('Failed to add user.');
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ── Edit user ──────────────────────────────────────────────────────────────
+
+  const handleEditUser = (user: FirestoreUser) => {
+    setEditingUser(user);
+    setEditForm({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      phone: user.phone,
+      location: user.location,
+      segment: user.segment,
+      receiveEmails: user.receiveEmails,
+    });
+    setShowEditModal(true);
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
+    setSaving(true);
+    try {
+      const ref = doc(db, 'users', editingUser.id);
+      await updateDoc(ref, { ...editForm, updatedAt: serverTimestamp() });
+      const isoNow = new Date().toISOString();
+      setUsers(prev =>
+        prev.map(u =>
+          u.id === editingUser.id ? { ...u, ...editForm, updatedAt: isoNow } : u
+        )
+      );
+      setShowEditModal(false);
+      setEditingUser(null);
+    } catch (err) {
+      setError('Failed to update user.');
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ── Delete user ────────────────────────────────────────────────────────────
+
+  const handleDeleteUser = async (user: FirestoreUser) => {
+    if (!window.confirm(`Delete ${user.firstName} ${user.lastName}? This cannot be undone.`)) return;
+    try {
+      await deleteDoc(doc(db, 'users', user.id));
+      setUsers(prev => prev.filter(u => u.id !== user.id));
+    } catch (err) {
+      setError('Failed to delete user.');
+      console.error(err);
+    }
+  };
+
+  // ── Roles (local) ──────────────────────────────────────────────────────────
+
   const handleEditRole = (idx: number) => {
     setEditRoleIndex(idx);
     setEditRoleForm(roles[idx]);
@@ -70,133 +240,216 @@ const UserManagement: React.FC = () => {
   const handleEditRoleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editRoleIndex !== null) {
-      const updatedRoles = [...roles];
-      updatedRoles[editRoleIndex] = editRoleForm;
-      setRoles(updatedRoles);
+      const updated = [...roles];
+      updated[editRoleIndex] = editRoleForm;
+      setRoles(updated);
       setShowEditRoleModal(false);
       setEditRoleIndex(null);
     }
   };
 
-  // Add user
-  const handleAddUser = (e: React.FormEvent) => {
-    e.preventDefault();
-    setUsers([...users, form]);
-    setShowUserModal(false);
-    setForm({ name: '', email: '', role: 'Staff', status: 'Active' });
-  };
-
-  // Edit user
-  const handleEditUser = (idx: number) => {
-    setEditIndex(idx);
-    setEditForm(users[idx]);
-    setShowEditModal(true);
-  };
-
-  const handleEditSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editIndex !== null) {
-      const updatedUsers = [...users];
-      updatedUsers[editIndex] = editForm;
-      setUsers(updatedUsers);
-      setShowEditModal(false);
-      setEditIndex(null);
-    }
-  };
-  // Add role
   const handleAddRole = (e: React.FormEvent) => {
     e.preventDefault();
-    setRoles([...roles, roleForm]);
+    setRoles(prev => [...prev, roleForm]);
     setShowRoleModal(false);
     setRoleForm({ name: '', description: '' });
   };
-  // Delete user
-  const handleDeleteUser = (idx: number) => {
-    setUsers(users.filter((_, i) => i !== idx));
-  };
+
+  // ── Shared form field helper ───────────────────────────────────────────────
+
+  const UserFormFields = ({
+    values,
+    onChange,
+  }: {
+    values: UserFormData;
+    onChange: (patch: Partial<UserFormData>) => void;
+  }) => (
+    <>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">First Name</label>
+          <input
+            type="text"
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+            value={values.firstName}
+            onChange={e => onChange({ firstName: e.target.value })}
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Last Name</label>
+          <input
+            type="text"
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+            value={values.lastName}
+            onChange={e => onChange({ lastName: e.target.value })}
+            required
+          />
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Email</label>
+        <input
+          type="email"
+          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+          value={values.email}
+          onChange={e => onChange({ email: e.target.value })}
+          required
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Phone</label>
+        <input
+          type="tel"
+          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+          value={values.phone}
+          onChange={e => onChange({ phone: e.target.value })}
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Location</label>
+        <input
+          type="text"
+          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+          value={values.location}
+          onChange={e => onChange({ location: e.target.value })}
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Segment</label>
+        <select
+          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+          value={values.segment}
+          onChange={e => onChange({ segment: e.target.value })}
+        >
+          <option value="new">New</option>
+          <option value="returning">Returning</option>
+          <option value="vip">VIP</option>
+        </select>
+      </div>
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="receiveEmails"
+          checked={values.receiveEmails}
+          onChange={e => onChange({ receiveEmails: e.target.checked })}
+          className="h-4 w-4 text-green-600 border-gray-300 rounded"
+        />
+        <label htmlFor="receiveEmails" className="text-sm font-medium text-gray-700">
+          Receive email notifications
+        </label>
+      </div>
+    </>
+  );
+
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <div className="space-y-6">
+      {/* Error banner */}
+      {error && (
+        <div className="flex items-center gap-2 p-3 rounded-md bg-red-50 border border-red-200 text-red-700 text-sm">
+          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+          {error}
+          <button className="ml-auto text-red-500 hover:text-red-700" onClick={() => setError(null)}>✕</button>
+        </div>
+      )}
+
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-lg font-medium text-gray-900">User Management</h3>
-          <button
-            onClick={() => setShowUserModal(true)}
-            className="flex items-center gap-2 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-          >
-            <Plus className="h-4 w-4" /> Add User
-          </button>
+          <h3 className="text-lg font-medium text-gray-900">
+            User Management
+            {!loading && (
+              <span className="ml-2 text-sm text-gray-400 font-normal">({users.length} users)</span>
+            )}
+          </h3>
+          <div className="flex gap-2">
+            <button
+              onClick={fetchUsers}
+              className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 text-gray-600"
+              title="Refresh"
+            >
+              ↻
+            </button>
+            <button
+              onClick={() => setShowUserModal(true)}
+              className="flex items-center gap-2 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            >
+              <Plus className="h-4 w-4" /> Add User
+            </button>
+          </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {users.map((user, idx) => (
-                <tr key={idx}>
-                  <td className="px-6 py-4 whitespace-nowrap flex items-center gap-3">
-                    <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-green-100 text-green-700 font-bold text-base">
-                      {user.name.charAt(0)}
-                    </span>
-                    <span className="font-medium text-gray-900">{user.name}</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-700">{user.email}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 rounded text-xs font-semibold ${(roleColors as Record<string, string>)[user.role] || 'bg-gray-100 text-gray-700'}`}>{user.role}</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 rounded text-xs font-semibold ${(statusColors as Record<string, string>)[user.status] || 'bg-gray-100 text-gray-700'}`}>{user.status}</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap flex gap-2">
-                    <button className="p-2 rounded hover:bg-gray-100" title="Edit" onClick={() => handleEditUser(idx)}><Pencil className="h-4 w-4 text-gray-500" /></button>
-                    <button className="p-2 rounded hover:bg-gray-100" title="Delete" onClick={() => handleDeleteUser(idx)}><Trash2 className="h-4 w-4 text-gray-500" /></button>
-                  </td>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-12 text-gray-400 gap-2">
+            <Loader2 className="h-5 w-5 animate-spin" /> Loading users from Firestore…
+          </div>
+        ) : users.length === 0 ? (
+          <div className="text-center py-12 text-gray-400">No users found in the collection.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Segment</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Login</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {users.map(user => (
+                  <tr key={user.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap flex items-center gap-3">
+                      <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-green-100 text-green-700 font-bold text-base flex-shrink-0">
+                        {user.firstName.charAt(0).toUpperCase()}
+                      </span>
+                      <span className="font-medium text-gray-900">
+                        {user.firstName} {user.lastName}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-700 text-sm">{user.email}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-600 text-sm">{user.phone || '—'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-600 text-sm">{user.location || '—'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 rounded text-xs font-semibold capitalize ${segmentColors[user.segment] ?? 'bg-gray-100 text-gray-700'}`}>
+                        {user.segment}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-500 text-sm">{formatDate(user.lastLogin)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap flex gap-2">
+                      <button className="p-2 rounded hover:bg-gray-100" title="Edit" onClick={() => handleEditUser(user)}>
+                        <Pencil className="h-4 w-4 text-gray-500" />
+                      </button>
+                      <button className="p-2 rounded hover:bg-red-50" title="Delete" onClick={() => handleDeleteUser(user)}>
+                        <Trash2 className="h-4 w-4 text-red-400" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Add User Modal */}
       {showUserModal && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Add New User</h3>
             <form onSubmit={handleAddUser} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Name</label>
-                <input type="text" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Email</label>
-                <input type="email" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Role</label>
-                <select className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
-                  <option value="Administrator">Administrator</option>
-                  <option value="Manager">Manager</option>
-                  <option value="Staff">Staff</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Status</label>
-                <select className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
-              </div>
-              <div className="flex justify-end gap-2">
-                <button type="button" className="px-4 py-2 rounded bg-gray-200 text-gray-700" onClick={() => setShowUserModal(false)}>Cancel</button>
-                <button type="submit" className="px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800">Add User</button>
+              <UserFormFields values={form} onChange={patch => setForm(f => ({ ...f, ...patch }))} />
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" className="px-4 py-2 rounded bg-gray-200 text-gray-700" onClick={() => setShowUserModal(false)}>
+                  Cancel
+                </button>
+                <button type="submit" disabled={saving} className="flex items-center gap-2 px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800 disabled:opacity-60">
+                  {saving && <Loader2 className="h-4 w-4 animate-spin" />} Add User
+                </button>
               </div>
             </form>
           </div>
@@ -204,37 +457,19 @@ const UserManagement: React.FC = () => {
       )}
 
       {/* Edit User Modal */}
-      {showEditModal && (
+      {showEditModal && editingUser && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Edit User</h3>
             <form onSubmit={handleEditSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Name</label>
-                <input type="text" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} required />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Email</label>
-                <input type="email" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={editForm.email} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} required />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Role</label>
-                <select className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={editForm.role} onChange={e => setEditForm(f => ({ ...f, role: e.target.value }))}>
-                  <option value="Administrator">Administrator</option>
-                  <option value="Manager">Manager</option>
-                  <option value="Staff">Staff</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Status</label>
-                <select className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))}>
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
-              </div>
-              <div className="flex justify-end gap-2">
-                <button type="button" className="px-4 py-2 rounded bg-gray-200 text-gray-700" onClick={() => setShowEditModal(false)}>Cancel</button>
-                <button type="submit" className="px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800">Save Changes</button>
+              <UserFormFields values={editForm} onChange={patch => setEditForm(f => ({ ...f, ...patch }))} />
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" className="px-4 py-2 rounded bg-gray-200 text-gray-700" onClick={() => setShowEditModal(false)}>
+                  Cancel
+                </button>
+                <button type="submit" disabled={saving} className="flex items-center gap-2 px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800 disabled:opacity-60">
+                  {saving && <Loader2 className="h-4 w-4 animate-spin" />} Save Changes
+                </button>
               </div>
             </form>
           </div>
@@ -251,12 +486,16 @@ const UserManagement: React.FC = () => {
                 <span className="font-semibold text-gray-900">{role.name}</span>
                 <p className="text-sm text-gray-500">{role.description}</p>
               </div>
-              <button className="p-2 rounded hover:bg-gray-100" title="Edit" onClick={() => handleEditRole(idx)}><Pencil className="h-4 w-4 text-gray-500" /></button>
+              <button className="p-2 rounded hover:bg-gray-100" title="Edit" onClick={() => handleEditRole(idx)}>
+                <Pencil className="h-4 w-4 text-gray-500" />
+              </button>
             </div>
           ))}
         </div>
         <div className="pt-4">
-          <button onClick={() => setShowRoleModal(true)} className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"><Plus className="h-4 w-4" /> Add Role</button>
+          <button onClick={() => setShowRoleModal(true)} className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+            <Plus className="h-4 w-4" /> Add Role
+          </button>
         </div>
       </div>
 
