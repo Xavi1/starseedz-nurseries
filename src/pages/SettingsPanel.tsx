@@ -255,6 +255,11 @@ const UserManagement: React.FC = () => {
     setRoleForm({ name: '', description: '' });
   };
 
+  const handleDeleteRole = (idx: number) => {
+    if (!window.confirm(`Delete role "${roles[idx].name}"? This cannot be undone.`)) return;
+    setRoles(prev => prev.filter((_, i) => i !== idx));
+  };
+
   // ── Shared form field helper ───────────────────────────────────────────────
 
   const UserFormFields = ({
@@ -486,9 +491,14 @@ const UserManagement: React.FC = () => {
                 <span className="font-semibold text-gray-900">{role.name}</span>
                 <p className="text-sm text-gray-500">{role.description}</p>
               </div>
-              <button className="p-2 rounded hover:bg-gray-100" title="Edit" onClick={() => handleEditRole(idx)}>
-                <Pencil className="h-4 w-4 text-gray-500" />
-              </button>
+              <div className="flex gap-2">
+                <button className="p-2 rounded hover:bg-gray-100" title="Edit" onClick={() => handleEditRole(idx)}>
+                  <Pencil className="h-4 w-4 text-gray-500" />
+                </button>
+                <button className="p-2 rounded hover:bg-red-50" title="Delete" onClick={() => handleDeleteRole(idx)}>
+                  <Trash2 className="h-4 w-4 text-red-400" />
+                </button>
+              </div>
             </div>
           ))}
         </div>
