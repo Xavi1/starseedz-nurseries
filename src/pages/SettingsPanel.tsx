@@ -558,204 +558,412 @@ const UserManagement: React.FC = () => {
   );
 };
 
+// ── Types for PaymentMethods ───────────────────────────────────────────────────
+
+interface PaymentMethodDoc {
+  id: string;         // Firestore doc ID (same as normalized type key)
+  name: string;       // Display name e.g. "Cash on Delivery"
+  description: string;
+  enabled: boolean;
+  updatedAt?: string;
+}
+
+interface OrderPaymentStat {
+  type: string;       // raw paymentMethod.type from orders
+  count: number;
+  totalRevenue: number;
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+
+/** Normalize a raw payment type string into a stable Firestore doc ID key */
+function normalizeType(raw: string): string {
+  return raw.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+}
+
+/** Pick icon + colour palette based on method name */
+function methodIcon(name: string): React.ReactNode {
+  const n = name.toLowerCase();
+  if (n.includes('credit') || n.includes('card') || n.includes('visa') || n.includes('mastercard'))
+    return <span className="inline-flex items-center justify-center h-10 w-10 rounded bg-gray-100"><CreditCard className="h-6 w-6 text-gray-700" /></span>;
+  if (n.includes('paypal'))
+    return <span className="inline-flex items-center justify-center h-10 w-10 rounded bg-blue-100"><span className="font-bold text-blue-700 text-sm">PP</span></span>;
+  if (n.includes('apple'))
+    return <span className="inline-flex items-center justify-center h-10 w-10 rounded bg-yellow-100"><span className="font-bold text-yellow-700 text-sm">AP</span></span>;
+  if (n.includes('cash') || n.includes('cod') || n.includes('delivery'))
+    return <span className="inline-flex items-center justify-center h-10 w-10 rounded bg-green-100"><span className="text-green-700 text-lg font-bold">₱</span></span>;
+  if (n.includes('gcash') || n.includes('g-cash'))
+    return <span className="inline-flex items-center justify-center h-10 w-10 rounded bg-blue-100"><span className="font-bold text-blue-600 text-sm">GC</span></span>;
+  return (
+    <span className="inline-flex items-center justify-center h-10 w-10 rounded bg-gray-200">
+      <span className="font-bold text-gray-700 text-base">{name.charAt(0).toUpperCase()}</span>
+    </span>
+  );
+}
+
 const PaymentMethods: React.FC = () => {
-  const [methods, setMethods] = React.useState([
-    {
-      name: 'Credit Card',
-      description: 'Accept Visa, Mastercard, Amex, Discover',
-      icon: <span className="inline-flex items-center justify-center h-10 w-10 rounded bg-gray-100"><CreditCard className="h-6 w-6 text-gray-700" /></span>,
-      status: 'Enabled',
-      statusColor: 'bg-green-100 text-green-700',
-    },
-    {
-      name: 'PayPal',
-      description: 'Accept payments via PayPal',
-      icon: <span className="inline-flex items-center justify-center h-10 w-10 rounded bg-blue-100"><span className="font-bold text-blue-700 text-lg">PayPal</span></span>,
-      status: 'Enabled',
-      statusColor: 'bg-green-100 text-green-700',
-    },
-    {
-      name: 'Apple Pay',
-      description: 'Accept payments via Apple Pay',
-      icon: <span className="inline-flex items-center justify-center h-10 w-10 rounded bg-yellow-100"><span className="font-bold text-yellow-700 text-base">Apple</span></span>,
-      status: 'Disabled',
-      statusColor: 'bg-gray-100 text-gray-700',
-    },
-  ]);
-  const [showEditMethodModal, setShowEditMethodModal] = React.useState(false);
-  const [editMethodIndex, setEditMethodIndex] = React.useState<number | null>(null);
-  const [editMethodForm, setEditMethodForm] = React.useState({ name: '', description: '', status: 'Enabled' });
-    // Edit payment method
-    const handleEditMethod = (idx: number) => {
-      setEditMethodIndex(idx);
-      setEditMethodForm({
-        name: methods[idx].name,
-        description: methods[idx].description,
-        status: methods[idx].status,
-      });
-      setShowEditMethodModal(true);
-    };
+  // ── Firestore state ──────────────────────────────────────────────────────────
+  const [methods, setMethods] = React.useState<PaymentMethodDoc[]>([]);
+  const [orderStats, setOrderStats] = React.useState<OrderPaymentStat[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [saving, setSaving] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
-    const handleEditMethodSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
-      if (editMethodIndex !== null) {
-        const updatedMethods = [...methods];
-        updatedMethods[editMethodIndex] = {
-          ...updatedMethods[editMethodIndex],
-          name: editMethodForm.name,
-          description: editMethodForm.description,
-          status: editMethodForm.status,
-        };
-        setMethods(updatedMethods);
-        setShowEditMethodModal(false);
-        setEditMethodIndex(null);
-      }
-    };
+  // ── Modal state ──────────────────────────────────────────────────────────────
+  const [showEditModal, setShowEditModal] = React.useState(false);
+  const [editingMethod, setEditingMethod] = React.useState<PaymentMethodDoc | null>(null);
+  const [editForm, setEditForm] = React.useState({ name: '', description: '', enabled: true });
   const [showAddModal, setShowAddModal] = React.useState(false);
-  const [addMethodForm, setAddMethodForm] = React.useState({ name: '', description: '', status: 'Enabled' });
-  // Payment processor state
-  const [processor, setProcessor] = React.useState('Stripe');
-  const [mode, setMode] = React.useState('Test Mode');
-  const [apiKey, setApiKey] = React.useState('sk_test_************');
+  const [addForm, setAddForm] = React.useState({ name: '', description: '', enabled: true });
 
-  // Add payment method
-  const handleAddMethodSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    let icon = null;
-    if (addMethodForm.name.toLowerCase().includes('credit')) {
-      icon = <span className="inline-flex items-center justify-center h-10 w-10 rounded bg-gray-100"><CreditCard className="h-6 w-6 text-gray-700" /></span>;
-    } else if (addMethodForm.name.toLowerCase().includes('paypal')) {
-      icon = <span className="inline-flex items-center justify-center h-10 w-10 rounded bg-blue-100"><span className="font-bold text-blue-700 text-lg">PayPal</span></span>;
-    } else if (addMethodForm.name.toLowerCase().includes('apple')) {
-      icon = <span className="inline-flex items-center justify-center h-10 w-10 rounded bg-yellow-100"><span className="font-bold text-yellow-700 text-base">Apple</span></span>;
-    } else {
-      icon = <span className="inline-flex items-center justify-center h-10 w-10 rounded bg-gray-200"><span className="font-bold text-gray-700 text-base">{addMethodForm.name.charAt(0).toUpperCase()}</span></span>;
+  // ── Fetch: payment method settings + order stats ───────────────────────────
+  const fetchAll = React.useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // 1. Load saved payment method settings from `paymentMethods` collection
+      const pmSnap = await getDocs(collection(db, 'paymentMethods'));
+      const savedMethods: PaymentMethodDoc[] = pmSnap.docs.map(d => ({
+        id: d.id,
+        name: (d.data().name as string) ?? d.id,
+        description: (d.data().description as string) ?? '',
+        enabled: (d.data().enabled as boolean) ?? true,
+        updatedAt: tsToIso(d.data().updatedAt),
+      }));
+
+      // 2. Load orders to derive payment method usage stats
+      const ordersSnap = await getDocs(collection(db, 'orders'));
+      const statMap = new Map<string, OrderPaymentStat>();
+
+      ordersSnap.docs.forEach(d => {
+        const data = d.data();
+        const pm = data.paymentMethod as { type?: string; last4?: string } | undefined;
+        const rawType = pm?.type ?? 'Unknown';
+        const key = normalizeType(rawType);
+        const total = typeof data.total === 'number' ? data.total : 0;
+
+        if (statMap.has(key)) {
+          const existing = statMap.get(key)!;
+          existing.count += 1;
+          existing.totalRevenue += total;
+        } else {
+          statMap.set(key, { type: rawType, count: 1, totalRevenue: total });
+        }
+
+        // Auto-create a settings doc if this type was never seen before
+        if (!savedMethods.find(m => m.id === key)) {
+          savedMethods.push({
+            id: key,
+            name: rawType,
+            description: `Collected from orders`,
+            enabled: true,
+          });
+        }
+      });
+
+      setMethods(savedMethods);
+      setOrderStats(Array.from(statMap.values()).sort((a, b) => b.count - a.count));
+    } catch (err) {
+      setError('Failed to load payment data. Check your Firestore permissions.');
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
-    const statusColor = addMethodForm.status === 'Enabled' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700';
-    setMethods([
-      ...methods,
-      {
-        name: addMethodForm.name,
-        description: addMethodForm.description,
-        icon,
-        status: addMethodForm.status,
-        statusColor,
-      },
-    ]);
-    setShowAddModal(false);
-    setAddMethodForm({ name: '', description: '', status: 'Enabled' });
+  }, []);
+
+  React.useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  // ── Toggle enabled/disabled & persist to Firestore ─────────────────────────
+  const handleToggleEnabled = async (method: PaymentMethodDoc) => {
+    const newEnabled = !method.enabled;
+    // Optimistic update
+    setMethods(prev => prev.map(m => m.id === method.id ? { ...m, enabled: newEnabled } : m));
+    try {
+      const ref = doc(db, 'paymentMethods', method.id);
+      await updateDoc(ref, { enabled: newEnabled, updatedAt: serverTimestamp() }).catch(async () => {
+        // Doc might not exist yet — create it
+        await addDoc(collection(db, 'paymentMethods'), {
+          ...method,
+          enabled: newEnabled,
+          updatedAt: serverTimestamp(),
+        });
+      });
+    } catch (err) {
+      setError('Failed to update payment method.');
+      // Rollback
+      setMethods(prev => prev.map(m => m.id === method.id ? { ...m, enabled: !newEnabled } : m));
+      console.error(err);
+    }
   };
+
+  // ── Edit method ────────────────────────────────────────────────────────────
+  const handleEditMethod = (method: PaymentMethodDoc) => {
+    setEditingMethod(method);
+    setEditForm({ name: method.name, description: method.description, enabled: method.enabled });
+    setShowEditModal(true);
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingMethod) return;
+    setSaving(true);
+    try {
+      const docRef = doc(db, 'paymentMethods', editingMethod.id);
+      const payload = { ...editForm, updatedAt: serverTimestamp() };
+      // Try update first; if doc doesn't exist, set it
+      try {
+        await updateDoc(docRef, payload);
+      } catch {
+        await addDoc(collection(db, 'paymentMethods'), { id: editingMethod.id, ...payload });
+      }
+      setMethods(prev =>
+        prev.map(m => m.id === editingMethod.id ? { ...m, ...editForm } : m)
+      );
+      setShowEditModal(false);
+      setEditingMethod(null);
+    } catch (err) {
+      setError('Failed to save payment method.');
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ── Add new custom method ──────────────────────────────────────────────────
+  const handleAddSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const id = normalizeType(addForm.name);
+      if (methods.find(m => m.id === id)) {
+        setError(`A method named "${addForm.name}" already exists.`);
+        setSaving(false);
+        return;
+      }
+      const payload = { ...addForm, updatedAt: serverTimestamp() };
+      await addDoc(collection(db, 'paymentMethods'), { id, ...payload });
+      setMethods(prev => [...prev, { id, ...addForm }]);
+      setShowAddModal(false);
+      setAddForm({ name: '', description: '', enabled: true });
+    } catch (err) {
+      setError('Failed to add payment method.');
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ── Stat lookup helper ─────────────────────────────────────────────────────
+  const statFor = (methodId: string): OrderPaymentStat | undefined =>
+    orderStats.find(s => normalizeType(s.type) === methodId);
+
+  // ── Inline toggle switch ───────────────────────────────────────────────────
+  const Toggle = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => (
+    <button
+      type="button"
+      onClick={onChange}
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${checked ? 'bg-green-600' : 'bg-gray-300'}`}
+      aria-pressed={checked}
+      title={checked ? 'Disable' : 'Enable'}
+    >
+      <span className={`inline-block h-5 w-5 transform rounded-full bg-white border border-gray-200 transition-transform ${checked ? 'translate-x-5' : 'translate-x-1'}`} />
+    </button>
+  );
 
   return (
     <div className="space-y-8">
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Payment Methods</h3>
-        <div className="bg-gray-50 rounded-lg border border-gray-200">
-          {methods.map((method, idx) => (
-            <div key={idx} className={`flex items-center px-6 py-4 ${idx !== methods.length - 1 ? 'border-b border-gray-200' : ''}`}>
-              <div className="flex-shrink-0 mr-4">{method.icon}</div>
-              <div className="flex-1">
-                <div className="font-medium text-gray-900">{method.name}</div>
-                <div className="text-sm text-gray-500">{method.description}</div>
+      {/* Error banner */}
+      {error && (
+        <div className="flex items-center gap-2 p-3 rounded-md bg-red-50 border border-red-200 text-red-700 text-sm">
+          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+          {error}
+          <button className="ml-auto text-red-500 hover:text-red-700" onClick={() => setError(null)}>✕</button>
+        </div>
+      )}
+
+      {/* ── Order Usage Summary ─────────────────────────────────────────────── */}
+      {!loading && orderStats.length > 0 && (
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-1">Payment Usage from Orders</h3>
+          <p className="text-sm text-gray-500 mb-4">Live counts pulled from your <code className="text-xs bg-gray-100 px-1 rounded">orders</code> collection.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {orderStats.map(stat => (
+              <div key={stat.type} className="flex items-center gap-3 p-4 rounded-lg bg-gray-50 border border-gray-200">
+                <div className="flex-shrink-0">{methodIcon(stat.type)}</div>
+                <div className="min-w-0">
+                  <div className="font-medium text-gray-900 truncate">{stat.type}</div>
+                  <div className="text-sm text-gray-500">{stat.count} order{stat.count !== 1 ? 's' : ''}</div>
+                  <div className="text-xs text-green-700 font-medium">₱{stat.totalRevenue.toFixed(2)} total</div>
+                </div>
               </div>
-              <div className="flex items-center gap-4">
-                <span className={`px-2 py-1 rounded text-xs font-semibold ${method.status === 'Enabled' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>{method.status}</span>                 <button className="p-2 rounded hover:bg-gray-100" title="Edit" onClick={() => handleEditMethod(idx)}><Pencil className="h-4 w-4 text-gray-500" /></button>
-              </div>
-            </div>
-          ))}
-                {/* Edit Payment Method Modal */}
-                {showEditMethodModal && (
-                  <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-                      <h3 className="text-lg font-medium text-gray-900 mb-4">Edit Payment Method</h3>
-                      <form onSubmit={handleEditMethodSubmit} className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">Name</label>
-                          <input type="text" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={editMethodForm.name} onChange={e => setEditMethodForm(f => ({ ...f, name: e.target.value }))} required />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">Description</label>
-                          <input type="text" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={editMethodForm.description} onChange={e => setEditMethodForm(f => ({ ...f, description: e.target.value }))} required />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">Status</label>
-                          <select className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={editMethodForm.status} onChange={e => setEditMethodForm(f => ({ ...f, status: e.target.value }))}>
-                            <option value="Enabled">Enabled</option>
-                            <option value="Disabled">Disabled</option>
-                          </select>
-                        </div>
-                        <div className="flex justify-end gap-2">
-                          <button type="button" className="px-4 py-2 rounded bg-gray-200 text-gray-700" onClick={() => setShowEditMethodModal(false)}>Cancel</button>
-                          <button type="submit" className="px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800">Save Changes</button>
-                        </div>
-                      </form>
-                    </div>
-                  </div>
-                )}
-          <div className="px-6 py-4">
-            <button type="button" onClick={() => setShowAddModal(true)} className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"><Plus className="h-4 w-4" /> Add Payment Method</button>
+            ))}
           </div>
         </div>
+      )}
+
+      {/* ── Payment Method Settings ─────────────────────────────────────────── */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-medium text-gray-900">Payment Methods</h3>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Enable or disable methods available at checkout.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={fetchAll}
+              className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 text-gray-600"
+              title="Refresh"
+            >↻</button>
+            <button
+              type="button"
+              onClick={() => setShowAddModal(true)}
+              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+            >
+              <Plus className="h-4 w-4" /> Add Method
+            </button>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="flex items-center gap-2 py-8 text-gray-400 justify-center">
+            <Loader2 className="h-5 w-5 animate-spin" /> Loading payment methods…
+          </div>
+        ) : methods.length === 0 ? (
+          <div className="py-8 text-center text-gray-400 text-sm">No payment methods found.</div>
+        ) : (
+          <div className="bg-gray-50 rounded-lg border border-gray-200 divide-y divide-gray-200">
+            {methods.map(method => {
+              const stat = statFor(method.id);
+              return (
+                <div key={method.id} className="flex items-center px-6 py-4 gap-4">
+                  <div className="flex-shrink-0">{methodIcon(method.name)}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-gray-900">{method.name}</div>
+                    <div className="text-sm text-gray-500">{method.description}</div>
+                    {stat && (
+                      <div className="text-xs text-gray-400 mt-0.5">
+                        {stat.count} order{stat.count !== 1 ? 's' : ''} · ₱{stat.totalRevenue.toFixed(2)} revenue
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <span className={`px-2 py-1 rounded text-xs font-semibold ${method.enabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                      {method.enabled ? 'Enabled' : 'Disabled'}
+                    </span>
+                    <Toggle checked={method.enabled} onChange={() => handleToggleEnabled(method)} />
+                    <button
+                      className="p-2 rounded hover:bg-gray-100"
+                      title="Edit"
+                      onClick={() => handleEditMethod(method)}
+                    >
+                      <Pencil className="h-4 w-4 text-gray-500" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* Add Payment Method Modal */}
-      {showAddModal && (
+      {/* ── Edit Modal ──────────────────────────────────────────────────────── */}
+      {showEditModal && editingMethod && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Add Payment Method</h3>
-            <form onSubmit={handleAddMethodSubmit} className="space-y-4">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Edit Payment Method</h3>
+            <form onSubmit={handleEditSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Name</label>
-                <input type="text" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={addMethodForm.name} onChange={e => setAddMethodForm(f => ({ ...f, name: e.target.value }))} required />
+                <input
+                  type="text"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  value={editForm.name}
+                  onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))}
+                  required
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Description</label>
-                <input type="text" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={addMethodForm.description} onChange={e => setAddMethodForm(f => ({ ...f, description: e.target.value }))} required />
+                <input
+                  type="text"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  value={editForm.description}
+                  onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))}
+                />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Status</label>
-                <select className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={addMethodForm.status} onChange={e => setAddMethodForm(f => ({ ...f, status: e.target.value }))}>
-                  <option value="Enabled">Enabled</option>
-                  <option value="Disabled">Disabled</option>
-                </select>
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-medium text-gray-700">Enabled</label>
+                <input
+                  type="checkbox"
+                  checked={editForm.enabled}
+                  onChange={e => setEditForm(f => ({ ...f, enabled: e.target.checked }))}
+                  className="h-4 w-4 text-green-600 border-gray-300 rounded"
+                />
               </div>
-              <div className="flex justify-end gap-2">
-                <button type="button" className="px-4 py-2 rounded bg-gray-200 text-gray-700" onClick={() => setShowAddModal(false)}>Cancel</button>
-                <button type="submit" className="px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800">Add</button>
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" className="px-4 py-2 rounded bg-gray-200 text-gray-700" onClick={() => setShowEditModal(false)}>Cancel</button>
+                <button type="submit" disabled={saving} className="flex items-center gap-2 px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800 disabled:opacity-60">
+                  {saving && <Loader2 className="h-4 w-4 animate-spin" />} Save Changes
+                </button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* Payment Processor Section */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Payment Processor</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Processor</label>
-            <select className="block w-full border border-gray-300 rounded-md shadow-sm p-2" value={processor} onChange={e => setProcessor(e.target.value)}>
-              <option value="Stripe">Stripe</option>
-              <option value="PayPal">PayPal</option>
-              <option value="Square">Square</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Mode</label>
-            <select className="block w-full border border-gray-300 rounded-md shadow-sm p-2" value={mode} onChange={e => setMode(e.target.value)}>
-              <option value="Test Mode">Test Mode</option>
-              <option value="Live Mode">Live Mode</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">API Key</label>
-            <input type="password" className="block w-full border border-gray-300 rounded-md shadow-sm p-2" value={apiKey} onChange={e => setApiKey(e.target.value)} />
+      {/* ── Add Modal ───────────────────────────────────────────────────────── */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Add Payment Method</h3>
+            <form onSubmit={handleAddSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <input
+                  type="text"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  placeholder="e.g. GCash, Bank Transfer"
+                  value={addForm.name}
+                  onChange={e => setAddForm(f => ({ ...f, name: e.target.value }))}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Description</label>
+                <input
+                  type="text"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  placeholder="e.g. Accept payments via GCash"
+                  value={addForm.description}
+                  onChange={e => setAddForm(f => ({ ...f, description: e.target.value }))}
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-medium text-gray-700">Enable immediately</label>
+                <input
+                  type="checkbox"
+                  checked={addForm.enabled}
+                  onChange={e => setAddForm(f => ({ ...f, enabled: e.target.checked }))}
+                  className="h-4 w-4 text-green-600 border-gray-300 rounded"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" className="px-4 py-2 rounded bg-gray-200 text-gray-700" onClick={() => setShowAddModal(false)}>Cancel</button>
+                <button type="submit" disabled={saving} className="flex items-center gap-2 px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800 disabled:opacity-60">
+                  {saving && <Loader2 className="h-4 w-4 animate-spin" />} Add Method
+                </button>
+              </div>
+            </form>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
+
+
 
 const NotificationSettings: React.FC = () => {
   const [emailNotifications, setEmailNotifications] = React.useState({
