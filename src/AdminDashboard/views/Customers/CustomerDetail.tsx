@@ -1,5 +1,5 @@
 // CustomerDetail.tsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   XIcon, 
   MessageCircleIcon, 
@@ -8,7 +8,7 @@ import {
   StarIcon,
   UserPlusIcon 
 } from 'lucide-react';
-import { doc, updateDoc, collection, getDocs } from 'firebase/firestore';
+import { doc, updateDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../../firebase';
 
 interface Order {
@@ -60,7 +60,7 @@ interface CustomerDetailProps {
 const CustomerDetail: React.FC<CustomerDetailProps> = ({
   selectedCustomer,
   allCustomers,
-  customerOrders,
+  customerOrders: propCustomerOrders,
   currentPage,
   ordersPerPage,
   setSelectedCustomer,
@@ -71,7 +71,79 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({
   getStatusBadgeClass
 }) => {
   const customer = allCustomers.find((c) => c.id === selectedCustomer);
-  
+
+  // Local state for fetched orders, loading, and error
+  const [fetchedOrders, setFetchedOrders] = useState<Order[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersError, setOrdersError] = useState<string | null>(null);
+
+  // Fetch orders from Firebase whenever the selected customer changes
+  useEffect(() => {
+    if (!customer) return;
+
+    const fetchCustomerOrders = async () => {
+      setOrdersLoading(true);
+      setOrdersError(null);
+      setFetchedOrders([]);
+
+      try {
+        const ordersRef = collection(db, 'orders');
+        const results: Order[] = [];
+
+        // Query 1: match by userId (Firestore doc ID)
+        const byUserId = query(ordersRef, where('userId', '==', customer.id));
+        const snapById = await getDocs(byUserId);
+        snapById.forEach((docSnap) => {
+          results.push({ id: docSnap.id, ...docSnap.data() } as Order);
+        });
+
+        // Query 2: match by uid field if different from doc ID
+        if (customer.uid && customer.uid !== customer.id) {
+          const byUid = query(ordersRef, where('userId', '==', customer.uid));
+          const snapByUid = await getDocs(byUid);
+          snapByUid.forEach((docSnap) => {
+            if (!results.find((o) => o.id === docSnap.id)) {
+              results.push({ id: docSnap.id, ...docSnap.data() } as Order);
+            }
+          });
+        }
+
+        // Query 3: match by shipping email as fallback
+        if (customer.email) {
+          const byEmail = query(
+            ordersRef,
+            where('shippingAddress.email', '==', customer.email)
+          );
+          const snapByEmail = await getDocs(byEmail);
+          snapByEmail.forEach((docSnap) => {
+            if (!results.find((o) => o.id === docSnap.id)) {
+              results.push({ id: docSnap.id, ...docSnap.data() } as Order);
+            }
+          });
+        }
+
+        // Sort by most recent first (using last timeline entry date or fallback)
+        results.sort((a, b) => {
+          const dateA = a.timeline?.at(-1)?.date ?? '';
+          const dateB = b.timeline?.at(-1)?.date ?? '';
+          return dateB.localeCompare(dateA);
+        });
+
+        setFetchedOrders(results);
+      } catch (err) {
+        console.error('Error fetching customer orders:', err);
+        setOrdersError('Failed to load orders. Please try again.');
+      } finally {
+        setOrdersLoading(false);
+      }
+    };
+
+    fetchCustomerOrders();
+  }, [customer?.id, customer?.uid, customer?.email]);
+
+  // Use fetched orders; fall back to prop orders if fetch hasn't run yet
+  const customerOrders = fetchedOrders.length > 0 ? fetchedOrders : propCustomerOrders;
+
   if (!customer) return null;
 
   const handleUpdateCustomer = async () => {
@@ -146,7 +218,7 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({
   const renderPagination = () => {
     const totalOrders = customerOrders.length;
     const totalPages = Math.ceil(totalOrders / ordersPerPage) || 1;
-    let pageNumbers = [];
+    let pageNumbers: (number | string)[] = [];
     
     if (totalPages <= 5) {
       pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -205,10 +277,10 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({
         <button
           type="button"
           className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
-            currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'
+            currentPage === Math.ceil(customerOrders.length / ordersPerPage) || 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'
           }`}
-          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage(p => Math.min(Math.ceil(customerOrders.length / ordersPerPage) || 1, p + 1))}
+          disabled={currentPage === Math.ceil(customerOrders.length / ordersPerPage) || customerOrders.length === 0}
           aria-label="Next"
         >
           <span className="sr-only">Next</span>
@@ -336,7 +408,7 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({
               <div className="bg-gray-50 rounded-lg p-4 text-center">
                 <p className="text-sm font-medium text-gray-500">Orders</p>
                 <p className="mt-1 text-2xl font-semibold text-gray-900">
-                  {customer.ordersCount || 0}
+                  {ordersLoading ? '…' : customerOrders.length || customer.ordersCount || 0}
                 </p>
               </div>
               <div className="bg-gray-50 rounded-lg p-4 text-center">
@@ -344,7 +416,12 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({
                   Total Spent
                 </p>
                 <p className="mt-1 text-2xl font-semibold text-gray-900">
-                  ${customer.totalSpent?.toFixed(2) || '0.00'}
+                  {ordersLoading
+                    ? '…'
+                    : `$${customerOrders
+                        .reduce((sum, o) => sum + (typeof o.total === 'number' ? o.total : 0), 0)
+                        .toFixed(2)}`
+                  }
                 </p>
               </div>
               <div className="bg-gray-50 rounded-lg p-4 text-center">
@@ -391,7 +468,32 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({
                   </thead>
 
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {customerOrders.length > 0 ? (
+                    {/* Loading state */}
+                    {ordersLoading && (
+                      <tr>
+                        <td colSpan={4} className="px-6 py-8 text-center text-sm text-gray-500">
+                          <div className="flex items-center justify-center space-x-2">
+                            <svg className="animate-spin h-5 w-5 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                            </svg>
+                            <span>Loading orders...</span>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+
+                    {/* Error state */}
+                    {!ordersLoading && ordersError && (
+                      <tr>
+                        <td colSpan={4} className="px-6 py-8 text-center text-sm text-red-500">
+                          {ordersError}
+                        </td>
+                      </tr>
+                    )}
+
+                    {/* Orders rows */}
+                    {!ordersLoading && !ordersError && customerOrders.length > 0 &&
                       customerOrders
                         .slice((currentPage - 1) * ordersPerPage, currentPage * ordersPerPage)
                         .map((order) => {
@@ -425,9 +527,7 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({
 
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span
-                                  className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadgeClass(
-                                    status
-                                  )}`}
+                                  className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadgeClass(status)}`}
                                 >
                                   {status}
                                 </span>
@@ -439,7 +539,10 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({
                             </tr>
                           );
                         })
-                    ) : (
+                    }
+
+                    {/* Empty state */}
+                    {!ordersLoading && !ordersError && customerOrders.length === 0 && (
                       <tr>
                         <td
                           colSpan={4}
@@ -501,51 +604,37 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({
                     <div className="h-full w-0.5 bg-gray-200"></div>
                   </div>
                   <div className="relative space-y-6">
-                    <div className="flex">
-                      <div className="flex-shrink-0">
-                        <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center z-10">
-                          <ShoppingBagIcon className="h-4 w-4 text-green-700" />
+                    {/* Dynamic: most recent orders as timeline entries */}
+                    {customerOrders.slice(0, 3).map((order) => {
+                      const latestEntry = order.timeline?.at(-1);
+                      const date = latestEntry?.date ?? null;
+                      return (
+                        <div key={order.id} className="flex">
+                          <div className="flex-shrink-0">
+                            <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center z-10">
+                              <ShoppingBagIcon className="h-4 w-4 text-green-700" />
+                            </div>
+                          </div>
+                          <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-900">
+                              Placed order{' '}
+                              <a
+                                href="#"
+                                onClick={(e) => { e.preventDefault(); handleOrderClick(order.id); }}
+                                className="text-green-700 hover:underline"
+                              >
+                                #{order.id}
+                              </a>
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {date ? new Date(date).toLocaleString() : '—'}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-900">
-                          Placed order #ORD-7892
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          2023-07-15 at 10:23 AM
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex">
-                      <div className="flex-shrink-0">
-                        <div className="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center z-10">
-                          <StarIcon className="h-4 w-4 text-yellow-700" />
-                        </div>
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-900">
-                          Left a 5-star review for "Monstera Deliciosa"
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          2023-07-10 at 3:45 PM
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex">
-                      <div className="flex-shrink-0">
-                        <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center z-10">
-                          <MessageCircleIcon className="h-4 w-4 text-blue-700" />
-                        </div>
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-900">
-                          Sent an inquiry about plant care
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          2023-07-05 at 11:20 AM
-                        </p>
-                      </div>
-                    </div>
+                      );
+                    })}
+
+                    {/* Static: account creation */}
                     <div className="flex">
                       <div className="flex-shrink-0">
                         <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center z-10">
@@ -557,8 +646,7 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({
                           Created account
                         </p>
                         <p className="text-xs text-gray-500">
-                          {customer.createdAt ? new Date(customer.createdAt).toLocaleDateString() : 'N/A'}{' '}
-                          at 2:15 PM
+                          {customer.createdAt ? new Date(customer.createdAt).toLocaleDateString() : 'N/A'}
                         </p>
                       </div>
                     </div>
