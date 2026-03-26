@@ -965,6 +965,406 @@ const PaymentMethods: React.FC = () => {
 
 
 
+// ── Types for ShippingMethods ──────────────────────────────────────────────────
+
+interface ShippingMethod {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  estimatedDays: string;
+  enabled: boolean;
+  updatedAt?: string;
+}
+
+type ShippingFormData = {
+  name: string;
+  description: string;
+  price: number;
+  estimatedDays: string;
+  enabled: boolean;
+};
+
+const EMPTY_SHIPPING_FORM: ShippingFormData = {
+  name: '',
+  description: '',
+  price: 0,
+  estimatedDays: '',
+  enabled: true,
+};
+
+const ShippingMethods: React.FC = () => {
+  const [methods, setMethods] = React.useState<ShippingMethod[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [saving, setSaving] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+
+  // Edit modal state
+  const [showEditModal, setShowEditModal] = React.useState(false);
+  const [editingMethod, setEditingMethod] = React.useState<ShippingMethod | null>(null);
+  const [editForm, setEditForm] = React.useState<ShippingFormData>(EMPTY_SHIPPING_FORM);
+
+  // Add modal state
+  const [showAddModal, setShowAddModal] = React.useState(false);
+  const [addForm, setAddForm] = React.useState<ShippingFormData>(EMPTY_SHIPPING_FORM);
+
+  // ── Fetch shipping methods from Firestore ────────────────────────────────────
+  const fetchMethods = React.useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const snap = await getDocs(collection(db, 'shippingMethods'));
+      const fetched: ShippingMethod[] = snap.docs.map(d => ({
+        id: d.id,
+        name: (d.data().name as string) ?? '',
+        description: (d.data().description as string) ?? '',
+        price: (d.data().price as number) ?? 0,
+        estimatedDays: (d.data().estimatedDays as string) ?? '',
+        enabled: (d.data().enabled as boolean) ?? true,
+        updatedAt: tsToIso(d.data().updatedAt),
+      }));
+      // Seed with defaults if collection is empty
+      if (fetched.length === 0) {
+        setMethods([
+          { id: 'standard', name: 'Standard Shipping', description: 'Regular delivery to your doorstep', price: 99, estimatedDays: '5–7 days', enabled: true },
+          { id: 'express', name: 'Express Shipping', description: 'Faster delivery, prioritized handling', price: 199, estimatedDays: '2–3 days', enabled: true },
+          { id: 'same_day', name: 'Same-Day Delivery', description: 'Order before 12 PM for same-day delivery', price: 349, estimatedDays: 'Same day', enabled: false },
+        ]);
+      } else {
+        setMethods(fetched);
+      }
+    } catch (err) {
+      setError('Failed to load shipping methods. Check your Firestore permissions.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => { fetchMethods(); }, [fetchMethods]);
+
+  // ── Toggle enabled ────────────────────────────────────────────────────────────
+  const handleToggleEnabled = async (method: ShippingMethod) => {
+    const newEnabled = !method.enabled;
+    setMethods(prev => prev.map(m => m.id === method.id ? { ...m, enabled: newEnabled } : m));
+    try {
+      const ref = doc(db, 'shippingMethods', method.id);
+      await updateDoc(ref, { enabled: newEnabled, updatedAt: serverTimestamp() }).catch(async () => {
+        await addDoc(collection(db, 'shippingMethods'), { ...method, enabled: newEnabled, updatedAt: serverTimestamp() });
+      });
+    } catch (err) {
+      setError('Failed to update shipping method.');
+      setMethods(prev => prev.map(m => m.id === method.id ? { ...m, enabled: !newEnabled } : m));
+      console.error(err);
+    }
+  };
+
+  // ── Open edit modal ───────────────────────────────────────────────────────────
+  const handleEditMethod = (method: ShippingMethod) => {
+    setEditingMethod(method);
+    setEditForm({
+      name: method.name,
+      description: method.description,
+      price: method.price,
+      estimatedDays: method.estimatedDays,
+      enabled: method.enabled,
+    });
+    setShowEditModal(true);
+  };
+
+  // ── Submit edit ───────────────────────────────────────────────────────────────
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingMethod) return;
+    setSaving(true);
+    try {
+      const payload = { ...editForm, updatedAt: serverTimestamp() };
+      const ref = doc(db, 'shippingMethods', editingMethod.id);
+      try {
+        await updateDoc(ref, payload);
+      } catch {
+        await addDoc(collection(db, 'shippingMethods'), { id: editingMethod.id, ...payload });
+      }
+      setMethods(prev => prev.map(m => m.id === editingMethod.id ? { ...m, ...editForm } : m));
+      setShowEditModal(false);
+      setEditingMethod(null);
+    } catch (err) {
+      setError('Failed to save shipping method.');
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ── Submit add ────────────────────────────────────────────────────────────────
+  const handleAddSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const id = addForm.name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+      if (methods.find(m => m.id === id)) {
+        setError(`A shipping method named "${addForm.name}" already exists.`);
+        setSaving(false);
+        return;
+      }
+      const payload = { ...addForm, updatedAt: serverTimestamp() };
+      const docRef = await addDoc(collection(db, 'shippingMethods'), { id, ...payload });
+      setMethods(prev => [...prev, { id: docRef.id, ...addForm }]);
+      setShowAddModal(false);
+      setAddForm(EMPTY_SHIPPING_FORM);
+    } catch (err) {
+      setError('Failed to add shipping method.');
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ── Delete ────────────────────────────────────────────────────────────────────
+  const handleDeleteMethod = async (method: ShippingMethod) => {
+    if (!window.confirm(`Delete "${method.name}"? This cannot be undone.`)) return;
+    try {
+      await deleteDoc(doc(db, 'shippingMethods', method.id));
+      setMethods(prev => prev.filter(m => m.id !== method.id));
+    } catch (err) {
+      setError('Failed to delete shipping method.');
+      console.error(err);
+    }
+  };
+
+  // ── Toggle switch ─────────────────────────────────────────────────────────────
+  const Toggle = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => (
+    <button
+      type="button"
+      onClick={onChange}
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${checked ? 'bg-green-600' : 'bg-gray-300'}`}
+      aria-pressed={checked}
+      title={checked ? 'Disable' : 'Enable'}
+    >
+      <span className={`inline-block h-5 w-5 transform rounded-full bg-white border border-gray-200 transition-transform ${checked ? 'translate-x-5' : 'translate-x-1'}`} />
+    </button>
+  );
+
+  // ── Shared form fields ────────────────────────────────────────────────────────
+  const ShippingFormFields = ({
+    values,
+    onChange,
+  }: {
+    values: ShippingFormData;
+    onChange: (patch: Partial<ShippingFormData>) => void;
+  }) => (
+    <>
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Method Name</label>
+        <input
+          type="text"
+          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+          placeholder="e.g. Standard Shipping"
+          value={values.name}
+          onChange={e => onChange({ name: e.target.value })}
+          required
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Description</label>
+        <input
+          type="text"
+          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+          placeholder="e.g. Regular delivery to your doorstep"
+          value={values.description}
+          onChange={e => onChange({ description: e.target.value })}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Price (₱)</label>
+          <input
+            type="number"
+            min={0}
+            step={0.01}
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+            value={values.price}
+            onChange={e => onChange({ price: parseFloat(e.target.value) || 0 })}
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Estimated Delivery</label>
+          <input
+            type="text"
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+            placeholder="e.g. 3–5 days"
+            value={values.estimatedDays}
+            onChange={e => onChange({ estimatedDays: e.target.value })}
+          />
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="shippingEnabled"
+          checked={values.enabled}
+          onChange={e => onChange({ enabled: e.target.checked })}
+          className="h-4 w-4 text-green-600 border-gray-300 rounded"
+        />
+        <label htmlFor="shippingEnabled" className="text-sm font-medium text-gray-700">
+          Enable this shipping method
+        </label>
+      </div>
+    </>
+  );
+
+  return (
+    <div className="space-y-8">
+      {/* Error banner */}
+      {error && (
+        <div className="flex items-center gap-2 p-3 rounded-md bg-red-50 border border-red-200 text-red-700 text-sm">
+          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+          {error}
+          <button className="ml-auto text-red-500 hover:text-red-700" onClick={() => setError(null)}>✕</button>
+        </div>
+      )}
+
+      {/* ── Shipping Methods List ─────────────────────────────────────────────── */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-medium text-gray-900">Shipping Methods</h3>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Configure delivery options available at checkout.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={fetchMethods}
+              className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 text-gray-600"
+              title="Refresh"
+            >↻</button>
+            <button
+              type="button"
+              onClick={() => setShowAddModal(true)}
+              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+            >
+              <Plus className="h-4 w-4" /> Add Method
+            </button>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="flex items-center gap-2 py-8 text-gray-400 justify-center">
+            <Loader2 className="h-5 w-5 animate-spin" /> Loading shipping methods…
+          </div>
+        ) : methods.length === 0 ? (
+          <div className="py-8 text-center text-gray-400 text-sm">No shipping methods found.</div>
+        ) : (
+          <div className="bg-gray-50 rounded-lg border border-gray-200 divide-y divide-gray-200">
+            {methods.map(method => (
+              <div key={method.id} className="flex items-center px-6 py-4 gap-4">
+                {/* Icon */}
+                <span className="inline-flex items-center justify-center h-10 w-10 rounded bg-green-50 flex-shrink-0">
+                  <svg className="h-5 w-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8l-1 9a2 2 0 002 2h12a2 2 0 002-2L19 8m-9 4h4" />
+                  </svg>
+                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-gray-900">{method.name}</div>
+                  <div className="text-sm text-gray-500">{method.description}</div>
+                  <div className="text-xs text-gray-400 mt-0.5 flex items-center gap-3">
+                    {method.estimatedDays && <span>🕐 {method.estimatedDays}</span>}
+                    <span className="font-medium text-green-700">₱{method.price.toFixed(2)}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 flex-shrink-0">
+                  <span className={`px-2 py-1 rounded text-xs font-semibold ${method.enabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                    {method.enabled ? 'Enabled' : 'Disabled'}
+                  </span>
+                  <Toggle checked={method.enabled} onChange={() => handleToggleEnabled(method)} />
+                  <button
+                    className="p-2 rounded hover:bg-gray-100"
+                    title="Edit"
+                    onClick={() => handleEditMethod(method)}
+                  >
+                    <Pencil className="h-4 w-4 text-gray-500" />
+                  </button>
+                  <button
+                    className="p-2 rounded hover:bg-red-50"
+                    title="Delete"
+                    onClick={() => handleDeleteMethod(method)}
+                  >
+                    <Trash2 className="h-4 w-4 text-red-400" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── Edit Shipping Method Modal ────────────────────────────────────────── */}
+      {showEditModal && editingMethod && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Edit Shipping Method</h3>
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              <ShippingFormFields
+                values={editForm}
+                onChange={patch => setEditForm(f => ({ ...f, ...patch }))}
+              />
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded bg-gray-200 text-gray-700"
+                  onClick={() => { setShowEditModal(false); setEditingMethod(null); }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex items-center gap-2 px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800 disabled:opacity-60"
+                >
+                  {saving && <Loader2 className="h-4 w-4 animate-spin" />} Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Add Shipping Method Modal ─────────────────────────────────────────── */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Add Shipping Method</h3>
+            <form onSubmit={handleAddSubmit} className="space-y-4">
+              <ShippingFormFields
+                values={addForm}
+                onChange={patch => setAddForm(f => ({ ...f, ...patch }))}
+              />
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded bg-gray-200 text-gray-700"
+                  onClick={() => { setShowAddModal(false); setAddForm(EMPTY_SHIPPING_FORM); }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex items-center gap-2 px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800 disabled:opacity-60"
+                >
+                  {saving && <Loader2 className="h-4 w-4 animate-spin" />} Add Method
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const NotificationSettings: React.FC = () => {
   const [emailNotifications, setEmailNotifications] = React.useState({
     newOrder: true,
@@ -1178,6 +1578,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ activeSettingsTab, onTabC
     { key: 'store', label: 'Store Settings' },
     { key: 'users', label: 'User Management' },
     { key: 'payment', label: 'Payment Methods' },
+    { key: 'shipping', label: 'Shipping Methods' },
     { key: 'notifications', label: 'Notifications' },
     { key: 'security', label: 'Security' },
   ];
@@ -1207,6 +1608,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ activeSettingsTab, onTabC
       {activeSettingsTab === 'store' && <StoreSettings />}
       {activeSettingsTab === 'users' && <UserManagement />}
       {activeSettingsTab === 'payment' && <PaymentMethods />}
+      {activeSettingsTab === 'shipping' && <ShippingMethods />}
       {activeSettingsTab === 'notifications' && <NotificationSettings />}
       {activeSettingsTab === 'security' && <SecuritySettings />}
     </div>
