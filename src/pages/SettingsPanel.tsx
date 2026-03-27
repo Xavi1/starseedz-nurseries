@@ -1205,7 +1205,7 @@ const ShippingMethods: React.FC = () => {
           id="shippingEnabled"
           checked={values.enabled}
           onChange={e => onChange({ enabled: e.target.checked })}
-          className="h-4 w-4 text-green-600 border-gray-300 rounded"
+          className="h-4 w-4 text-green-600 border-gray-300 rounded accent-green-600"
         />
         <label htmlFor="shippingEnabled" className="text-sm font-medium text-gray-700">
           Enable this shipping method
