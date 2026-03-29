@@ -78,9 +78,18 @@ function tsToIso(val: unknown): string {
   return '';
 }
 
-// ── User Roles (static – not stored in Firestore) ──────────────────────────────
+// ── User Roles ─────────────────────────────────────────────────────────────────
 
-const initialRoles = [
+interface FirestoreRole {
+  id: string;        // Firestore document ID
+  name: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Seeded into Firestore the very first time (when the collection is empty) */
+const DEFAULT_ROLES = [
   { name: 'Administrator', description: 'Full access to all settings and data' },
   { name: 'Manager', description: 'Can manage products, orders, and customers' },
   { name: 'Staff', description: 'Can view orders and manage inventory' },
@@ -95,12 +104,14 @@ const UserManagement: React.FC = () => {
   const [error, setError] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
 
-  // Roles (local)
-  const [roles, setRoles] = React.useState(initialRoles);
+  // Roles (Firestore-backed)
+  const [roles, setRoles] = React.useState<FirestoreRole[]>([]);
+  const [rolesLoading, setRolesLoading] = React.useState(true);
+  const [roleSaving, setRoleSaving] = React.useState(false);
   const [showRoleModal, setShowRoleModal] = React.useState(false);
   const [roleForm, setRoleForm] = React.useState({ name: '', description: '' });
   const [showEditRoleModal, setShowEditRoleModal] = React.useState(false);
-  const [editRoleIndex, setEditRoleIndex] = React.useState<number | null>(null);
+  const [editingRole, setEditingRole] = React.useState<FirestoreRole | null>(null);
   const [editRoleForm, setEditRoleForm] = React.useState({ name: '', description: '' });
 
   // Add user modal
@@ -146,6 +157,45 @@ const UserManagement: React.FC = () => {
   }, []);
 
   React.useEffect(() => { fetchUsers(); }, [fetchUsers]);
+
+  // ── Fetch / seed roles from Firestore ──────────────────────────────────────
+
+  const fetchRoles = React.useCallback(async () => {
+    setRolesLoading(true);
+    try {
+      const snapshot = await getDocs(collection(db, 'roles'));
+      if (snapshot.empty) {
+        // First run: seed default roles into Firestore
+        const now = serverTimestamp();
+        const isoNow = new Date().toISOString();
+        const seeded: FirestoreRole[] = [];
+        for (const r of DEFAULT_ROLES) {
+          const docRef = await addDoc(collection(db, 'roles'), { ...r, createdAt: now, updatedAt: now });
+          seeded.push({ id: docRef.id, ...r, createdAt: isoNow, updatedAt: isoNow });
+        }
+        setRoles(seeded);
+      } else {
+        const fetched: FirestoreRole[] = snapshot.docs.map(d => {
+          const data = d.data();
+          return {
+            id: d.id,
+            name: data.name ?? '',
+            description: data.description ?? '',
+            createdAt: tsToIso(data.createdAt),
+            updatedAt: tsToIso(data.updatedAt),
+          };
+        });
+        setRoles(fetched);
+      }
+    } catch (err) {
+      setError('Failed to load roles. Check your Firestore permissions.');
+      console.error(err);
+    } finally {
+      setRolesLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => { fetchRoles(); }, [fetchRoles]);
 
   // ── Add user ───────────────────────────────────────────────────────────────
 
@@ -229,35 +279,62 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  // ── Roles (local) ──────────────────────────────────────────────────────────
+  // ── Roles (Firestore) ──────────────────────────────────────────────────────
 
-  const handleEditRole = (idx: number) => {
-    setEditRoleIndex(idx);
-    setEditRoleForm(roles[idx]);
+  const handleEditRole = (role: FirestoreRole) => {
+    setEditingRole(role);
+    setEditRoleForm({ name: role.name, description: role.description });
     setShowEditRoleModal(true);
   };
 
-  const handleEditRoleSubmit = (e: React.FormEvent) => {
+  const handleEditRoleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editRoleIndex !== null) {
-      const updated = [...roles];
-      updated[editRoleIndex] = editRoleForm;
-      setRoles(updated);
+    if (!editingRole) return;
+    setRoleSaving(true);
+    try {
+      const ref = doc(db, 'roles', editingRole.id);
+      await updateDoc(ref, { ...editRoleForm, updatedAt: serverTimestamp() });
+      const isoNow = new Date().toISOString();
+      setRoles(prev =>
+        prev.map(r => r.id === editingRole.id ? { ...r, ...editRoleForm, updatedAt: isoNow } : r)
+      );
       setShowEditRoleModal(false);
-      setEditRoleIndex(null);
+      setEditingRole(null);
+    } catch (err) {
+      setError('Failed to update role.');
+      console.error(err);
+    } finally {
+      setRoleSaving(false);
     }
   };
 
-  const handleAddRole = (e: React.FormEvent) => {
+  const handleAddRole = async (e: React.FormEvent) => {
     e.preventDefault();
-    setRoles(prev => [...prev, roleForm]);
-    setShowRoleModal(false);
-    setRoleForm({ name: '', description: '' });
+    setRoleSaving(true);
+    try {
+      const now = serverTimestamp();
+      const docRef = await addDoc(collection(db, 'roles'), { ...roleForm, createdAt: now, updatedAt: now });
+      const isoNow = new Date().toISOString();
+      setRoles(prev => [...prev, { id: docRef.id, ...roleForm, createdAt: isoNow, updatedAt: isoNow }]);
+      setShowRoleModal(false);
+      setRoleForm({ name: '', description: '' });
+    } catch (err) {
+      setError('Failed to add role.');
+      console.error(err);
+    } finally {
+      setRoleSaving(false);
+    }
   };
 
-  const handleDeleteRole = (idx: number) => {
-    if (!window.confirm(`Delete role "${roles[idx].name}"? This cannot be undone.`)) return;
-    setRoles(prev => prev.filter((_, i) => i !== idx));
+  const handleDeleteRole = async (role: FirestoreRole) => {
+    if (!window.confirm(`Delete role "${role.name}"? This cannot be undone.`)) return;
+    try {
+      await deleteDoc(doc(db, 'roles', role.id));
+      setRoles(prev => prev.filter(r => r.id !== role.id));
+    } catch (err) {
+      setError('Failed to delete role.');
+      console.error(err);
+    }
   };
 
   // ── Shared form field helper ───────────────────────────────────────────────
@@ -483,25 +560,36 @@ const UserManagement: React.FC = () => {
 
       {/* User Roles Section */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">User Roles</h3>
-        <div className="divide-y divide-gray-200 border border-gray-200 rounded-md">
-          {roles.map((role, idx) => (
-            <div className="flex justify-between items-center p-4" key={idx}>
-              <div>
-                <span className="font-semibold text-gray-900">{role.name}</span>
-                <p className="text-sm text-gray-500">{role.description}</p>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">
+          User Roles
+          {!rolesLoading && (
+            <span className="ml-2 text-sm text-gray-400 font-normal">({roles.length} roles)</span>
+          )}
+        </h3>
+        {rolesLoading ? (
+          <div className="flex items-center justify-center py-8 text-gray-400 gap-2">
+            <Loader2 className="h-5 w-5 animate-spin" /> Loading roles from Firestore…
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-200 border border-gray-200 rounded-md">
+            {roles.map(role => (
+              <div className="flex justify-between items-center p-4" key={role.id}>
+                <div>
+                  <span className="font-semibold text-gray-900">{role.name}</span>
+                  <p className="text-sm text-gray-500">{role.description}</p>
+                </div>
+                <div className="flex gap-2">
+                  <button className="p-2 rounded hover:bg-gray-100" title="Edit" onClick={() => handleEditRole(role)}>
+                    <Pencil className="h-4 w-4 text-gray-500" />
+                  </button>
+                  <button className="p-2 rounded hover:bg-red-50" title="Delete" onClick={() => handleDeleteRole(role)}>
+                    <Trash2 className="h-4 w-4 text-red-400" />
+                  </button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <button className="p-2 rounded hover:bg-gray-100" title="Edit" onClick={() => handleEditRole(idx)}>
-                  <Pencil className="h-4 w-4 text-gray-500" />
-                </button>
-                <button className="p-2 rounded hover:bg-red-50" title="Delete" onClick={() => handleDeleteRole(idx)}>
-                  <Trash2 className="h-4 w-4 text-red-400" />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
         <div className="pt-4">
           <button onClick={() => setShowRoleModal(true)} className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
             <Plus className="h-4 w-4" /> Add Role
@@ -510,7 +598,7 @@ const UserManagement: React.FC = () => {
       </div>
 
       {/* Edit Role Modal */}
-      {showEditRoleModal && (
+      {showEditRoleModal && editingRole && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Edit Role</h3>
@@ -524,8 +612,10 @@ const UserManagement: React.FC = () => {
                 <input type="text" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" value={editRoleForm.description} onChange={e => setEditRoleForm(f => ({ ...f, description: e.target.value }))} required />
               </div>
               <div className="flex justify-end gap-2">
-                <button type="button" className="px-4 py-2 rounded bg-gray-200 text-gray-700" onClick={() => setShowEditRoleModal(false)}>Cancel</button>
-                <button type="submit" className="px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800">Save Changes</button>
+                <button type="button" className="px-4 py-2 rounded bg-gray-200 text-gray-700" onClick={() => { setShowEditRoleModal(false); setEditingRole(null); }}>Cancel</button>
+                <button type="submit" disabled={roleSaving} className="flex items-center gap-2 px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800 disabled:opacity-60">
+                  {roleSaving && <Loader2 className="h-4 w-4 animate-spin" />} Save Changes
+                </button>
               </div>
             </form>
           </div>
@@ -548,7 +638,9 @@ const UserManagement: React.FC = () => {
               </div>
               <div className="flex justify-end gap-2">
                 <button type="button" className="px-4 py-2 rounded bg-gray-200 text-gray-700" onClick={() => setShowRoleModal(false)}>Cancel</button>
-                <button type="submit" className="px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800">Add Role</button>
+                <button type="submit" disabled={roleSaving} className="flex items-center gap-2 px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800 disabled:opacity-60">
+                  {roleSaving && <Loader2 className="h-4 w-4 animate-spin" />} Add Role
+                </button>
               </div>
             </form>
           </div>
