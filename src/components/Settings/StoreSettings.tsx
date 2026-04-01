@@ -298,6 +298,7 @@ const StoreSettings: React.FC = () => {
               <option value="SGD">SGD – Singapore Dollar (S$)</option>
               <option value="JPY">JPY – Japanese Yen (¥)</option>
               <option value="AUD">AUD – Australian Dollar (A$)</option>
+              <option value="AUD">TTD – Trinidadian Dollar ($)</option>
             </select>
           </div>
 
