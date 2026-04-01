@@ -291,6 +291,7 @@ const StoreSettings: React.FC = () => {
               value={form.currency}
               onChange={e => patch({ currency: e.target.value })}
             >
+              <option value="AUD">TTD – Trinidadian Dollar ($)</option>
               <option value="PHP">PHP – Philippine Peso (₱)</option>
               <option value="USD">USD – US Dollar ($)</option>
               <option value="EUR">EUR – Euro (€)</option>
@@ -298,7 +299,6 @@ const StoreSettings: React.FC = () => {
               <option value="SGD">SGD – Singapore Dollar (S$)</option>
               <option value="JPY">JPY – Japanese Yen (¥)</option>
               <option value="AUD">AUD – Australian Dollar (A$)</option>
-              <option value="AUD">TTD – Trinidadian Dollar ($)</option>
             </select>
           </div>
 
